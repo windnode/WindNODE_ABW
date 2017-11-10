@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 from setuptools.command.install import install
 import os
 
-BASEPATH='.windnode_abw'
+BASEPATH='.WindNODE_ABW'
 
 
 class InstallSetup(install):
