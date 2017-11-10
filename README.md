@@ -1,2 +1,2 @@
 # windnode_eaa
-EAA Region
+Simulation der Region Anhalt-Bitterfeld-Wittenberg im Projekt WindNODE
