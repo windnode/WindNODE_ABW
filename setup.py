@@ -25,7 +25,7 @@ setup(
     name='windnode_abw',
     version='0.0.1',
     packages=find_packages(),
-    url='https://github.com/windnode/windnode_abw',
+    url='https://github.com/windnode/WindNODE_ABW',
     license='GNU Affero General Public License v3.0',
     author='nesnoj',
     author_email='',
