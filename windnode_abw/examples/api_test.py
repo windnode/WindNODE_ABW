@@ -6,8 +6,10 @@ logging.basicConfig(filename='example.log',
 logger = logging.getLogger('windnode_abw')
 logger.setLevel(logging.DEBUG)
 
+# load configs
 from windnode_abw.tools import config
 config.load_config('config_data.cfg')
+config.load_config('config_misc.cfg')
 
 from windnode_abw.tools.data import oep_get_data
 
