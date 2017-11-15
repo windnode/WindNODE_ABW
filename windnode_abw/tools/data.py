@@ -1,5 +1,4 @@
 from windnode_abw.tools import config
-
 import requests
 import pandas as pd
 import logging

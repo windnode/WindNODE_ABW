@@ -67,6 +67,7 @@ def load_config(filename):
     global _loaded
     _loaded = True
 
+
 def get(section, key):
     """
     returns the value of a given key of a given section of the main
