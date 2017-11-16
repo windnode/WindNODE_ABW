@@ -27,14 +27,17 @@ def oep_get_data(schema, table, columns=[], conditions=[], order=''):
     if not schema or not table:
         raise ValueError('Schema or table not specified.')
 
-    if columns:
-        columns = '&'.join('column='+col for col in columns)
+    columns = '&'.join('column='+col for col in columns)
 
     if conditions:
         conditions = '&' + '&'.join('where='+cond for cond in conditions)
+    else:
+        conditions = ''
 
     if order:
         order = '&order_by=' + order
+    else:
+        order = ''
 
     url = oep_url +\
           '/api/v0/schema/' +\
@@ -47,6 +50,10 @@ def oep_get_data(schema, table, columns=[], conditions=[], order=''):
           order
 
     result = requests.get(url)
-    logger.info('Response from OEP: ' + str(result.status_code))
+    status = str(result.status_code)
+
+    logger.info('Response from OEP: ' + status + ', elapsed time: ' + str(result.elapsed))
+    if status != '200':
+        logger.exception('Something went wrong during data retrieval from OEP: ')
 
     return pd.DataFrame(result.json())
