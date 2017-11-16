@@ -20,6 +20,11 @@ def oep_get_data(schema, table, columns=[], conditions=[], order=''):
         Conditions to be applied on query
     order : :obj:`str`
         Column which data is sorted by (ascending)
+
+    Returns
+    -------
+    :pandas:`pandas.DataFrame<dataframe>`
+        Requested data
     """
 
     oep_url = config.get('data', 'oep_url')
