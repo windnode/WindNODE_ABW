@@ -38,7 +38,7 @@ buses = oep_get_data(schema='model_draft',
                      columns=['bus_id'])
 lines = oep_get_data(schema='model_draft',
                      table='wn_abw_ego_pf_hv_line',
-                     columns=['line_id'])
+                     columns=['line_id', 'bus0', 'bus1', 's_nom'])
 
 # # get grid districts
 # districts = oep_get_data(schema='model_draft',
@@ -47,5 +47,5 @@ lines = oep_get_data(schema='model_draft',
 
 # determine exchange capacities between districts
 
-build_oemof_model(buses=buses,
-                  lines=lines)
+build_oemof_model(bus_data=buses,
+                  line_data=lines)
