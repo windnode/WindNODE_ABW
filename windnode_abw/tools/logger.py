@@ -24,6 +24,10 @@ def setup_logger(log_dir=None, loglevel=logging.DEBUG):
     if log_dir is None:
         log_dir = os.path.join(config.get_data_root_dir(), config.get('user_dirs', 'log_dir'))
 
+    # log dir dir does not exist
+    if not os.path.isdir(log_dir):
+        os.mkdir(log_dir)
+
     logger = logging.getLogger('windnode_abw') # use filename as name in log
     logger.setLevel(loglevel)
 

@@ -9,6 +9,7 @@
 
 # root_dir: defines the parent directory for user files which is created in /home/<user>/
 root_dir = .windnode_abw
+config_dir = config
 data_dir = data
 log_dir = log
 results_dir = results
