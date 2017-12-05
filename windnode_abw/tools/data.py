@@ -1,9 +1,30 @@
+import logging
+logger = logging.getLogger('windnode_abw')
 from windnode_abw.tools import config
+
 import os
 import requests
 import pandas as pd
-import logging
-logger = logging.getLogger('windnode_abw')
+import keyring
+
+
+def oep_get_token():
+    """Read token (password) from system's keyring
+
+    Returns
+    -------
+    :obj:`str`
+        Token
+    """
+    service = 'OEP'
+    user = 'token'
+
+    token = keyring.get_password(service, user)
+
+    if token:
+        return token
+    else:
+        raise ValueError('No token found in keyring!')
 
 
 def oep_get_data(schema, table, columns=[], conditions=[], order=''):
