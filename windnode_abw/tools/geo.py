@@ -1,8 +1,11 @@
-import pyproj
-from functools import partial
-from windnode_abw.tools import config
 import logging
 logger = logging.getLogger('windnode_abw')
+from windnode_abw.tools import config
+
+import pyproj
+from functools import partial
+from shapely.wkb import loads as wkb_loads
+from shapely.wkb import dumps as wkb_dumps
 
 
 def proj2equidistant():
@@ -37,3 +40,41 @@ def proj2conformal():
                    pyproj.Proj(init='epsg:{}'
                                .format(str(srid)))  # destination coordinate system
                    )
+
+
+def convert_df_wkb_to_shapely(df, cols=[]):
+    """Convert geometry columns of DataFrame from WKB to shapely object columns
+
+    Parameters
+    ----------
+    df : :pandas:`pandas.DataFrame<dataframe>`
+    cols : :obj:`list` of :obj:`str`
+        Column names
+    Returns
+    -------
+    :pandas:`pandas.DataFrame<dataframe>`
+        DataFrame with converted columns
+    """
+    for col in cols:
+        df[col] = df[col].apply(lambda x: wkb_loads(x, hex=True))
+
+    return df
+
+
+def convert_df_shapely_to_wkb(df, cols=[]):
+    """Convert geometry columns of DataFrame from shapely object columns to WKB
+
+    Parameters
+    ----------
+    df : :pandas:`pandas.DataFrame<dataframe>`
+    cols : :obj:`list` of :obj:`str`
+        Column names
+    Returns
+    -------
+    :pandas:`pandas.DataFrame<dataframe>`
+        DataFrame with converted columns
+    """
+    for col in cols:
+        df[col] = df[col].apply(lambda x: wkb_dumps(x, hex=True))
+
+    return df
