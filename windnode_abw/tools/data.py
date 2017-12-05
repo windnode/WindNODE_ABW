@@ -86,6 +86,60 @@ def oep_get_data(schema, table, columns=[], conditions=[], order=''):
     return pd.DataFrame(result.json())
 
 
+def oep_write_data(schema, table, data):
+    """Write datasets to a table on the Open Energy Platform (OEP) / Database
+
+    Parameters
+    ----------
+    schema : :obj:`str`
+        Database schema
+    table : :obj:`str`
+        Database table
+    data : :pandas:`pandas.DataFrame<dataframe>`
+        Data to be written. Column names of DataFrame have to equal column names of table.
+        Note: If data involves geometries, they must follow WKB format.
+
+    Returns
+    -------
+    :pandas:`pandas.DataFrame<dataframe>`
+        Response, such as ids of inserted data
+    """
+
+    oep_url = config.get('data', 'oep_url')
+
+    if not schema or not table:
+        raise ValueError('Schema or table not specified.')
+
+    url = oep_url +\
+          '/api/v0/schema/' +\
+          schema +\
+          '/tables/' +\
+          table +\
+          '/rows/new'
+
+    dataset = data.to_dict('records')
+
+    # dataset = []
+    # for idx, row in data.iterrows():
+    #     dataset.append({'subst_id0': str(row['hvmv_subst_id0']),
+    #                     'subst_id1': str(row['hvmv_subst_id1']),
+    #                     'capacity': str(row['s_nom'])})
+    #
+    # dataset = {'id': 1, 'subst_id0': 1,
+    #            'subst_id1': 2, 'capacity': 100}
+
+    result = requests.post(url,
+                           json={'query': dataset},
+                           headers={'Authorization': 'Token %s'%oep_get_token()})
+    status = str(result.status_code)
+
+    logger.info('Response from OEP: ' + status + ', elapsed time: ' + str(result.elapsed))
+    if status != '200':
+        logger.exception('Something went wrong during data retrieval from OEP: ')
+
+    return pd.DataFrame(result.json())
+
+
 def oemof_nodes_from_excel(filename, header_lines=0):
     """
 
