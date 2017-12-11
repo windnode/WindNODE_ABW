@@ -50,28 +50,28 @@ substations = convert_df_wkb_to_shapely(df=substations,
 substations.set_index('subst_id', inplace=True)
 
 # determine exchange capacities between districts
-transport_data = reduce_to_regions(bus_data=buses,
-                                   line_data=lines)
+transport = reduce_to_regions(bus_data=buses,
+                              line_data=lines)
 
 # prepare transport data for writig to OEP
 # join HV-MV substation ids drom buses on lines
-geoms = pd.concat([transport_data.join(substations,
-                                       on='hvmv_subst_id0')['geom'].rename('geom0'),
-                   transport_data.join(substations,
-                                       on='hvmv_subst_id1')['geom'].rename('geom1')],
+geoms = pd.concat([transport.join(substations,
+                                  on='hvmv_subst_id0')['geom'].rename('geom0'),
+                   transport.join(substations,
+                                  on='hvmv_subst_id1')['geom'].rename('geom1')],
                   axis=1)
 def to_linestring(df):
     return LineString([df['geom0'], df['geom1']])
-transport_data.loc[:,'geom'] = geoms.apply(to_linestring, axis=1)
+transport.loc[:,'geom'] = geoms.apply(to_linestring, axis=1)
 
 
-oep_write_data(schema='model_draft',
-               table='wn_abw_region_transport',
-               data=convert_df_shapely_to_wkb(df=transport_data,
-                                              cols=['geom']))
+# oep_write_data(schema='model_draft',
+#                table='wn_abw_region_transport',
+#                data=convert_df_shapely_to_wkb(df=transport_data,
+#                                               cols=['geom']))
 
-draw_region_graph(subst_data=substations,
-                  line_data=transport_data)
+# draw_region_graph(subst_data=substations,
+#                   line_data=transport_data)
 
-build_oemof_model(bus_data=buses,
-                  line_data=lines)
+build_oemof_model(subst_data=substations,
+                  transport_data=transport)
