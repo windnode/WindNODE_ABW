@@ -10,7 +10,7 @@ config.load_config('config_misc.cfg')
 from windnode_abw.tools.data import oep_get_data, oep_write_data
 from windnode_abw.tools.geo import convert_df_wkb_to_shapely, convert_df_shapely_to_wkb
 from windnode_abw.model.region.model import build_oemof_model
-from windnode_abw.model.region.tools import reduce_to_regions, draw_region_graph
+from windnode_abw.model.region.tools import reduce_to_regions, region_graph
 
 import pandas as pd
 from shapely.geometry import LineString
@@ -70,8 +70,16 @@ transport.loc[:,'geom'] = geoms.apply(to_linestring, axis=1)
 #                data=convert_df_shapely_to_wkb(df=transport_data,
 #                                               cols=['geom']))
 
-# draw_region_graph(subst_data=substations,
-#                   line_data=transport_data)
+graph = region_graph(subst_data=substations,
+                     line_data=transport,
+                     rm_isolates=True,
+                     draw=True)
+
+# remove isolated grids (substations and lines)
+nodes = list(graph.nodes())
+substations = substations.loc[nodes]
+transport = transport[transport['hvmv_subst_id0'].isin(nodes) &
+                      transport['hvmv_subst_id1'].isin(nodes)]
 
 build_oemof_model(subst_data=substations,
                   transport_data=transport)

@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 
 def draw_graph(grph, edge_labels=True, node_color='#AFAFAF',
                edge_color='#CFCFCF', plot=True, node_size=2000,
-               with_labels=True, arrows=True, layout='neato'):
+               with_labels=True, arrows=True, layout='neato',
+               node_pos = None, font_size=10):
     """
     Draw a graph (from oemof examples)
 
@@ -46,11 +47,15 @@ def draw_graph(grph, edge_labels=True, node_color='#AFAFAF',
         'node_color': node_color,
         'edge_color': edge_color,
         'node_size': node_size,
-        'arrows': arrows
+        'arrows': arrows,
+        'font_size': font_size
     }
 
     # draw graph
-    pos = nx.drawing.nx_agraph.graphviz_layout(grph, prog=layout)
+    if node_pos is None:
+        pos = nx.drawing.nx_agraph.graphviz_layout(grph, prog=layout)
+    else:
+        pos = node_pos
 
     nx.draw(grph, pos=pos, **options)
 

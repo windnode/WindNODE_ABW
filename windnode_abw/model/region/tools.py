@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger('windnode_abw')
+
 import pandas as pd
 from pandas import compat
 import networkx as nx
@@ -23,6 +26,17 @@ def remove_isolates():
 
 def reduce_to_regions(bus_data,
                       line_data):
+    """Reduce/sum existing transport capacities to capacities between region pairs
+
+    Parameters
+    ----------
+    bus_data
+    line_data
+
+    Returns
+    -------
+
+    """
 
     def _to_dict_dropna(data):
         return dict((k, v.dropna().to_dict()) for k, v in compat.iteritems(data))
@@ -69,9 +83,54 @@ def reduce_to_regions(bus_data,
     return line_data_grouped
 
 
-def draw_region_graph(subst_data,
-                      line_data):
+def region_graph(subst_data,
+                 line_data,
+                 rm_isolates=False,
+                 draw=False):
+    """Create graph representation of grid from substation and line data
 
+    Parameters
+    ----------
+    subst_data
+    line_data
+    rm_isolates
+    draw
+
+    Returns
+    -------
+    networkx.Graph
+        Graph representation of grid
+    """
+
+    def _find_main_graph(graph):
+        """Remove isolated grids (subgraphs) of grid/graph
+
+        Parameters
+        ----------
+        graph : networkx.Graph
+
+        Returns
+        -------
+        networkx.Graph
+        """
+
+        subgraphs = {len(sg.nodes()): sg for sg in nx.connected_component_subgraphs(graph)}
+
+        if len(subgraphs) > 1:
+            logger.warning('Region consists of {g_cnt} separate (unconnected) grids with node counts '
+                           '{n_cnt}. The grid with max. node count is used, the others are dropped.'
+                           .format(g_cnt=str(len(subgraphs)),
+                                   n_cnt=str(list(subgraphs.keys()))
+                                   )
+                           )
+
+            # use subgraph with max. count of nodes
+            subgraph_used = subgraphs[max(list(subgraphs.keys()))]
+            #subgraphs_dropped = [sg for n_cnt, sg in subgraphs.iteritems() if n_cnt != max(list(subgraphs.keys()))]
+
+            return subgraph_used
+
+    # create graph
     graph = nx.Graph()
     npos = {}
     elabels = {}
@@ -88,10 +147,16 @@ def draw_region_graph(subst_data,
         elabels[(source, target)] = str(int(row['capacity']))
         graph.add_edge(source, target)
 
-    plt.figure()
-    #nx.draw_networkx(graph, pos=npos, node_size=30, font_size=8)
-    nx.draw(graph, pos=npos)
-    nx.draw_networkx_edge_labels(graph, pos=npos, edge_labels=elabels)
-    plt.show()
+    # remove isolated grids (graphs)
+    if rm_isolates:
+        graph = _find_main_graph(graph=graph)
 
-    list(nx.connected_component_subgraphs(graph))
+    # draw graph
+    if draw:
+        plt.figure()
+        nx.draw_networkx(graph, pos=npos, with_labels=True, font_size=8)
+        nx.draw_networkx_edge_labels(graph, pos=npos, edge_labels=elabels, font_size=8)
+        plt.show()
+
+    return graph
+
