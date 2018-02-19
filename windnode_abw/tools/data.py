@@ -27,7 +27,7 @@ def oep_get_token():
         raise ValueError('No token found in keyring!')
 
 
-def oep_get_data(schema, table, columns=[], conditions=[], order=''):
+def oep_api_get_data(schema, table, columns=[], conditions=[], order=''):
     """Retrieve data from Open Energy Platform (OEP) / Database
 
     Parameters
@@ -86,7 +86,7 @@ def oep_get_data(schema, table, columns=[], conditions=[], order=''):
     return pd.DataFrame(result.json())
 
 
-def oep_write_data(schema, table, data):
+def oep_api_write_data(schema, table, data):
     """Write datasets to a table on the Open Energy Platform (OEP) / Database
 
     Parameters

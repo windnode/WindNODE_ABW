@@ -7,7 +7,7 @@ from windnode_abw.tools import config
 config.load_config('config_data.cfg')
 config.load_config('config_misc.cfg')
 
-from windnode_abw.tools.data import oep_get_data, oep_write_data
+from windnode_abw.tools.data import oep_api_get_data, oep_api_write_data
 from windnode_abw.tools.geo import convert_df_wkb_to_shapely, convert_df_shapely_to_wkb
 from windnode_abw.model.region.model import build_oemof_model
 from windnode_abw.model.region.tools import reduce_to_regions, region_graph, grid_graph
@@ -28,29 +28,29 @@ from shapely.geometry import LineString
 # 3.
 
 # # get Kreise
-# krs = oep_get_data(schema='model_draft',
+# krs = oep_api_get_data(schema='model_draft',
 #                    table='wn_abw_bkg_vg250_4_krs',
 #                    columns=['id', 'geom'])
 
 # get HV grid
-buses = oep_get_data(schema='model_draft',
-                     table='wn_abw_ego_pf_hv_bus',
-                     columns=['bus_id', 'hvmv_subst_id', 'region_bus', 'geom'])
+buses = oep_api_get_data(schema='model_draft',
+                         table='wn_abw_ego_pf_hv_bus',
+                         columns=['bus_id', 'hvmv_subst_id', 'region_bus', 'geom'])
 buses = convert_df_wkb_to_shapely(df=buses,
                                   cols=['geom'])
 
-lines = oep_get_data(schema='model_draft',
-                     table='wn_abw_ego_pf_hv_line',
-                     columns=['line_id', 'bus0', 'bus1', 's_nom'])
+lines = oep_api_get_data(schema='model_draft',
+                         table='wn_abw_ego_pf_hv_line',
+                         columns=['line_id', 'bus0', 'bus1', 's_nom'])
 
-trafos = oep_get_data(schema='model_draft',
-                      table='wn_abw_ego_pf_hv_transformer',
-                      columns=['trafo_id', 'bus0', 'bus1', 's_nom', 'geom'])
+trafos = oep_api_get_data(schema='model_draft',
+                          table='wn_abw_ego_pf_hv_transformer',
+                          columns=['trafo_id', 'bus0', 'bus1', 's_nom', 'geom'])
 
 # get grid districts
-substations = oep_get_data(schema='model_draft',
-                           table='wn_abw_ego_dp_hvmv_substation',
-                           columns=['subst_id', 'otg_id', 'geom'])
+substations = oep_api_get_data(schema='model_draft',
+                               table='wn_abw_ego_dp_hvmv_substation',
+                               columns=['subst_id', 'otg_id', 'geom'])
 substations = convert_df_wkb_to_shapely(df=substations,
                                         cols=['geom'])
 substations.set_index('subst_id', inplace=True)
@@ -72,7 +72,7 @@ transport = reduce_to_regions(bus_data=buses,
 # transport.loc[:,'geom'] = geoms.apply(to_linestring, axis=1)
 
 
-# oep_write_data(schema='model_draft',
+# oep_api_write_data(schema='model_draft',
 #                table='wn_abw_region_transport',
 #                data=convert_df_shapely_to_wkb(df=transport_data,
 #                                               cols=['geom']))
