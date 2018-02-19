@@ -32,7 +32,8 @@ setup(
     description='A regional simulation model',
     install_requires = [
         'eDisGo >=0.0.1, <=0.0.1',
-        'oemof >=0.1.4',
+        'egoio >= 0.3.0, <= 0.3.0',
+        'oemof >=0.2.0',
         'oemof.db >=0.0.5',
         'shapely >= 1.5.12',
         'pandas >=0.20.3',
