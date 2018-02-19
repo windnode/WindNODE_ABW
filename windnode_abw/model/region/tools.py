@@ -49,7 +49,7 @@ def reduce_to_regions(bus_data,
     # bus data needs bus_id as index
     bus_data_nogeom.set_index('bus_id', inplace=True)
 
-    # join HV-MV substation ids drom buses on lines
+    # join HV-MV substation ids from buses on lines
     line_data = line_data.join(bus_data_nogeom, on='bus0')
     line_data.rename(columns={'hvmv_subst_id': 'hvmv_subst_id0'}, inplace=True)
     line_data = line_data.join(bus_data_nogeom, on='bus1')
@@ -160,3 +160,68 @@ def region_graph(subst_data,
 
     return graph
 
+
+def grid_graph(bus_data,
+               line_data,
+               subst_data,
+               trafo_data,
+               draw=False):
+    """Create graph representation of grid from substation and line data
+
+    Parameters
+    ----------
+    bus_data
+    line_data
+    draw
+
+    Returns
+    -------
+    networkx.Graph
+        Graph representation of grid
+    """
+
+    # create graph
+    graph = nx.Graph()
+    npos = {}
+    elabels = {}
+    nodes_color = []
+
+    bus_data.set_index('bus_id', inplace=True)
+
+    for idx, row in line_data.iterrows():
+        source = row['bus0']
+        geom = bus_data.loc[source]['geom']
+        npos[source] = (geom.x, geom.y)
+
+        target = row['bus1']
+        geom = bus_data.loc[target]['geom']
+        npos[target] = (geom.x, geom.y)
+
+        elabels[(source, target)] = str(int(row['s_nom']))
+        graph.add_edge(source, target)
+
+    for bus in graph.nodes():
+        if bus in list(subst_data['otg_id']):
+            color = (0.7, 0.7, 1)
+        else:
+            color = (0.8, 0.8, 0.8)
+
+        # mark buses which are connected to im- and export
+        if (not bus_data.loc[bus]['region_bus'] or
+            bus in (list(trafo_data['bus0']) + list(trafo_data['bus1']))
+            ):
+            color = (1, 0.7, 0.7)
+
+        nodes_color.append(color)
+
+    # draw graph
+    if draw:
+        plt.figure()
+        nx.draw_networkx(graph, pos=npos, node_color=nodes_color, with_labels=True, font_size=6)
+        nx.draw_networkx_edge_labels(graph, pos=npos, edge_labels=elabels, font_size=8)
+        plt.title('Gridmap')
+        plt.xlabel('lon')
+        plt.ylabel('lat')
+        plt.show()
+
+    return graph
