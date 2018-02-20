@@ -140,6 +140,9 @@ def oep_api_write_data(schema, table, data):
     return pd.DataFrame(result.json())
 
 
+def 
+
+
 def oemof_nodes_from_excel(filename, header_lines=0):
     """
 
