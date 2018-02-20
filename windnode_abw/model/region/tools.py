@@ -161,18 +161,15 @@ def region_graph(subst_data,
     return graph
 
 
-def grid_graph(bus_data,
-               line_data,
-               subst_data,
-               trafo_data,
+def grid_graph(region,
                draw=False):
     """Create graph representation of grid from substation and line data
 
     Parameters
     ----------
-    bus_data
-    line_data
-    draw
+    region : :class:`~.model.Region`
+    draw : :obj:`bool`
+        If true, graph is plotted
 
     Returns
     -------
@@ -186,29 +183,27 @@ def grid_graph(bus_data,
     elabels = {}
     nodes_color = []
 
-    bus_data.set_index('bus_id', inplace=True)
-
-    for idx, row in line_data.iterrows():
+    for idx, row in region.lines.iterrows():
         source = row['bus0']
-        geom = bus_data.loc[source]['geom']
+        geom = region.buses.loc[source]['geom']
         npos[source] = (geom.x, geom.y)
 
         target = row['bus1']
-        geom = bus_data.loc[target]['geom']
+        geom = region.buses.loc[target]['geom']
         npos[target] = (geom.x, geom.y)
 
         elabels[(source, target)] = str(int(row['s_nom']))
         graph.add_edge(source, target)
 
     for bus in graph.nodes():
-        if bus in list(subst_data['otg_id']):
+        if bus in list(region.subst['otg_id']):
             color = (0.7, 0.7, 1)
         else:
             color = (0.8, 0.8, 0.8)
 
         # mark buses which are connected to im- and export
-        if (not bus_data.loc[bus]['region_bus'] or
-            bus in (list(trafo_data['bus0']) + list(trafo_data['bus1']))
+        if (not region.buses.loc[bus]['region_bus'] or
+            bus in (list(region.trafos['bus0']) + list(region.trafos['bus1']))
             ):
             color = (1, 0.7, 0.7)
 

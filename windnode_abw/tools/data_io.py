@@ -160,6 +160,7 @@ def oep_import_data():
         columns=['bus_id', 'hvmv_subst_id', 'region_bus', 'geom'])
     data['buses'] = convert_df_wkb_to_shapely(df=data['buses'],
                                               cols=['geom'])
+    data['buses'].set_index('bus_id', inplace=True)
 
     data['lines'] = oep_api_get_data(
         schema='model_draft',

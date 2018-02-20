@@ -52,16 +52,13 @@ region = Region.import_data()
 #                data=convert_df_shapely_to_wkb(df=transport_data,
 #                                               cols=['geom']))
 
-graph = grid_graph(bus_data=buses,
-                   line_data=lines,
-                   subst_data=substations,
-                   trafo_data=trafos,
+graph = grid_graph(region=region,
                    draw=True)
 
-graph = region_graph(subst_data=substations,
-                     line_data=transport,
-                     rm_isolates=True,
-                     draw=True)
+# graph = region_graph(subst_data=substations,
+#                      line_data=transport,
+#                      rm_isolates=True,
+#                      draw=True)
 
 # remove isolated grids (substations and lines)
 nodes = list(graph.nodes())
