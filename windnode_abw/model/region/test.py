@@ -7,7 +7,8 @@ from windnode_abw.tools import config
 config.load_config('config_data.cfg')
 config.load_config('config_misc.cfg')
 
-from windnode_abw.tools.data import oep_api_get_data, oep_api_write_data
+from windnode_abw.model import Region
+from windnode_abw.tools.data_io import oep_api_get_data, oep_api_write_data
 from windnode_abw.tools.geo import convert_df_wkb_to_shapely, convert_df_shapely_to_wkb
 from windnode_abw.model.region.model import build_oemof_model
 from windnode_abw.model.region.tools import reduce_to_regions, region_graph, grid_graph
@@ -27,37 +28,11 @@ from shapely.geometry import LineString
 # 2. Dingo-Grids
 # 3.
 
-# # get Kreise
-# krs = oep_api_get_data(schema='model_draft',
-#                    table='wn_abw_bkg_vg250_4_krs',
-#                    columns=['id', 'geom'])
+region = Region.import_data()
 
-# get HV grid
-buses = oep_api_get_data(schema='model_draft',
-                         table='wn_abw_ego_pf_hv_bus',
-                         columns=['bus_id', 'hvmv_subst_id', 'region_bus', 'geom'])
-buses = convert_df_wkb_to_shapely(df=buses,
-                                  cols=['geom'])
-
-lines = oep_api_get_data(schema='model_draft',
-                         table='wn_abw_ego_pf_hv_line',
-                         columns=['line_id', 'bus0', 'bus1', 's_nom'])
-
-trafos = oep_api_get_data(schema='model_draft',
-                          table='wn_abw_ego_pf_hv_transformer',
-                          columns=['trafo_id', 'bus0', 'bus1', 's_nom', 'geom'])
-
-# get grid districts
-substations = oep_api_get_data(schema='model_draft',
-                               table='wn_abw_ego_dp_hvmv_substation',
-                               columns=['subst_id', 'otg_id', 'geom'])
-substations = convert_df_wkb_to_shapely(df=substations,
-                                        cols=['geom'])
-substations.set_index('subst_id', inplace=True)
-
-# determine exchange capacities between districts
-transport = reduce_to_regions(bus_data=buses,
-                              line_data=lines)
+# # determine exchange capacities between districts
+# transport = reduce_to_regions(bus_data=buses,
+#                               line_data=lines)
 
 # ==== works only if substations are included in db table ====
 # # prepare transport data for writig to OEP

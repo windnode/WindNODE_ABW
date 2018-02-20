@@ -11,7 +11,7 @@ from windnode_abw.tools import config
 config.load_config('config_data.cfg')
 config.load_config('config_misc.cfg')
 
-from windnode_abw.tools.data import oep_api_get_data
+from windnode_abw.tools.data_io import oep_api_get_data
 
 # ==========================================
 

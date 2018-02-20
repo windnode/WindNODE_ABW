@@ -7,6 +7,8 @@ import requests
 import pandas as pd
 import keyring
 
+from windnode_abw.tools.geo import convert_df_wkb_to_shapely
+
 
 def oep_get_token():
     """Read token (password) from system's keyring
@@ -140,7 +142,44 @@ def oep_api_write_data(schema, table, data):
     return pd.DataFrame(result.json())
 
 
-def 
+def oep_import_data():
+    """Import data from OEP
+    """
+
+    data = {}
+
+    # # get Kreise
+    # krs = oep_api_get_data(schema='model_draft',
+    #                    table='wn_abw_bkg_vg250_4_krs',
+    #                    columns=['id', 'geom'])
+
+    # get HV grid
+    data['buses'] = oep_api_get_data(
+        schema='model_draft',
+        table='wn_abw_ego_pf_hv_bus',
+        columns=['bus_id', 'hvmv_subst_id', 'region_bus', 'geom'])
+    data['buses'] = convert_df_wkb_to_shapely(df=data['buses'],
+                                              cols=['geom'])
+
+    data['lines'] = oep_api_get_data(
+        schema='model_draft',
+        table='wn_abw_ego_pf_hv_line',
+        columns=['line_id', 'bus0', 'bus1', 's_nom'])
+
+    data['trafos'] = oep_api_get_data(
+        schema='model_draft',
+        table='wn_abw_ego_pf_hv_transformer',
+        columns=['trafo_id', 'bus0', 'bus1', 's_nom', 'geom'])
+
+    data['subst'] = oep_api_get_data(
+        schema='model_draft',
+        table='wn_abw_ego_dp_hvmv_substation',
+        columns=['subst_id', 'otg_id', 'geom'])
+    data['subst'] = convert_df_wkb_to_shapely(df=data['subst'],
+                                              cols=['geom'])
+    data['subst'].set_index('subst_id', inplace=True)
+
+    return data
 
 
 def oemof_nodes_from_excel(filename, header_lines=0):
