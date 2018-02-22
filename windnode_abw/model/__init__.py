@@ -16,6 +16,10 @@ class Region:
         Region's transformers
     _substations : :pandas:`pandas.DataFrame<dataframe>`
         Region's substations
+    _geno_res : :pandas:`pandas.DataFrame<dataframe>`
+        Region's renewable (RES) generators
+    _geno_conv : :pandas:`pandas.DataFrame<dataframe>`
+        Region's conventional generators
     """
     def __init__(self, **kwargs):
         self._name = 'ABW region'
@@ -24,6 +28,8 @@ class Region:
         self._lines = kwargs.get('lines', None)
         self._trafos = kwargs.get('trafos', None)
         self._subst = kwargs.get('subst', None)
+        self._geno_res = kwargs.get('geno_res', None)
+        self._geno_conv = kwargs.get('geno_conv', None)
 
     @property
     def buses(self):
@@ -44,6 +50,16 @@ class Region:
     def subst(self):
         """Returns region's substations"""
         return self._subst
+
+    @property
+    def geno_res(self):
+        """Returns region's RES generators"""
+        return self._geno_res
+
+    @property
+    def geno_conv(self):
+        """Returns region's conventional generators"""
+        return self._geno_conv
 
     @classmethod
     def import_data(cls, **kwargs):
