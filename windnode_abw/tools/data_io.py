@@ -7,7 +7,29 @@ import requests
 import pandas as pd
 import keyring
 
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import func
+from shapely.wkt import loads as wkt_loads
+
 from windnode_abw.tools.geo import convert_df_wkb_to_shapely
+from egoio.tools.db import connection
+from egoio.db_tables.model_draft import \
+    WnAbwEgoDpResPowerplant as geno_res_orm,\
+    WnAbwEgoDpConvPowerplant as geno_conv_orm
+
+
+def db_session():
+    """Create DB session using egoio
+
+    Returns
+    -------
+    :class:`.sessionmaker`
+        SQLAlchemy session
+    """
+    conn = connection(section=config.get('data', 'oep_conn_section'))
+    Session = sessionmaker(bind=conn)
+
+    return Session()
 
 
 def oep_get_token():
@@ -148,6 +170,7 @@ def oep_import_data():
 
     data = {}
 
+    # ===== Data via API =====
     # # get Kreise
     # krs = oep_api_get_data(schema='model_draft',
     #                    table='wn_abw_bkg_vg250_4_krs',
@@ -179,6 +202,55 @@ def oep_import_data():
     data['subst'] = convert_df_wkb_to_shapely(df=data['subst'],
                                               cols=['geom'])
     data['subst'].set_index('subst_id', inplace=True)
+
+    # ===== Data via SQLA =====
+    srid = int(config.get('geo', 'srid'))
+    session = db_session()
+
+    logger.info('Importing RES generators...')
+    geno_res_sqla = session.query(
+        geno_res_orm.id,
+        geno_res_orm.subst_id,
+        geno_res_orm.la_id,
+        geno_res_orm.mvlv_subst_id,
+        geno_res_orm.electrical_capacity,
+        geno_res_orm.generation_type,
+        geno_res_orm.generation_subtype,
+        geno_res_orm.voltage_level,
+        func.ST_AsText(func.ST_Transform(
+            geno_res_orm.rea_geom_new, srid)).label('geom'),
+        func.ST_AsText(func.ST_Transform(
+            geno_res_orm.geom, srid)).label('geom_em')
+    ). \
+        filter(geno_res_orm.voltage_level.in_([3, 4, 5, 6, 7]))
+
+    data['geno_res'] = pd.read_sql_query(geno_res_sqla.statement,
+                                         session.bind,
+                                         index_col='id')
+
+    # define generators with unknown subtype as 'unknown'
+    data['geno_res'].loc[data['geno_res'][
+                         'generation_subtype'].isnull(),
+                         'generation_subtype'] = 'unknown'
+
+    logger.info('Importing conventional generators...')
+    geno_conv_sqla = session.query(
+        geno_conv_orm.gid.label('id'),
+        geno_conv_orm.subst_id,
+        geno_conv_orm.la_id,
+        geno_conv_orm.capacity,
+        geno_conv_orm.type,
+        geno_conv_orm.voltage_level,
+        geno_conv_orm.fuel,
+        func.ST_AsText(func.ST_Transform(
+            geno_conv_orm.geom, srid))
+    ). \
+        filter(geno_conv_orm.voltage_level.in_([3, 4, 5, 6, 7]))
+
+    # read data from db
+    data['geno_conv'] = pd.read_sql_query(geno_conv_sqla.statement,
+                                          session.bind,
+                                          index_col='id')
 
     return data
 
