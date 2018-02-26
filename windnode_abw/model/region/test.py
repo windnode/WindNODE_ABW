@@ -51,7 +51,9 @@ region = Region.import_data()
 #                table='wn_abw_region_transport',
 #                data=convert_df_shapely_to_wkb(df=transport_data,
 #                                               cols=['geom']))
-
+#group_params = ['subst_id', 'generation_type']
+x = region.geno_res_grouped
+y = region.geno_conv_grouped
 graph = grid_graph(region=region,
                    draw=True)
 
@@ -60,11 +62,12 @@ graph = grid_graph(region=region,
 #                      rm_isolates=True,
 #                      draw=True)
 
-# remove isolated grids (substations and lines)
-nodes = list(graph.nodes())
-substations = substations.loc[nodes]
-transport = transport[transport['hvmv_subst_id0'].isin(nodes) &
-                      transport['hvmv_subst_id1'].isin(nodes)]
+# # remove isolated grids (substations and lines)
+# nodes = list(graph.nodes())
+# substations = substations.loc[nodes]
+# transport = transport[transport['hvmv_subst_id0'].isin(nodes) &
+#                       transport['hvmv_subst_id1'].isin(nodes)]
 
-build_oemof_model(subst_data=substations,
-                  transport_data=transport)
+# build_oemof_model(subst_data=substations,
+#                   transport_data=transport)
+build_oemof_model(region=region)

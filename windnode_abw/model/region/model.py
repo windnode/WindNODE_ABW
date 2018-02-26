@@ -13,8 +13,7 @@ import matplotlib.pyplot as plt
 from windnode_abw.tools.draw import draw_graph
 
 
-def build_oemof_model(subst_data,
-                      transport_data,
+def build_oemof_model(region,
                       filename=None,
                       solver='cbc',
                       tee_switch=True,
@@ -34,70 +33,125 @@ def build_oemof_model(subst_data,
     ### CREATE OBJECTS ###
     logging.info("Creating objects")
 
-    # create buses, sources and sinks
+    # create buses
     buses = {}
     nodes = []
-    for idx, row in subst_data.iterrows():
-        bus = solph.Bus(label="b_el_" + str(idx))
+    for idx, row in region.buses.iterrows():
+        bus = solph.Bus(label='b_el_' + str(idx))
         buses[idx] = bus
         nodes.append(bus)
 
-        # Sources
+    # add bus for power import and export
+    imex_bus = solph.Bus(label='b_el_imex')
+    nodes.append(imex_bus)
+
+    # create sources
+    for idx, row in region.geno_res_grouped.iterrows():
+        bus = buses[region.subst.loc[idx[0]]['otg_id']]
         nodes.append(
-            solph.Source(label="wind_" + str(idx),
-                         outputs={buses[idx]: solph.Flow(actual_value=random.rand(len(datetimeindex)), #data['wind'],
-                                                         nominal_value=10,
-                                                         fixed=True)})
+            solph.Source(label=idx[1] + '_' + str(idx[0]),
+                         outputs={bus: solph.Flow(actual_value=random.rand(len(datetimeindex)), #data['wind'],
+                                                  nominal_value=row['sum'],
+                                                  fixed=True)})
         )
 
-        nodes.append(
-            solph.Source(label="pv_" + str(idx),
-                         outputs={buses[idx]: solph.Flow(actual_value=data['pv'],
-                                                         nominal_value=10,
-                                                         fixed=True)})
-        )
+        # nodes.append(
+        #     solph.Source(label="pv_" + str(idx),
+        #                  outputs={buses[idx]: solph.Flow(actual_value=data['pv'],
+        #                                                  nominal_value=10,
+        #                                                  fixed=True)})
+        # )
 
-        # Demands (electricity/heat)
+    # create demands (electricity/heat)
+    for idx, row in region.subst.iterrows():
+        bus = buses[region.subst.loc[idx]['otg_id']]
         nodes.append(
             solph.Sink(label="demand_el_" + str(idx),
-                       inputs={buses[idx]: solph.Flow(nominal_value=1,
-                                                      actual_value=data['demand_el'],
-                                                      fixed=True)})
+                       inputs={bus: solph.Flow(nominal_value=1,
+                                               actual_value=data['demand_el'],
+                                               fixed=True)})
         )
 
-    slack_bus = buses[2433]
+    # add 380/110kV trafos
+    for idx, row in region.trafos.iterrows():
+        bus0 = buses[row['bus0']]
+        bus1 = buses[row['bus1']]
+        nodes.append(
+            solph.custom.Link(label='trafo'
+                                    + '_' + str(row['trafo_id'])
+                                    + '_b' + str(row['bus0'])
+                                    + '_b' + str(row['bus1']),
+                              inputs={bus0: solph.Flow(),
+                                      bus1: solph.Flow()},
+                              outputs={bus0: solph.Flow(nominal_value=row['s_nom']),
+                                       bus1: solph.Flow(nominal_value=row['s_nom'])},
+                              conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
+        )
 
-    # adding an excess variable can help to avoid infeasible problems
+    # add sink and source for import/export
     nodes.append(
-        solph.Sink(label="excess", inputs={slack_bus: solph.Flow()})
+        solph.Sink(label='excess_el',
+                   inputs={imex_bus: solph.Flow()})
     )
     nodes.append(
-        solph.Source(label="shortage", outputs={slack_bus: solph.Flow(variable_costs=200)})
+        solph.Source(label='shortage_el',
+                     outputs={imex_bus: solph.Flow(variable_costs=200)})
     )
 
-    # create lines
-    for idx, row in transport_data.iterrows():
-        bus0 = buses[row['hvmv_subst_id0']]
-        bus1 = buses[row['hvmv_subst_id1']]
+    # create lines for import and export (buses which are tagged with region_bus == False)
+    for idx, row in region.buses[~region.buses['region_bus']].iterrows():
+        bus = buses[idx]
         nodes.append(
-            solph.Transformer(label='line'
-                                    + '_b' + str(row['hvmv_subst_id0'])
-                                    + '_b' + str(row['hvmv_subst_id1']),
-                              inputs={bus0: solph.Flow()},
-                              outputs={bus1: solph.Flow(nominal_value=row['capacity'])},
-                              conversion_factors={bus1: 0.98})
+            solph.custom.Link(label='line'
+                                    + '_b' + str(idx)
+                                    + '_b_el_imex',
+                              inputs={bus: solph.Flow(),
+                                      imex_bus: solph.Flow()},
+                              outputs={bus: solph.Flow(nominal_value=1e6),
+                                       imex_bus: solph.Flow(nominal_value=1e6)},
+                              conversion_factors={(bus, imex_bus): 1.0,
+                                                  (imex_bus, bus): 1.0})
         )
+
+    # create regular lines
+    for idx, row in region.lines.iterrows():
+        bus0 = buses[row['bus0']]
+        bus1 = buses[row['bus1']]
+
         nodes.append(
-            solph.Transformer(label='line'
-                                    + '_b' + str(row['hvmv_subst_id1'])
-                                    + '_b' + str(row['hvmv_subst_id0']),
-                              inputs={bus1: solph.Flow()},
-                              outputs={bus0: solph.Flow(nominal_value=row['capacity'])},
-                              conversion_factors={bus0: 0.98})
+            solph.custom.Link(label='line'
+                                    + '_' + str(row['line_id'])
+                                    + '_b' + str(row['bus0'])
+                                    + '_b' + str(row['bus1']),
+                              inputs={bus0: solph.Flow(),
+                                      bus1: solph.Flow()},
+                              outputs={bus0: solph.Flow(nominal_value=row['s_nom']),
+                                       bus1: solph.Flow(nominal_value=row['s_nom'])},
+                              conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
         )
+
+        # nodes.append(
+        #     solph.Transformer(label='line'
+        #                             + '_' + str(row['line_id'])
+        #                             + '_b' + str(row['bus0'])
+        #                             + '_b' + str(row['bus1']),
+        #                       inputs={bus0: solph.Flow()},
+        #                       outputs={bus1: solph.Flow(nominal_value=row['s_nom'])},
+        #                       conversion_factors={bus1: 0.98})
+        # )
+        # nodes.append(
+        #     solph.Transformer(label='line'
+        #                             + '_' + str(row['line_id'])
+        #                             + '_b' + str(row['bus1'])
+        #                             + '_b' + str(row['bus0']),
+        #                       inputs={bus1: solph.Flow()},
+        #                       outputs={bus0: solph.Flow(nominal_value=row['s_nom'])},
+        #                       conversion_factors={bus0: 0.98})
+        # )
 
     esys.add(*nodes)
 
+    # create and plot graph of energy system
     graph = create_nx_graph(esys)
     draw_graph(grph=graph, plot=True, layout='neato', node_size=100, font_size=8,
                node_color={
