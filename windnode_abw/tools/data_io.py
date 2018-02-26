@@ -213,7 +213,7 @@ def oep_import_data():
         geno_res_orm.subst_id,
         geno_res_orm.la_id,
         geno_res_orm.mvlv_subst_id,
-        geno_res_orm.electrical_capacity,
+        geno_res_orm.electrical_capacity.__div__(1000).label('capacity'),
         geno_res_orm.generation_type,
         geno_res_orm.generation_subtype,
         geno_res_orm.voltage_level,
