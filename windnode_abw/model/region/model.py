@@ -125,8 +125,8 @@ def build_oemof_model(region,
                                     + '_b' + str(row['bus1']),
                               inputs={bus0: solph.Flow(),
                                       bus1: solph.Flow()},
-                              outputs={bus0: solph.Flow(nominal_value=row['s_nom']),
-                                       bus1: solph.Flow(nominal_value=row['s_nom'])},
+                              outputs={bus0: solph.Flow(nominal_value=float(row['s_nom'])),
+                                       bus1: solph.Flow(nominal_value=float(row['s_nom']))},
                               conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
         )
 
