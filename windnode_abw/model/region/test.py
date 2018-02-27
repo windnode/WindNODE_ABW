@@ -28,7 +28,14 @@ from shapely.geometry import LineString
 # 2. Dingo-Grids
 # 3.
 
-region = Region.import_data()
+load_from_pkl = True
+
+if not load_from_pkl:
+    region = Region.import_data()
+    region.dump_to_pkl('test.pkl')
+else:
+    #region = Region
+    region = Region.load_from_pkl('test.pkl')
 
 # # determine exchange capacities between districts
 # transport = reduce_to_regions(bus_data=buses,
@@ -52,10 +59,8 @@ region = Region.import_data()
 #                data=convert_df_shapely_to_wkb(df=transport_data,
 #                                               cols=['geom']))
 #group_params = ['subst_id', 'generation_type']
-x = region.geno_res_grouped
-y = region.geno_conv_grouped
 graph = grid_graph(region=region,
-                   draw=True)
+                   draw=False)
 
 # graph = region_graph(subst_data=substations,
 #                      line_data=transport,
