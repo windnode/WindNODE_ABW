@@ -130,25 +130,6 @@ def build_oemof_model(region,
                               conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
         )
 
-        # nodes.append(
-        #     solph.Transformer(label='line'
-        #                             + '_' + str(row['line_id'])
-        #                             + '_b' + str(row['bus0'])
-        #                             + '_b' + str(row['bus1']),
-        #                       inputs={bus0: solph.Flow()},
-        #                       outputs={bus1: solph.Flow(nominal_value=row['s_nom'])},
-        #                       conversion_factors={bus1: 0.98})
-        # )
-        # nodes.append(
-        #     solph.Transformer(label='line'
-        #                             + '_' + str(row['line_id'])
-        #                             + '_b' + str(row['bus1'])
-        #                             + '_b' + str(row['bus0']),
-        #                       inputs={bus1: solph.Flow()},
-        #                       outputs={bus0: solph.Flow(nominal_value=row['s_nom'])},
-        #                       conversion_factors={bus0: 0.98})
-        # )
-
     esys.add(*nodes)
 
     # create and plot graph of energy system
@@ -175,21 +156,32 @@ def build_oemof_model(region,
     # PLOT #
     logging.info("Plot results")
 
-    slack_bus_results = views.node(results, 'b_el_2433')
-    slack_bus_results_flows = slack_bus_results['sequences']
+    imex_bus_results = views.node(results, 'b_el_imex')
+    imex_bus_results_flows = imex_bus_results['sequences']
 
-    # print some sums for slack bus
-    print(slack_bus_results_flows.sum())
-    print(slack_bus_results_flows.info())
+    # print some sums for import/export bus
+    print(imex_bus_results_flows.sum())
+    print(imex_bus_results_flows.info())
 
-    ax = slack_bus_results_flows.plot(kind='bar', stacked=True, linewidth=0, width=1)
+    # some example plots for bus_el
+    ax = imex_bus_results_flows.sum(axis=0).plot(kind='barh')
+    ax.set_title('Sums for optimization period')
+    ax.set_xlabel('Energy (MWh)')
+    ax.set_ylabel('Flow')
+    plt.tight_layout()
+    plt.show()
+
+    imex_bus_results_flows.plot(kind='line', drawstyle='steps-post')
+    plt.show()
+
+    ax = imex_bus_results_flows.plot(kind='bar', stacked=True, linewidth=0, width=1)
     ax.set_title('Sums for optimization period')
     ax.legend(loc='upper right', bbox_to_anchor=(1, 1))
     ax.set_xlabel('Energy (MWh)')
     ax.set_ylabel('Flow')
     plt.tight_layout()
 
-    dates = slack_bus_results_flows.index
+    dates = imex_bus_results_flows.index
     tick_distance = int(len(dates) / 7) - 1
     ax.set_xticks(range(0, len(dates), tick_distance), minor=False)
     ax.set_xticklabels(
