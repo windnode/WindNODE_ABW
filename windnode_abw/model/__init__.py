@@ -1,4 +1,8 @@
+from windnode_abw.tools import config
 from windnode_abw.tools.data_io import oep_import_data
+
+import pickle
+import os
 
 
 class Region:
@@ -97,6 +101,7 @@ class Region:
 
     @classmethod
     def import_data(cls, **kwargs):
+        """Import data to Region object"""
 
         # import
         kwargs = oep_import_data()
@@ -106,3 +111,13 @@ class Region:
 
         return region
 
+    def dump_to_pkl(self, filename):
+        """Dump Region to pickle"""
+        filepath = os.path.join(config.get_data_root_dir(), config.get('user_dirs', 'data_dir'))
+        pickle.dump(self, open(os.path.join(filepath, filename), 'wb'))
+
+    @classmethod
+    def load_from_pkl(self, filename):
+        """Load Region from pickle"""
+        filepath = os.path.join(config.get_data_root_dir(), config.get('user_dirs', 'data_dir'))
+        return pickle.load(open(os.path.join(filepath, filename), 'rb'))
