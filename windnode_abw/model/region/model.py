@@ -1,37 +1,36 @@
 import logging
 logger = logging.getLogger('windnode_abw')
 
-import os
+from windnode_abw.model import Region
+from windnode_abw.model.region.tools import grid_graph
+
 import pandas as pd
 import numpy.random as random
 
 import oemof.solph as solph
-from oemof.outputlib import views
-from oemof.graph import create_nx_graph
-import matplotlib.pyplot as plt
-
-from windnode_abw.tools.draw import draw_graph
 
 
-def build_oemof_model(region,
-                      filename=None,
-                      solver='cbc',
-                      tee_switch=True,
-                      keep=True):
+def create_nodes(region=None, datetime_index = list()):
+    """Create nodes (oemof objects) from node dict
 
-    datetimeindex = pd.date_range(start='2016-01-01 00:00:00',
-                                  end='2016-01-02 00:00:00',
-                                  freq='H')
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+    datetime_index :
+        Datetime index
 
-    esys = solph.EnergySystem(timeindex=datetimeindex)
+    Returns
+    -------
+    nodes : `obj`:dict of :class:`nodes <oemof.network.Node>`
+    """
 
-    if filename is None:
-        filename = os.path.join(os.path.dirname(__file__), 'input_data.csv')
+    if not region:
+        msg = 'No region class provided.'
+        logger.error(msg)
+        raise ValueError(msg)
 
-    data = pd.read_csv(filename, sep=",")
-
-    ### CREATE OBJECTS ###
-    logging.info("Creating objects")
+    logger.info("Creating objects")
 
     # create buses
     buses = {}
@@ -50,7 +49,7 @@ def build_oemof_model(region,
         bus = buses[region.subst.loc[idx[0]]['otg_id']]
         nodes.append(
             solph.Source(label=idx[1] + '_' + str(idx[0]),
-                         outputs={bus: solph.Flow(actual_value=random.rand(len(datetimeindex)), #data['wind'],
+                         outputs={bus: solph.Flow(actual_value=random.rand(len(datetime_index)), #data['wind'],
                                                   nominal_value=row['sum'],
                                                   fixed=True)})
         )
@@ -67,8 +66,8 @@ def build_oemof_model(region,
         bus = buses[region.subst.loc[idx]['otg_id']]
         nodes.append(
             solph.Sink(label="demand_el_" + str(idx),
-                       inputs={bus: solph.Flow(nominal_value=1,
-                                               actual_value=data['demand_el'],
+                       inputs={bus: solph.Flow(nominal_value=10,
+                                               actual_value=random.rand(len(datetime_index)), #data['demand_el'],
                                                fixed=True)})
         )
 
@@ -130,61 +129,86 @@ def build_oemof_model(region,
                               conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
         )
 
+    return nodes
+
+
+def create_model(cfg):
+    """Create oemof model using config and data files. An oemof energy system is created,
+    nodes are added and parametrized.
+
+    Parameters
+    ----------
+    cfg : :obj:`dict`
+        Config to be used to create model
+
+    Returns
+    -------
+    oemof.solph.EnergySystem
+    """
+
+    logger.info('Create energy system')
+    # Create time index
+    datetime_index = pd.date_range(start=cfg['date_from'],
+                                   end=cfg['date_to'],
+                                   freq=cfg['freq'])
+
+    # Set up energy system
+    esys = solph.EnergySystem(timeindex=datetime_index)
+
+    # read nodes data
+    if cfg['load_data_from_file']:
+        region = Region.load_from_pkl('data.pkl')
+    else:
+        region = Region.import_data()
+        region.dump_to_pkl('data.pkl')
+
+    graph = grid_graph(region=region,
+                       draw=True)
+
+    nodes = create_nodes(
+        region=region,
+        datetime_index=datetime_index
+    )
+
     esys.add(*nodes)
 
-    # create and plot graph of energy system
-    graph = create_nx_graph(esys)
-    draw_graph(grph=graph, plot=True, layout='neato', node_size=100, font_size=8,
-               node_color={
-                   'bus_el': '#cd3333',
-                   'bus_gas': '#7EC0EE',
-                   'bus_th': '#eeac7e'})
+    print('The following objects have been created:')
+    for n in esys.nodes:
+        oobj = str(type(n)).replace("<class 'oemof.solph.", "").replace("'>", "")
+        print(oobj + ':', n.label)
 
-    ### OPTIMIZATION ###
-    # create Optimization model based on energy_system
-    logging.info("Create optimization problem")
+    return esys
+
+
+def simulate(esys, solver='cbc', verbose=True):
+    """Optimize energy system
+
+    Parameters
+    ----------
+    esys : oemof.solph.EnergySystem
+    solver : `obj`:str
+        Solver which is used
+
+    Returns
+    -------
+    Dict with results
+    """
+
+    # Create problem
+    logger.info('Create optimization problem')
     om = solph.Model(esys)
 
-    # solve with specific optimization options (passed to pyomo)
-    logging.info("Solve optimization problem")
+    # solve it
+    logger.info('Solve optimization problem')
     om.solve(solver=solver,
-             solve_kwargs={'tee': tee_switch, 'keepfiles': keep})
+             solve_kwargs={'tee': verbose,
+                           'keepfiles': True})
 
-    # write back results from optimization object to energysystem
-    results = om.results()
+    return om.results()
 
-    # PLOT #
-    logging.info("Plot results")
 
-    imex_bus_results = views.node(results, 'b_el_imex')
-    imex_bus_results_flows = imex_bus_results['sequences']
 
-    # print some sums for import/export bus
-    print(imex_bus_results_flows.sum())
-    print(imex_bus_results_flows.info())
-
-    # some example plots for bus_el
-    ax = imex_bus_results_flows.sum(axis=0).plot(kind='barh')
-    ax.set_title('Sums for optimization period')
-    ax.set_xlabel('Energy (MWh)')
-    ax.set_ylabel('Flow')
-    plt.tight_layout()
-    plt.show()
-
-    imex_bus_results_flows.plot(kind='line', drawstyle='steps-post')
-    plt.show()
-
-    ax = imex_bus_results_flows.plot(kind='bar', stacked=True, linewidth=0, width=1)
-    ax.set_title('Sums for optimization period')
-    ax.legend(loc='upper right', bbox_to_anchor=(1, 1))
-    ax.set_xlabel('Energy (MWh)')
-    ax.set_ylabel('Flow')
-    plt.tight_layout()
-
-    dates = imex_bus_results_flows.index
-    tick_distance = int(len(dates) / 7) - 1
-    ax.set_xticks(range(0, len(dates), tick_distance), minor=False)
-    ax.set_xticklabels(
-        [item.strftime('%d-%m-%Y') for item in dates.tolist()[0::tick_distance]],
-        rotation=90, minor=False)
-    plt.show()
+    # if filename is None:
+    #     filename = os.path.join(os.path.dirname(__file__), 'input_data.csv')
+    #
+    # data = pd.read_csv(filename, sep=",")

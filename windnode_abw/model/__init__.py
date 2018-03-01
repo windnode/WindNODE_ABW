@@ -113,11 +113,15 @@ class Region:
 
     def dump_to_pkl(self, filename):
         """Dump Region to pickle"""
-        filepath = os.path.join(config.get_data_root_dir(), config.get('user_dirs', 'data_dir'))
-        pickle.dump(self, open(os.path.join(filepath, filename), 'wb'))
+        filepath = os.path.join(config.get_data_root_dir(),
+                                config.get('user_dirs', 'data_dir'))
+        pickle.dump(self, open(os.path.join(filepath,
+                                            filename), 'wb'))
 
     @classmethod
     def load_from_pkl(self, filename):
         """Load Region from pickle"""
-        filepath = os.path.join(config.get_data_root_dir(), config.get('user_dirs', 'data_dir'))
-        return pickle.load(open(os.path.join(filepath, filename), 'rb'))
+        filepath = os.path.join(config.get_data_root_dir(),
+                                config.get('user_dirs', 'data_dir'))
+        return pickle.load(open(os.path.join(filepath,
+                                             filename), 'rb'))
