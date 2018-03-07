@@ -5,6 +5,7 @@ from windnode_abw.model import Region
 from windnode_abw.model.region.tools import grid_graph
 
 import pandas as pd
+import numpy as np
 import numpy.random as random
 
 import oemof.solph as solph
@@ -44,30 +45,44 @@ def create_nodes(region=None, datetime_index = list()):
     imex_bus = solph.Bus(label='b_el_imex')
     nodes.append(imex_bus)
 
-    # create sources
+    # create sources: RES power plants
     for idx, row in region.geno_res_grouped.iterrows():
+        # get bus
         bus = buses[region.subst.loc[idx[0]]['otg_id']]
+        # get timeseries datasets (there could be multiple)
+        ts_ds = region.geno_res_ts.loc[idx]
+        outflow_args = {'nominal_value': row['sum']}
+
+        # if source is renewable (fixed source with timeseries)
+        if (ts_ds['dispatch'] == 'variable').all():
+            # calc relative feedin sum from all timeseries
+            ts = np.sum(list(ts_ds['p_set']), 0) / row['sum']
+            # add ts and fix it for renewables
+            outflow_args['actual_value'] = ts
+            outflow_args['fixed'] = True
+
+        # create node
         nodes.append(
             solph.Source(label=idx[1] + '_' + str(idx[0]),
-                         outputs={bus: solph.Flow(actual_value=random.rand(len(datetime_index)), #data['wind'],
-                                                  nominal_value=row['sum'],
-                                                  fixed=True)})
+                         outputs={bus: solph.Flow(**outflow_args)})
         )
 
-        # nodes.append(
-        #     solph.Source(label="pv_" + str(idx),
-        #                  outputs={buses[idx]: solph.Flow(actual_value=data['pv'],
-        #                                                  nominal_value=10,
-        #                                                  fixed=True)})
-        # )
+    # # create sources: conventional power plants
+    # for idx, row in region.geno_conv_grouped.iterrows():
+    #     bus = buses[region.subst.loc[idx[0]]['otg_id']]
 
     # create demands (electricity/heat)
-    for idx, row in region.subst.iterrows():
+    for idx, row in region.demand_el.iterrows():
         bus = buses[region.subst.loc[idx]['otg_id']]
+        # calc nominal power
+        #p_nom = row.drop(['population'], axis=0).sum()
+        p_nom = max(np.array(region.demand_el_ts.loc[idx]['p_set']))
+        # calc relative power
+        ts = np.array(region.demand_el_ts.loc[idx]['p_set']) / p_nom
         nodes.append(
             solph.Sink(label="demand_el_" + str(idx),
-                       inputs={bus: solph.Flow(nominal_value=10,
-                                               actual_value=random.rand(len(datetime_index)), #data['demand_el'],
+                       inputs={bus: solph.Flow(nominal_value=p_nom,
+                                               actual_value=ts,
                                                fixed=True)})
         )
 
@@ -191,7 +206,7 @@ def simulate(esys, solver='cbc', verbose=True):
 
     Returns
     -------
-    Dict with results
+    oemof.solph.OperationalModel
     """
 
     # Create problem
@@ -204,7 +219,7 @@ def simulate(esys, solver='cbc', verbose=True):
              solve_kwargs={'tee': verbose,
                            'keepfiles': True})
 
-    return om.results()
+    return om
 
 
 
