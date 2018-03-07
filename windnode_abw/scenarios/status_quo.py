@@ -12,10 +12,13 @@ config.load_config('config_misc.cfg')
 from windnode_abw.tools.draw import draw_graph
 
 # import oemof modules
-from oemof.outputlib import processing, views
+import oemof.solph as solph
+import oemof.outputlib as outputlib
+from oemof.outputlib import views
 from oemof.graph import create_nx_graph
 
 import os
+import pandas as pd
 import matplotlib.pyplot as plt
 
 
@@ -30,41 +33,72 @@ def run_scenario(cfg):
     Returns
     -------
     oemof.solph.EnergySystem
-    :obj:`dict`
-        Results of simulation
+        Energy system including results
     """
+
+    # define paths
+    path = os.path.join(config.get_data_root_dir(),
+                        config.get('user_dirs',
+                                   'results_dir')
+                        )
+    file = os.path.splitext(os.path.basename(__file__))[0] + '.oemof'
+
+    # load esys from file
+    if cfg['load_esys']:
+        esys = solph.EnergySystem()
+        esys.restore(dpath=path,
+                     filename=file)
+
+        logger.info('The energy system was loaded from {}.'
+                    .format(path + '/' + file))
+
+        return esys
 
     esys = create_model(cfg=cfg)
 
-    results = simulate(esys=esys,
-                       solver=cfg['solver'])
+    om = simulate(esys=esys,
+                  solver=cfg['solver'])
 
+    # dump esys to file
     if cfg['dump_esys']:
-        path = os.path.join(config.get_data_root_dir(),
-                            config.get('user_dirs',
-                                       'results_dir')
-                            )
-        file = os.path.splitext(os.path.basename(__file__))[0] + '.oemof'
+        # add results to the energy system to make it possible to store them.
+        esys.results['main'] = outputlib.processing.results(om)
+        esys.results['meta'] = outputlib.processing.meta_results(om)
+        esys.results['om_flows'] = list(om.flows.values())
 
+        # dump it
         esys.dump(dpath=path,
                   filename=file)
         logger.info('The energy system was dumped to {}.'
-                    .format(path + file))
+                    .format(path + '/' + file))
 
-    return esys, results
+    return esys
 
 
-def plot_results(esys, results):
+def plot_results(esys):
     """Plots results of simulation
 
     Parameters
     ----------
     esys : oemof.solph.EnergySystem
-    results : :obj:`dict`
-        Results of simulation
+        Energy system including results
     """
 
     logger.info('Plot results')
+
+    results = esys.results['main']
+    om_flows = esys.results['om_flows']
+
+    # create load matrix
+    #flows = pd.Series(esys.flows()).rename_axis(['node1', 'node2']).reset_index(name='flow')
+
+    # create DF with custom cols (node1, node 2, flow) from simulation result dict
+    flows = pd.Series(results).rename_axis(['node1', 'node2']).reset_index(name='flow')
+    # get esys' lines (Link instances)
+    lines = [node for node in esys.nodes if isinstance(node, solph.custom.Link)]
+    # get flows of lines (filtering of column node1 should be sufficient since Link always creates 2 Transformers)
+    flows_links = flows[flows['node1'].isin(lines)]
+    flows_links2 = flows[(flows['node1'].isin(lines)) | (flows['node2'].isin(lines))]
 
     # create and plot graph of energy system
     graph = create_nx_graph(esys)
@@ -113,7 +147,7 @@ if __name__ == "__main__":
     cfg = {
         'data_path': os.path.join(os.path.dirname(__file__), 'data'),
         'date_from': '2016-01-01 00:00:00',
-        'date_to': '2016-01-07 23:00:00',
+        'date_to': '2016-01-01 23:00:00',
         'freq': '60min',
         'results_path': os.path.join(config.get_data_root_dir(),
                                      config.get('user_dirs',
@@ -121,13 +155,12 @@ if __name__ == "__main__":
         'solver': 'cbc',
         'verbose': True,
         'dump_esys': True,
-        'load_esys': False,
-        'load_data_from_file': True
+        'load_esys': True,
+        'load_data_from_file': False
     }
 
-    esys, results = run_scenario(cfg=cfg)
+    esys = run_scenario(cfg=cfg)
 
-    plot_results(esys=esys,
-                 results=results)
+    plot_results(esys=esys)
 
     logger.info('Done!')
