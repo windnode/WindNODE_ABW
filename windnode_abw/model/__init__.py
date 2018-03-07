@@ -24,6 +24,8 @@ class Region:
         Region's renewable (RES) generators
     _geno_conv : :pandas:`pandas.DataFrame<dataframe>`
         Region's conventional generators
+    _demand_el : :pandas:`pandas.DataFrame<dataframe>`
+        Region's power demand per Grid District and sector
     """
     def __init__(self, **kwargs):
         self._name = 'ABW region'
@@ -34,6 +36,9 @@ class Region:
         self._subst = kwargs.get('subst', None)
         self._geno_res = kwargs.get('geno_res', None)
         self._geno_conv = kwargs.get('geno_conv', None)
+        self._geno_res_ts = kwargs.get('geno_res_ts', None)
+        self._demand_el = kwargs.get('demand_el', None)
+        self._demand_el_ts = kwargs.get('demand_el_ts', None)
 
     @property
     def buses(self):
@@ -56,14 +61,21 @@ class Region:
         return self._subst
 
     @property
-    def geno_res(self):
+    def geno_res(self, scenario='Status Quo'):
         """Returns region's RES generators"""
-        return self._geno_res
+
+        return self._geno_res[self._geno_res['scenario'] == scenario]
 
     @property
-    def geno_conv(self):
+    def geno_conv(self, scenario='Status Quo'):
         """Returns region's conventional generators"""
-        return self._geno_conv
+        return self._geno_conv[self._geno_conv['scenario'] == scenario]
+
+    @property
+    def geno_res_ts(self):
+        """Returns timeseries of region's RES generators"""
+
+        return self._geno_res_ts
 
     @property
     def geno_res_grouped(self):
@@ -80,14 +92,14 @@ class Region:
         # access: e.g. df.loc[2303, 'gas']
         # consider to reset index to convert index cols to regular cols
 
-        return self._geno_res.groupby(['subst_id', 'generation_type'])[
+        return self.geno_res.groupby(['subst_id', 'generation_type'])[
             'capacity'].agg(['sum', 'count'])#.reset_index()
 
     @property
     def geno_conv_grouped(self):
         """Returns grouped region's conventional generators
 
-        Data is grouped by HV-MV-substation id and fuel,
+        Data is grouped by HV-MV-substation/Grid District id and fuel,
         count of generators and sum of nom. capacity is returned.
 
         Returns
@@ -96,8 +108,19 @@ class Region:
             Grouped conventional generators with MultiIndex
         """
 
-        return self._geno_conv.groupby(['subst_id', 'fuel'])[
+        return self.geno_conv.groupby(['subst_id', 'fuel'])[
             'capacity'].agg(['sum', 'count'])
+
+    @property
+    def demand_el(self):
+        """Returns region's power demand per Grid District"""
+        return self._demand_el
+
+    @property
+    def demand_el_ts(self):
+        """Returns timeseries of region's demand"""
+
+        return self._demand_el_ts
 
     @classmethod
     def import_data(cls, **kwargs):
