@@ -6,6 +6,8 @@ from pandas import compat
 import networkx as nx
 import matplotlib.pyplot as plt
 
+import oemof.solph as solph
+
 
 def remove_isolates():
     raise NotImplementedError
@@ -163,7 +165,7 @@ def region_graph(subst_data,
 
 def grid_graph(region,
                draw=False):
-    """Create graph representation of grid from substation and line data
+    """Create graph representation of grid from substation and line data from Region object
 
     Parameters
     ----------
@@ -220,3 +222,52 @@ def grid_graph(region,
         plt.show()
 
     return graph
+
+
+def calc_line_loading(esys):
+    """Calculates relative loading of esys' lines
+
+    Parameters
+    ----------
+    esys : oemof.solph.EnergySystem
+        Energy system including results
+    """
+
+    results = esys.results['main']
+    om_flows = esys.results['om_flows']
+    # create load matrix
+    #flows = pd.Series(esys.flows()).rename_axis(['node1', 'node2']).reset_index(name='flow')
+
+    # create DF with custom cols (node1, node 2, flow) from simulation result dict
+    flows_results = pd.Series(results).rename_axis(['node1', 'node2']).reset_index(name='flow_res')
+    flows_results.set_index(['node1', 'node2'], inplace=True)
+    flows_obj = pd.Series(dict(om_flows)).rename_axis(['node1', 'node2']).reset_index(name='flow_obj')
+    flows_obj.set_index(['node1', 'node2'], inplace=True)
+    flows = pd.concat([flows_obj, flows_results], axis=1).reset_index()
+
+    # get esys' lines (Link instances)
+    lines = [node for node in esys.nodes if isinstance(node, solph.custom.Link)]
+    # get flows of lines (filtering of column node1 should be sufficient since Link always creates 2 Transformers)
+    flows_links = flows[flows['node1'].isin(lines)]
+    #flows_links2 = flows[(flows['node1'].isin(lines)) | (flows['node2'].isin(lines))]
+
+    #loading_mean = []
+    #loading_max = []
+    for idx, row in flows_links.iterrows():
+        obj = row['flow_obj']
+        seq = row['flow_res']['sequences']
+        if obj.nominal_value:
+            #loading_mean.append(float(seq.mean()) / obj.nominal_value)
+            #loading_max.append(float(seq.max()) / obj.nominal_value)
+            flows_links.at[idx, 'loading_mean'] = float(seq.mean()) / obj.nominal_value
+            flows_links.at[idx, 'loading_max'] = float(seq.max()) / obj.nominal_value
+        else:
+            #loading_mean.append(0.)
+            #loading_max.append(0.)
+            flows_links.at[idx, 'loading_mean'] = 0.
+            flows_links.at[idx, 'loading_max'] = 0.
+    # flows_links.sort_values('loading_max')
+    #flows_links.loc[:, 'loading_mean'] = pd.Series(loading_mean)
+    #flows_links.loc[:, 'loading_max'] = pd.Series(loading_max)
+
+    return flows_links
