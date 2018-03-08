@@ -159,6 +159,7 @@ def create_model(cfg):
     Returns
     -------
     oemof.solph.EnergySystem
+    :class:`~.model.Region`
     """
 
     logger.info('Create energy system')
@@ -192,7 +193,7 @@ def create_model(cfg):
         oobj = str(type(n)).replace("<class 'oemof.solph.", "").replace("'>", "")
         print(oobj + ':', n.label)
 
-    return esys
+    return esys, region
 
 
 def simulate(esys, solver='cbc', verbose=True):

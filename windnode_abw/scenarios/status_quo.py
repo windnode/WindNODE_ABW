@@ -3,6 +3,7 @@ from windnode_abw.tools.logger import setup_logger
 logger = setup_logger()
 
 from windnode_abw.model.region.model import create_model, simulate
+from windnode_abw.model.region.tools import calc_line_loading
 
 # load configs
 from windnode_abw.tools import config
@@ -18,7 +19,7 @@ from oemof.outputlib import views
 from oemof.graph import create_nx_graph
 
 import os
-import pandas as pd
+import pickle
 import matplotlib.pyplot as plt
 
 
@@ -34,6 +35,7 @@ def run_scenario(cfg):
     -------
     oemof.solph.EnergySystem
         Energy system including results
+    :class:`~.model.Region`
     """
 
     # define paths
@@ -41,20 +43,28 @@ def run_scenario(cfg):
                         config.get('user_dirs',
                                    'results_dir')
                         )
-    file = os.path.splitext(os.path.basename(__file__))[0] + '.oemof'
+    file_esys = os.path.splitext(
+        os.path.basename(__file__))[0] + '_esys.oemof'
+    file_region = os.path.splitext(
+        os.path.basename(__file__))[0] + '_region.oemof'
 
     # load esys from file
     if cfg['load_esys']:
+        # load esys
         esys = solph.EnergySystem()
         esys.restore(dpath=path,
-                     filename=file)
-
+                     filename=file_esys)
         logger.info('The energy system was loaded from {}.'
-                    .format(path + '/' + file))
+                    .format(path + '/' + file_esys))
 
-        return esys
+        # load region
+        region = pickle.load(open(os.path.join(path, file_region), "rb"))
+        logger.info('The energy system was loaded from {}.'
+                    .format(path + '/' + file_esys))
 
-    esys = create_model(cfg=cfg)
+        return esys, region
+
+    esys, region = create_model(cfg=cfg)
 
     om = simulate(esys=esys,
                   solver=cfg['solver'])
@@ -64,24 +74,31 @@ def run_scenario(cfg):
         # add results to the energy system to make it possible to store them.
         esys.results['main'] = outputlib.processing.results(om)
         esys.results['meta'] = outputlib.processing.meta_results(om)
-        esys.results['om_flows'] = list(om.flows.values())
+        # add om flows to allow access to Flow objects
+        esys.results['om_flows'] = list(om.flows.items())
 
-        # dump it
+        # dump esys
         esys.dump(dpath=path,
-                  filename=file)
+                  filename=file_esys)
         logger.info('The energy system was dumped to {}.'
-                    .format(path + '/' + file))
+                    .format(path + '/' + file_esys))
+        # dump region
+        pickle.dump(region, open(os.path.join(path, file_region), 'wb'))
+        logger.info('The region was dumped to {}.'
+                    .format(path + '/' + file_region))
 
-    return esys
+    return esys, region
 
 
-def plot_results(esys):
+def plot_results(esys, region):
     """Plots results of simulation
 
     Parameters
     ----------
     esys : oemof.solph.EnergySystem
         Energy system including results
+    region : :class:`~.model.Region`
+        Region object
     """
 
     logger.info('Plot results')
@@ -89,16 +106,8 @@ def plot_results(esys):
     results = esys.results['main']
     om_flows = esys.results['om_flows']
 
-    # create load matrix
-    #flows = pd.Series(esys.flows()).rename_axis(['node1', 'node2']).reset_index(name='flow')
+    flows_links = calc_line_loading(esys=esys)
 
-    # create DF with custom cols (node1, node 2, flow) from simulation result dict
-    flows = pd.Series(results).rename_axis(['node1', 'node2']).reset_index(name='flow')
-    # get esys' lines (Link instances)
-    lines = [node for node in esys.nodes if isinstance(node, solph.custom.Link)]
-    # get flows of lines (filtering of column node1 should be sufficient since Link always creates 2 Transformers)
-    flows_links = flows[flows['node1'].isin(lines)]
-    flows_links2 = flows[(flows['node1'].isin(lines)) | (flows['node2'].isin(lines))]
 
     # create and plot graph of energy system
     graph = create_nx_graph(esys)
@@ -159,8 +168,9 @@ if __name__ == "__main__":
         'load_data_from_file': False
     }
 
-    esys = run_scenario(cfg=cfg)
+    esys, region = run_scenario(cfg=cfg)
 
-    plot_results(esys=esys)
+    plot_results(esys=esys,
+                 region=region)
 
     logger.info('Done!')
