@@ -2,6 +2,7 @@
 from windnode_abw.tools.logger import setup_logger
 logger = setup_logger()
 
+from windnode_abw.model import Region
 from windnode_abw.model.region.model import create_model, simulate
 from windnode_abw.model.region.tools import calc_line_loading
 
@@ -19,7 +20,6 @@ from oemof.outputlib import views
 from oemof.graph import create_nx_graph
 
 import os
-import pickle
 import matplotlib.pyplot as plt
 
 
@@ -58,14 +58,15 @@ def run_scenario(cfg):
                     .format(path + '/' + file_esys))
 
         # load region
-        region = pickle.load(open(os.path.join(path, file_region), "rb"))
-        logger.info('The energy system was loaded from {}.'
-                    .format(path + '/' + file_esys))
+        region = Region.load_from_pkl(filename=file_region)
 
         return esys, region
 
-    esys, region = create_model(cfg=cfg)
-
+    # create region
+    region = Region.import_data()
+    # create model and simulate
+    esys = create_model(cfg=cfg,
+                        region=region)
     om = simulate(esys=esys,
                   solver=cfg['solver'])
 
@@ -82,10 +83,9 @@ def run_scenario(cfg):
                   filename=file_esys)
         logger.info('The energy system was dumped to {}.'
                     .format(path + '/' + file_esys))
+
         # dump region
-        pickle.dump(region, open(os.path.join(path, file_region), 'wb'))
-        logger.info('The region was dumped to {}.'
-                    .format(path + '/' + file_region))
+        region.dump_to_pkl(filename=file_region)
 
     return esys, region
 
@@ -164,8 +164,7 @@ if __name__ == "__main__":
         'solver': 'cbc',
         'verbose': True,
         'dump_esys': True,
-        'load_esys': True,
-        'load_data_from_file': False
+        'load_esys': True
     }
 
     esys, region = run_scenario(cfg=cfg)

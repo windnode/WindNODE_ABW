@@ -147,7 +147,7 @@ def create_nodes(region=None, datetime_index = list()):
     return nodes
 
 
-def create_model(cfg):
+def create_model(cfg, region):
     """Create oemof model using config and data files. An oemof energy system is created,
     nodes are added and parametrized.
 
@@ -155,11 +155,12 @@ def create_model(cfg):
     ----------
     cfg : :obj:`dict`
         Config to be used to create model
+    region : :class:`~.model.Region`
+        Region object
 
     Returns
     -------
     oemof.solph.EnergySystem
-    :class:`~.model.Region`
     """
 
     logger.info('Create energy system')
@@ -171,12 +172,12 @@ def create_model(cfg):
     # Set up energy system
     esys = solph.EnergySystem(timeindex=datetime_index)
 
-    # read nodes data
-    if cfg['load_data_from_file']:
-        region = Region.load_from_pkl('data.pkl')
-    else:
-        region = Region.import_data()
-        region.dump_to_pkl('data.pkl')
+    # # read nodes data
+    # if cfg['load_data_from_file']:
+    #     region = Region.load_from_pkl('data.pkl')
+    # else:
+    #     region = Region.import_data()
+    #     region.dump_to_pkl('data.pkl')
 
     graph = grid_graph(region=region,
                        draw=True)
@@ -193,7 +194,7 @@ def create_model(cfg):
         oobj = str(type(n)).replace("<class 'oemof.solph.", "").replace("'>", "")
         print(oobj + ':', n.label)
 
-    return esys, region
+    return esys
 
 
 def simulate(esys, solver='cbc', verbose=True):

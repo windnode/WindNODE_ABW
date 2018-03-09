@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger('windnode_abw')
+
 from windnode_abw.tools import config
 from windnode_abw.tools.data_io import oep_import_data
 
@@ -137,14 +140,19 @@ class Region:
     def dump_to_pkl(self, filename):
         """Dump Region to pickle"""
         filepath = os.path.join(config.get_data_root_dir(),
-                                config.get('user_dirs', 'data_dir'))
+                                config.get('user_dirs', 'results_dir'))
         pickle.dump(self, open(os.path.join(filepath,
                                             filename), 'wb'))
+        logger.info('The region was dumped to {}.'
+                    .format(filepath + '/' + filename))
 
     @classmethod
     def load_from_pkl(self, filename):
         """Load Region from pickle"""
         filepath = os.path.join(config.get_data_root_dir(),
-                                config.get('user_dirs', 'data_dir'))
+                                config.get('user_dirs', 'results_dir'))
+        logger.info('The region was loaded from {}.'
+                    .format(filepath + '/' + filename))
+
         return pickle.load(open(os.path.join(filepath,
                                              filename), 'rb'))
