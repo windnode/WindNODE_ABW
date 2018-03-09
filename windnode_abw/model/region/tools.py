@@ -249,25 +249,16 @@ def calc_line_loading(esys):
     lines = [node for node in esys.nodes if isinstance(node, solph.custom.Link)]
     # get flows of lines (filtering of column node1 should be sufficient since Link always creates 2 Transformers)
     flows_links = flows[flows['node1'].isin(lines)]
-    #flows_links2 = flows[(flows['node1'].isin(lines)) | (flows['node2'].isin(lines))]
 
-    #loading_mean = []
-    #loading_max = []
     for idx, row in flows_links.iterrows():
         obj = row['flow_obj']
         seq = row['flow_res']['sequences']
         if obj.nominal_value:
-            #loading_mean.append(float(seq.mean()) / obj.nominal_value)
-            #loading_max.append(float(seq.max()) / obj.nominal_value)
             flows_links.at[idx, 'loading_mean'] = float(seq.mean()) / obj.nominal_value
             flows_links.at[idx, 'loading_max'] = float(seq.max()) / obj.nominal_value
         else:
-            #loading_mean.append(0.)
-            #loading_max.append(0.)
             flows_links.at[idx, 'loading_mean'] = 0.
             flows_links.at[idx, 'loading_max'] = 0.
     # flows_links.sort_values('loading_max')
-    #flows_links.loc[:, 'loading_mean'] = pd.Series(loading_mean)
-    #flows_links.loc[:, 'loading_max'] = pd.Series(loading_max)
 
     return flows_links
