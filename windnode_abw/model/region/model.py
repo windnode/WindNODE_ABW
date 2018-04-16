@@ -41,9 +41,9 @@ def create_nodes(region=None, datetime_index = list()):
         buses[idx] = bus
         nodes.append(bus)
 
-    # add bus for power import and export
-    imex_bus = solph.Bus(label='b_el_imex')
-    nodes.append(imex_bus)
+    # # add bus for power import and export
+    # imex_bus = solph.Bus(label='b_el_imex')
+    # nodes.append(imex_bus)
 
     # create sources: RES power plants
     for idx, row in region.geno_res_grouped.iterrows():
@@ -51,15 +51,23 @@ def create_nodes(region=None, datetime_index = list()):
         bus = buses[region.subst.loc[idx[0]]['otg_id']]
         # get timeseries datasets (there could be multiple)
         ts_ds = region.geno_res_ts.loc[idx]
-        outflow_args = {'nominal_value': row['sum']}
+        #outflow_args = {'nominal_value': row['sum']}
+        outflow_args = {'nominal_value': row['sum'] * 2}
 
         # if source is renewable (fixed source with timeseries)
-        if (ts_ds['dispatch'] == 'variable').all():
-            # calc relative feedin sum from all timeseries
-            ts = np.sum(list(ts_ds['p_set']), 0) / row['sum']
-            # add ts and fix it for renewables
-            outflow_args['actual_value'] = ts
-            outflow_args['fixed'] = True
+        #if (ts_ds['dispatch'] == 'variable').all():
+        # calc relative feedin sum from all timeseries
+        if 'wind' in idx:
+            fac = 4
+        elif 'solar' in idx:
+            fac = 10
+        else:
+            fac = 1
+        #ts = np.sum(list(ts_ds['p_set']), 0) / row['sum']
+        ts=1
+        # add ts and fix it for renewables
+        outflow_args['actual_value'] = ts
+        outflow_args['fixed'] = True
 
         # create node
         nodes.append(
@@ -67,9 +75,34 @@ def create_nodes(region=None, datetime_index = list()):
                          outputs={bus: solph.Flow(**outflow_args)})
         )
 
-    # # create sources: conventional power plants
-    # for idx, row in region.geno_conv_grouped.iterrows():
-    #     bus = buses[region.subst.loc[idx[0]]['otg_id']]
+    # create sources: conventional power plants
+    for idx, row in region.geno_conv_grouped.iterrows():
+        # get bus
+        bus = buses[region.subst.loc[idx[0]]['otg_id']]
+
+        # do we have a timeseries for this geno?
+        if idx in region.geno_res_ts.index:
+            ts_ds = region.geno_res_ts.loc[idx]
+        else:
+            logger.error('No timeseries for HV generator {} found! '
+                         '(capacity={} MW), skipped'
+                         .format(str(idx),
+                                 str(row['sum'])))
+            continue
+        outflow_args = {'nominal_value': row['sum']}
+
+        # calc relative feedin sum from all timeseries
+        ts = np.array(list(ts_ds['p_set'])[0] / row['sum'])
+        # add ts and fix it for renewables
+        outflow_args['actual_value'] = ts
+        outflow_args['fixed'] = True
+
+        # create node
+        nodes.append(
+            solph.Source(label=idx[1] + '_' + str(idx[0]),
+                         outputs={bus: solph.Flow(**outflow_args)})
+        )
+
 
     # create demands (electricity/heat)
     for idx, row in region.demand_el.iterrows():
@@ -102,30 +135,44 @@ def create_nodes(region=None, datetime_index = list()):
                               conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
         )
 
-    # add sink and source for import/export
-    nodes.append(
-        solph.Sink(label='excess_el',
-                   inputs={imex_bus: solph.Flow()})
-    )
-    nodes.append(
-        solph.Source(label='shortage_el',
-                     outputs={imex_bus: solph.Flow(variable_costs=200)})
-    )
+    # # add sink and source for import/export
+    # nodes.append(
+    #     solph.Sink(label='excess_el',
+    #                inputs={imex_bus: solph.Flow()})
+    # )
+    # nodes.append(
+    #     solph.Source(label='shortage_el',
+    #                  outputs={imex_bus: solph.Flow(variable_costs=200)})
+    # )
 
     # create lines for import and export (buses which are tagged with region_bus == False)
     for idx, row in region.buses[~region.buses['region_bus']].iterrows():
         bus = buses[idx]
+
+        # add sink and source for import/export
         nodes.append(
-            solph.custom.Link(label='line'
-                                    + '_b' + str(idx)
-                                    + '_b_el_imex',
-                              inputs={bus: solph.Flow(),
-                                      imex_bus: solph.Flow()},
-                              outputs={bus: solph.Flow(nominal_value=1e6),
-                                       imex_bus: solph.Flow(nominal_value=1e6)},
-                              conversion_factors={(bus, imex_bus): 1.0,
-                                                  (imex_bus, bus): 1.0})
+            solph.Sink(label='excess_el' + '_b' + str(idx),
+                       inputs={bus: solph.Flow(variable_costs=-50)})
         )
+        nodes.append(
+            solph.Source(label='shortage_el' + '_b' + str(idx),
+                         outputs={bus: solph.Flow(variable_costs=100)})
+        )
+
+        # nodes.append(
+        #     solph.custom.Link(label='line'
+        #                             + '_b' + str(idx)
+        #                             + '_b_el_imex',
+        #                       inputs={bus: solph.Flow(),
+        #                               imex_bus: solph.Flow()},
+        #                       outputs={bus: solph.Flow(nominal_value=10e6,
+        #                                                variable_costs=1),
+        #                                imex_bus: solph.Flow(nominal_value=10e6,
+        #                                                     variable_costs=1)
+        #                                },
+        #                       conversion_factors={(bus, imex_bus): 0.98,
+        #                                           (imex_bus, bus): 0.98})
+        # )
 
     # create regular lines
     for idx, row in region.lines.iterrows():
@@ -134,13 +181,18 @@ def create_nodes(region=None, datetime_index = list()):
 
         nodes.append(
             solph.custom.Link(label='line'
-                                    + '_' + str(row['line_id'])
-                                    + '_b' + str(row['bus0'])
-                                    + '_b' + str(row['bus1']),
+                                    + '_' + str(row['line_id']),
+                                    #+ '_b' + str(row['bus0'])
+                                    #+ '_b' + str(row['bus1']),
                               inputs={bus0: solph.Flow(),
                                       bus1: solph.Flow()},
-                              outputs={bus0: solph.Flow(nominal_value=float(row['s_nom'])),
-                                       bus1: solph.Flow(nominal_value=float(row['s_nom']))},
+                              outputs={bus0: solph.Flow(nominal_value=float(row['s_nom']),
+                                                        variable_costs=0.0001
+                                                        ),
+                                       bus1: solph.Flow(nominal_value=float(row['s_nom']),
+                                                        variable_costs=0.0001
+                                                        )
+                                       },
                               conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
         )
 
@@ -180,7 +232,7 @@ def create_model(cfg, region):
     #     region.dump_to_pkl('data.pkl')
 
     graph = grid_graph(region=region,
-                       draw=True)
+                       draw=False)
 
     nodes = create_nodes(
         region=region,
