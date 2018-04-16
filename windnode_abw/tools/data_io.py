@@ -20,6 +20,7 @@ from egoio.db_tables.model_draft import \
     WnAbwEgoDemandHvLargescaleconsumer as demand_lsc_orm,\
     WnAbwPowerplantT as geno_ts_orm,\
     WnAbwDemandElT as demand_ts_orm
+    #WnAbwResultsLine as results_line_orm
 
 
 def db_session():
@@ -333,6 +334,26 @@ def oep_import_data():
                                             index_col='subst_id')
 
     return data
+
+
+def oep_export_results(region):
+    """Export results of simulation to OEP
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+    """
+    # line loading
+    con = connection(section=config.get('data', 'oep_conn_section'))
+
+    #TODO: DB table is dropped and recreated - fix this!
+    region.results_lines.to_sql(schema='model_draft',
+                                name='wn_abw_results_line',
+                                con=con,
+                                if_exists='append',
+                                index=False,
+                                index_label='line_id')
 
 
 def oemof_nodes_from_excel(filename, header_lines=0):

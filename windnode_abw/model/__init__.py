@@ -2,7 +2,7 @@ import logging
 logger = logging.getLogger('windnode_abw')
 
 from windnode_abw.tools import config
-from windnode_abw.tools.data_io import oep_import_data
+from windnode_abw.tools.data_io import oep_import_data, oep_export_results
 
 import pickle
 import os
@@ -29,6 +29,7 @@ class Region:
         Region's conventional generators
     _demand_el : :pandas:`pandas.DataFrame<dataframe>`
         Region's power demand per Grid District and sector
+    _results_line
     """
     def __init__(self, **kwargs):
         self._name = 'ABW region'
@@ -42,6 +43,7 @@ class Region:
         self._geno_res_ts = kwargs.get('geno_res_ts', None)
         self._demand_el = kwargs.get('demand_el', None)
         self._demand_el_ts = kwargs.get('demand_el_ts', None)
+        self._results_lines = kwargs.get('_results_lines', None)
 
     @property
     def buses(self):
@@ -136,6 +138,20 @@ class Region:
         region = cls(**kwargs)
 
         return region
+
+    @property
+    def results_lines(self):
+        return self._results_lines
+
+    @results_lines.setter
+    def results_lines(self, results_lines):
+        self._results_lines = results_lines
+
+    def export_results(self):
+        """Export simulation results"""
+
+        # export
+        oep_export_results(self)
 
     def dump_to_pkl(self, filename):
         """Dump Region to pickle"""
