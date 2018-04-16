@@ -106,9 +106,6 @@ def plot_results(esys, region):
     results = esys.results['main']
     om_flows = esys.results['om_flows']
 
-    flows_links = calc_line_loading(esys=esys)
-
-
     # create and plot graph of energy system
     graph = create_nx_graph(esys)
     draw_graph(grph=graph, plot=True, layout='neato', node_size=100, font_size=8,
@@ -117,7 +114,7 @@ def plot_results(esys, region):
                    'bus_gas': '#7EC0EE',
                    'bus_th': '#eeac7e'})
 
-    imex_bus_results = views.node(results, 'b_el_imex')
+    imex_bus_results = views.node(results, 'b_el_27144')
     imex_bus_results_flows = imex_bus_results['sequences']
 
     # print some sums for import/export bus
@@ -155,19 +152,25 @@ if __name__ == "__main__":
     # configuration
     cfg = {
         'data_path': os.path.join(os.path.dirname(__file__), 'data'),
-        'date_from': '2016-01-01 00:00:00',
-        'date_to': '2016-01-01 23:00:00',
+        'date_from': '2015-01-01 00:00:00',
+        'date_to': '2015-01-07 23:00:00',
         'freq': '60min',
         'results_path': os.path.join(config.get_data_root_dir(),
                                      config.get('user_dirs',
                                                 'results_dir')),
-        'solver': 'cbc',
+        'solver': 'gurobi',
         'verbose': True,
         'dump_esys': True,
-        'load_esys': True
+        'load_esys': False
     }
 
     esys, region = run_scenario(cfg=cfg)
+
+    calc_line_loading(esys=esys,
+                      region=region)
+
+    region.export_results()
+
 
     plot_results(esys=esys,
                  region=region)
