@@ -250,6 +250,15 @@ def calc_line_loading(esys, region):
         if isinstance(from_n, solph.custom.Link)
     }
 
+    line_loading_mean2 = {}
+    for (from_n, to_n), flow in results.items():
+        if isinstance(from_n, solph.custom.Link):
+            line_loading_mean2[(from_n, to_n)] =\
+                float(flow['sequences'].mean()) / om_flows[(from_n, to_n)].nominal_value
+
+            if float(flow['sequences'].mean()) != float(flow['sequences'].max()):
+                print((from_n, to_n))
+
     line_loading_max = {
         (from_n, to_n): float(flow['sequences'].max()) / om_flows[(from_n, to_n)].nominal_value
         #from_n: float(flow['sequences'].max()) / om_flows[(from_n, to_n)].nominal_value
@@ -265,6 +274,7 @@ def calc_line_loading(esys, region):
     results_lines['loading_mean'] = 0.
     results_lines['loading_max'] = 0.
 
+    # calc max. of 2 loadings (both directions) and save in DF
     for idx, row in results_lines.iterrows():
         #results_lines.at[idx, 'loading_mean'] = line_loading_mean[esys.groups['line_' + str(int(row['line_id']))]]
         line = esys.groups['line_' + str(int(row['line_id']))]
