@@ -52,19 +52,23 @@ def create_nodes(region=None, datetime_index = list()):
         # get timeseries datasets (there could be multiple)
         ts_ds = region.geno_res_ts.loc[idx]
         #outflow_args = {'nominal_value': row['sum']}
-        outflow_args = {'nominal_value': row['sum'] * 2}
+        outflow_args = {'nominal_value': row['sum']}
 
         # if source is renewable (fixed source with timeseries)
         #if (ts_ds['dispatch'] == 'variable').all():
         # calc relative feedin sum from all timeseries
         if 'wind' in idx:
-            fac = 4
+            fac = 1
         elif 'solar' in idx:
-            fac = 10
+            fac = 0.85
+        elif 'biomass' in idx:
+            fac = 0.85
+        elif 'run_of_river' in idx:
+            fac = 0.85
         else:
             fac = 1
         #ts = np.sum(list(ts_ds['p_set']), 0) / row['sum']
-        ts=1
+        ts = [fac, fac, fac]
         # add ts and fix it for renewables
         outflow_args['actual_value'] = ts
         outflow_args['fixed'] = True
@@ -92,7 +96,8 @@ def create_nodes(region=None, datetime_index = list()):
         outflow_args = {'nominal_value': row['sum']}
 
         # calc relative feedin sum from all timeseries
-        ts = np.array(list(ts_ds['p_set'])[0] / row['sum'])
+        ts = [1, 1, 1]
+        #ts = np.array(list(ts_ds['p_set'])[0] / row['sum'])
         # add ts and fix it for renewables
         outflow_args['actual_value'] = ts
         outflow_args['fixed'] = True
@@ -111,7 +116,8 @@ def create_nodes(region=None, datetime_index = list()):
         #p_nom = row.drop(['population'], axis=0).sum()
         p_nom = max(np.array(region.demand_el_ts.loc[idx]['p_set']))
         # calc relative power
-        ts = np.array(region.demand_el_ts.loc[idx]['p_set']) / p_nom
+        ts = [0.01, 0.01, 0.01]
+        #ts = np.array(region.demand_el_ts.loc[idx]['p_set']) / p_nom
         nodes.append(
             solph.Sink(label="demand_el_" + str(idx),
                        inputs={bus: solph.Flow(nominal_value=p_nom,
