@@ -37,7 +37,8 @@ setup(
         'GeoAlchemy2',
         'matplotlib',
         'networkx',
-        'psycopg2-binary'
+        'psycopg2-binary',
+        'keyring'
     ],
     # package_data={
     #     'config': [
