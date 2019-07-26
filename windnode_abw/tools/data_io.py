@@ -23,15 +23,23 @@ from egoio.db_tables.model_draft import \
     #WnAbwResultsLine as results_line_orm
 
 
-def db_session():
+
+def db_session(db_section):
     """Create DB session using egoio
+
+    Parameters
+    ----------
+    db_section : :obj:`str`
+      Database section in ego.io db config (usually ~/.egoio/config.ini) which
+      holds connection details. Note: keyring entry must exist for the section
+      to load the credentials.
 
     Returns
     -------
     :class:`.sessionmaker`
         SQLAlchemy session
     """
-    conn = connection(section=config.get('data', 'oep_conn_section'))
+    conn = connection(db_section)
     Session = sessionmaker(bind=conn)
 
     return Session()
@@ -210,7 +218,7 @@ def oep_import_data():
 
     # ===== Data via SQLA =====
     srid = int(config.get('geo', 'srid'))
-    session = db_session()
+    session = db_session('oedb_remote')
 
     # import RES generators
     logger.info('Importing RES generators...')
