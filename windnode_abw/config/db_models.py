@@ -26,7 +26,7 @@ class WnAbwDemandTs(Base):
     th_hh_efh_spec = Column(Float(53))
     th_hh_mfh_spec = Column(Float(53))
 
-    ags = relationship('WnAbwMun')
+    ags = relationship('WnAbwMun', back_populates='demand_ts')
 
 
 class WnAbwFeedinTs(Base):
@@ -44,7 +44,7 @@ class WnAbwFeedinTs(Base):
     conventional = Column(Float(53))
     bio = Column(Float(53))
 
-    ags = relationship('WnAbwMun')
+    ags = relationship('WnAbwMun', back_populates='feedin_ts')
 
 
 class WnAbwGridHvBus(Base):
@@ -63,7 +63,7 @@ class WnAbwGridHvBus(Base):
     region_bus = Column(Boolean, server_default=text("false"))
     ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'))
 
-    ags = relationship('WnAbwMun')
+    ags = relationship('WnAbwMun', back_populates='grid_hv_bus')
 
 
 class WnAbwGridHvLine(Base):
@@ -117,7 +117,7 @@ class WnAbwGridHvTransformer(Base):
     geom_point = Column(Geometry('POINT', 4326))
     ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'))
 
-    ags = relationship('WnAbwMun')
+    ags = relationship('WnAbwMun', back_populates='grid_hv_transformer')
 
 
 class WnAbwGridHvmvSubstation(Base):
@@ -145,7 +145,7 @@ class WnAbwGridHvmvSubstation(Base):
     geom = Column(Geometry('POINT', 3035), index=True)
     ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'))
 
-    ags = relationship('WnAbwMun')
+    ags = relationship('WnAbwMun', back_populates='grid_hvmv_substation')
 
 
 class WnAbwGridMvGriddistrict(Base):
@@ -192,15 +192,15 @@ class WnAbwMun(Base):
 
     geom = Column(Geometry('MULTIPOLYGON', 3035), nullable=False, index=True)
     ags = Column(Integer, primary_key=True)
-    gen = Column(String(254), nullable=False)
+    name = Column('gen', String(254), nullable=False)
     geom_centroid = Column(Geometry('POINT', 3035), index=True)
 
 
-class WnAbwMundata(WnAbwMun):
+class WnAbwMundata(Base):
     __tablename__ = 'wn_abw_mundata'
     __table_args__ = {'schema': 'windnode'}
 
-    ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), ForeignKey('windnode.wn_abw_mun.ags'), primary_key=True)
+    ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), primary_key=True, nullable=False)
     area = Column(Float(53))
     pop_2017 = Column(Integer)
     pop_2030 = Column(Integer)
@@ -253,9 +253,9 @@ class WnAbwMundata(WnAbwMun):
     gen_capacity_conventional_small = Column(Float(53))
     gen_count_conventional_large = Column(Float(53))
     gen_count_conventional_small = Column(Float(53))
-    scenario = Column(String)
+    scenario = Column(String, primary_key=True, nullable=False)
 
-    ags = relationship('WnAbwMun', uselist=False, primaryjoin='WnAbwMundatum.ags_id == WnAbwMun.ags')
+    ags = relationship('WnAbwMun', back_populates='mundata')
 
 
 class WnAbwPowerplant(Base):
@@ -281,4 +281,6 @@ class WnAbwPowerplant(Base):
     coastdat2 = Column(Float(53))
     capacity_in = Column(Float(53))
     federal_state = Column(Text)
-    ags_id = Column(Integer, nullable=False, index=True)
+    ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), nullable=False, index=True)
+
+    ags = relationship('WnAbwMun', back_populates='powerplant')
