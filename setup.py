@@ -38,7 +38,8 @@ setup(
         'matplotlib',
         'networkx',
         'psycopg2-binary',
-        'keyring'
+        'keyring',
+        'egoio'
     ],
     # package_data={
     #     'config': [
