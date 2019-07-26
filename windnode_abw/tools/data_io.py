@@ -43,7 +43,7 @@ def db_session(db_section):
     :class:`.sessionmaker`
         SQLAlchemy session
     """
-    conn = connection(db_section)
+    conn = connection(section=db_section)
     Session = sessionmaker(bind=conn)
 
     return Session()
