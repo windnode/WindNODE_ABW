@@ -22,6 +22,10 @@ from egoio.db_tables.model_draft import \
     WnAbwDemandElT as demand_ts_orm
     #WnAbwResultsLine as results_line_orm
 
+from windnode_abw.config.db_models import \
+    WnAbwDemandTs, WnAbwFeedinTs, WnAbwGridHvBus, WnAbwGridHvLine,\
+    WnAbwGridHvmvSubstation, WnAbwGridMvGriddistrict, WnAbwGridHvTransformer,\
+    WnAbwMun, WnAbwMundata, WnAbwPowerplant
 
 
 def db_session(db_section):
