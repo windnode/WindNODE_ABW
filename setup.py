@@ -31,17 +31,13 @@ setup(
     author_email='',
     description='A regional simulation model',
     install_requires = [
-        'eDisGo >=0.0.1, <=0.0.1',
-        'egoio >= 0.3.0, <= 0.3.0',
-        'oemof >=0.2.0',
-        'oemof.db >=0.0.5',
-        'shapely >= 1.5.12',
-        'pandas >=0.20.3',
-        'requests >=2.18.4',
-        'GeoAlchemy2 >=0.4.0'
-        #'pypsa >=0.10.0, <=0.10.0',
-        #'pyproj >= 1.9.5.1, <= 1.9.5.1',
-        #'geopy >= 1.11.0, <= 1.11.0'
+        'oemof',
+        'shapely',
+        'pandas',
+        'GeoAlchemy2',
+        'matplotlib',
+        'networkx',
+        'psycopg2-binary'
     ],
     # package_data={
     #     'config': [
