@@ -26,7 +26,7 @@ class WnAbwDemandTs(Base):
     th_hh_efh_spec = Column(Float(53))
     th_hh_mfh_spec = Column(Float(53))
 
-    ags = relationship('WnAbwMun', back_populates='demand_ts')
+    mun = relationship('WnAbwMun', back_populates='demand_ts')
 
 
 class WnAbwFeedinTs(Base):
@@ -44,7 +44,7 @@ class WnAbwFeedinTs(Base):
     conventional = Column(Float(53))
     bio = Column(Float(53))
 
-    ags = relationship('WnAbwMun', back_populates='feedin_ts')
+    mun = relationship('WnAbwMun', back_populates='feedin_ts')
 
 
 class WnAbwGridHvBus(Base):
@@ -63,7 +63,7 @@ class WnAbwGridHvBus(Base):
     region_bus = Column(Boolean, server_default=text("false"))
     ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'))
 
-    ags = relationship('WnAbwMun', back_populates='grid_hv_bus')
+    mun = relationship('WnAbwMun', back_populates='grid_hv_bus')
 
 
 class WnAbwGridHvLine(Base):
@@ -117,7 +117,7 @@ class WnAbwGridHvTransformer(Base):
     geom_point = Column(Geometry('POINT', 4326))
     ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'))
 
-    ags = relationship('WnAbwMun', back_populates='grid_hv_transformer')
+    mun = relationship('WnAbwMun', back_populates='grid_hv_transformer')
 
 
 class WnAbwGridHvmvSubstation(Base):
@@ -145,7 +145,7 @@ class WnAbwGridHvmvSubstation(Base):
     geom = Column(Geometry('POINT', 3035), index=True)
     ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'))
 
-    ags = relationship('WnAbwMun', back_populates='grid_hvmv_substation')
+    mun = relationship('WnAbwMun', back_populates='grid_hvmv_substation')
 
 
 class WnAbwGridMvGriddistrict(Base):
@@ -194,6 +194,14 @@ class WnAbwMun(Base):
     ags = Column(Integer, primary_key=True)
     name = Column('gen', String(254), nullable=False)
     geom_centroid = Column(Geometry('POINT', 3035), index=True)
+
+    demand_ts = relationship('WnAbwDemandTs', back_populates='mun')
+    feedin_ts = relationship('WnAbwFeedinTs', back_populates='mun')
+    grid_hv_bus = relationship('WnAbwGridHvBus', back_populates='mun')
+    grid_hv_transformer = relationship('WnAbwGridHvTransformer', back_populates='mun')
+    grid_hvmv_substation = relationship('WnAbwGridHvmvSubstation', back_populates='mun')
+    mundata = relationship('WnAbwMundata', back_populates='mun')
+    powerplant = relationship('WnAbwPowerplant', back_populates='mun')
 
 
 class WnAbwMundata(Base):
@@ -255,7 +263,7 @@ class WnAbwMundata(Base):
     gen_count_conventional_small = Column(Float(53))
     scenario = Column(String, primary_key=True, nullable=False)
 
-    ags = relationship('WnAbwMun', back_populates='mundata')
+    mun = relationship('WnAbwMun', back_populates='mundata')
 
 
 class WnAbwPowerplant(Base):
@@ -283,4 +291,4 @@ class WnAbwPowerplant(Base):
     federal_state = Column(Text)
     ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), nullable=False, index=True)
 
-    ags = relationship('WnAbwMun', back_populates='powerplant')
+    mun = relationship('WnAbwMun', back_populates='powerplant')
