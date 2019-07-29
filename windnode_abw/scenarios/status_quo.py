@@ -64,6 +64,8 @@ def run_scenario(cfg):
 
     # create region
     region2 = Region.import_data2()
+    region2.prepare_timeseries()
+
     region = Region.import_data()
 
     # create model and simulate
