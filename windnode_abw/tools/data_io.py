@@ -348,6 +348,177 @@ def oep_import_data():
     return data
 
 
+def import_db_data():
+    """Import data from DB using SQLA DB models"""
+
+    data = {}
+
+    srid = int(config.get('geo', 'srid'))
+    session = db_session('local_kopernikus')
+
+    # import municipalities including stats
+    logger.info('Importing muns...')
+
+    muns_query = session.query(
+        WnAbwMun.ags,
+        WnAbwMun.name,
+        func.ST_AsText(func.ST_Transform(
+            WnAbwMun.geom, srid)).label('geom'),
+
+        WnAbwMundata.pop_2017,
+        WnAbwMundata.area,
+        WnAbwMundata.gen_capacity_wind,
+        WnAbwMundata.gen_capacity_pv_roof_small,
+        WnAbwMundata.gen_capacity_pv_roof_large,
+        WnAbwMundata.gen_capacity_pv_ground,
+        WnAbwMundata.gen_capacity_hydro,
+        WnAbwMundata.gen_capacity_bio,
+        WnAbwMundata.gen_capacity_sewage_landfill_gas,
+        WnAbwMundata.gen_capacity_conventional_large,
+        WnAbwMundata.gen_capacity_conventional_small,
+
+        WnAbwMundata.gen_count_wind,
+        WnAbwMundata.gen_count_pv_roof_small,
+        WnAbwMundata.gen_count_pv_roof_large,
+        WnAbwMundata.gen_count_pv_ground,
+        WnAbwMundata.gen_count_hydro,
+        WnAbwMundata.gen_count_bio,
+        WnAbwMundata.gen_count_sewage_landfill_gas,
+        WnAbwMundata.gen_count_conventional_large,
+        WnAbwMundata.gen_count_conventional_small,
+
+        WnAbwMundata.dem_el_energy_hh,
+        WnAbwMundata.dem_el_energy_rca,
+        WnAbwMundata.dem_el_energy_ind,
+
+        WnAbwMundata.dem_th_energy_hh,
+        WnAbwMundata.dem_th_energy_rca
+    ).join(WnAbwMundata).order_by(WnAbwMun.ags)
+
+    data['muns'] = pd.read_sql_query(muns_query.statement,
+                                     session.bind,
+                                     index_col='ags')
+
+    # import demand timeseries
+    logger.info('Importing demand timeseries...')
+    demandts_query = session.query(
+        WnAbwDemandTs.ags_id.label('ags'),
+        WnAbwDemandTs.el_hh,
+        WnAbwDemandTs.el_rca,
+        WnAbwDemandTs.el_ind,
+        WnAbwDemandTs.th_hh_efh,
+        WnAbwDemandTs.th_hh_mfh,
+        WnAbwDemandTs.th_rca
+    ).order_by(WnAbwDemandTs.timestamp)
+    data['demand_ts'] = pd.read_sql_query(demandts_query.statement,
+                                          session.bind,
+                                          index_col='ags')
+
+    # import feedin timeseries
+    logger.info('Importing feedin timeseries...')
+    feedints_query = session.query(
+        WnAbwFeedinTs.ags_id.label('ags'),
+        WnAbwFeedinTs.wind_sq,
+        WnAbwFeedinTs.pv_ground,
+        WnAbwFeedinTs.pv_roof,
+        WnAbwFeedinTs.hydro,
+        WnAbwFeedinTs.bio,
+        WnAbwFeedinTs.conventional
+    ).order_by(WnAbwFeedinTs.timestamp)
+    data['feedin_ts'] = pd.read_sql_query(feedints_query.statement,
+                                          session.bind,
+                                          index_col='ags')
+
+    # import HV grid (buses, lines, trafos, substations+grid districts)
+    logger.info('Importing HV grid...')
+    gridhvbus_query = session.query(
+        WnAbwGridHvBus.bus_id,
+        WnAbwGridHvBus.v_nom,
+        WnAbwGridHvBus.hvmv_subst_id,
+        WnAbwGridHvBus.region_bus,
+        WnAbwGridHvBus.ags_id.label('ags'),
+        func.ST_AsText(func.ST_Transform(
+            WnAbwGridHvBus.geom, srid)).label('geom'),
+    ).order_by(WnAbwGridHvBus.bus_id)
+    data['buses'] = pd.read_sql_query(gridhvbus_query.statement,
+                                      session.bind,
+                                      index_col='bus_id')
+
+    gridhvlines_query = session.query(
+        WnAbwGridHvLine.line_id,
+        WnAbwGridHvLine.bus0,
+        WnAbwGridHvLine.bus1,
+        WnAbwGridHvLine.x,
+        WnAbwGridHvLine.r,
+        WnAbwGridHvLine.g,
+        WnAbwGridHvLine.b,
+        WnAbwGridHvLine.s_nom,
+        WnAbwGridHvLine.length,
+        WnAbwGridHvLine.cables,
+        func.ST_AsText(func.ST_Transform(
+            WnAbwGridHvLine.geom, srid)).label('geom'),
+    ).order_by(WnAbwGridHvLine.line_id)
+    data['lines'] = pd.read_sql_query(gridhvlines_query.statement,
+                                      session.bind)
+
+    gridhvtrafo_query = session.query(
+        WnAbwGridHvTransformer.trafo_id,
+        WnAbwGridHvTransformer.bus0,
+        WnAbwGridHvTransformer.bus1,
+        WnAbwGridHvTransformer.x,
+        WnAbwGridHvTransformer.r,
+        WnAbwGridHvTransformer.g,
+        WnAbwGridHvTransformer.b,
+        WnAbwGridHvTransformer.s_nom,
+        WnAbwGridHvTransformer.tap_ratio,
+        WnAbwGridHvTransformer.phase_shift,
+        WnAbwGridHvTransformer.ags_id.label('ags'),
+        func.ST_AsText(func.ST_Transform(
+            WnAbwGridHvTransformer.geom_point, srid)).label('geom'),
+    ).order_by(WnAbwGridHvTransformer.trafo_id)
+    data['trafos'] = pd.read_sql_query(gridhvtrafo_query.statement,
+                                       session.bind)
+
+    gridhvmvsubst_query = session.query(
+        WnAbwGridHvmvSubstation.subst_id,
+        WnAbwGridHvmvSubstation.ags_id.label('ags'),
+        WnAbwGridHvmvSubstation.voltage,
+        func.ST_AsText(func.ST_Transform(
+            WnAbwGridHvmvSubstation.geom, srid)).label('geom'),
+        func.ST_AsText(func.ST_Transform(
+            WnAbwGridMvGriddistrict.geom, srid)).label('geom_mvgd'),
+    ).join(
+        WnAbwGridMvGriddistrict,
+        WnAbwGridHvmvSubstation.subst_id == WnAbwGridMvGriddistrict.subst_id).\
+        order_by(WnAbwGridHvmvSubstation.subst_id)
+    data['subst'] = pd.read_sql_query(gridhvmvsubst_query.statement,
+                                      session.bind,
+                                      index_col='subst_id')
+
+    # import generators
+    logger.info('Importing generators...')
+    generators_query = session.query(
+        WnAbwPowerplant.id,
+        WnAbwPowerplant.ags_id,
+        WnAbwPowerplant.capacity,
+        WnAbwPowerplant.chp,
+        WnAbwPowerplant.com_month,
+        WnAbwPowerplant.com_year,
+        WnAbwPowerplant.energy_source_level_1,
+        WnAbwPowerplant.energy_source_level_2,
+        WnAbwPowerplant.energy_source_level_3,
+        WnAbwPowerplant.technology,
+        WnAbwPowerplant.thermal_capacity,
+        WnAbwPowerplant.capacity_in,
+        func.ST_AsText(func.ST_Transform(
+            WnAbwPowerplant.geometry, srid)).label('geom')
+    )
+    data['generators'] = pd.read_sql_query(generators_query.statement,
+                                           session.bind,
+                                           index_col='id')
+
+    return data
+
 def oep_export_results(region):
     """Export results of simulation to OEP
 
