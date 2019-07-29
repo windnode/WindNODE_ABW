@@ -45,6 +45,11 @@ class Region:
         self._demand_el_ts = kwargs.get('demand_el_ts', None)
         self._results_lines = kwargs.get('_results_lines', None)
 
+        self.muns = kwargs.get('muns', None)
+        self.demand_ts = kwargs.get('demand_ts', None)
+        self.feedin_ts = kwargs.get('feedin_ts', None)
+        self.generators = kwargs.get('generators', None)
+
     @property
     def buses(self):
         """Returns region's buses"""
