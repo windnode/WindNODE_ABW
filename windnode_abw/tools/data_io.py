@@ -411,8 +411,7 @@ def import_db_data():
         WnAbwDemandTs.th_rca
     ).order_by(WnAbwDemandTs.timestamp)
     data['demand_ts'] = pd.read_sql_query(demandts_query.statement,
-                                          session.bind,
-                                          index_col='ags')
+                                          session.bind)
 
     # import feedin timeseries
     logger.info('Importing feedin timeseries...')
@@ -426,8 +425,7 @@ def import_db_data():
         WnAbwFeedinTs.conventional
     ).order_by(WnAbwFeedinTs.timestamp)
     data['feedin_ts'] = pd.read_sql_query(feedints_query.statement,
-                                          session.bind,
-                                          index_col='ags')
+                                          session.bind)
 
     # import HV grid (buses, lines, trafos, substations+grid districts)
     logger.info('Importing HV grid...')
