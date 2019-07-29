@@ -410,7 +410,7 @@ def import_db_data():
         WnAbwDemandTs.th_hh_mfh,
         WnAbwDemandTs.th_rca
     ).order_by(WnAbwDemandTs.timestamp)
-    data['demand_ts'] = reformat_timeseries(
+    data['demand_ts_init'] = reformat_timeseries(
         pd.read_sql_query(demandts_query.statement,
                           session.bind)
     )
@@ -426,7 +426,7 @@ def import_db_data():
         WnAbwFeedinTs.bio,
         WnAbwFeedinTs.conventional
     ).order_by(WnAbwFeedinTs.timestamp)
-    data['feedin_ts'] = reformat_timeseries(
+    data['feedin_ts_init'] = reformat_timeseries(
         pd.read_sql_query(feedints_query.statement,
                           session.bind)
     )

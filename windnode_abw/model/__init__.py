@@ -46,8 +46,10 @@ class Region:
         self._results_lines = kwargs.get('_results_lines', None)
 
         self.muns = kwargs.get('muns', None)
-        self.demand_ts = kwargs.get('demand_ts', None)
-        self.feedin_ts = kwargs.get('feedin_ts', None)
+        self.demand_ts_init = kwargs.get('demand_ts_init', None)
+        self.demand_ts = None
+        self.feedin_ts_init = kwargs.get('feedin_ts_init', None)
+        self.feedin_ts = None
         self.generators = kwargs.get('generators', None)
 
     @property
