@@ -313,3 +313,112 @@ def calc_line_loading(esys, region):
     # # flows_links.sort_values('loading_max')
 
     return
+
+
+def prepare_feedin_timeseries(region):
+    """Calculate feedin timeseries per technology for entire region
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+
+    Returns
+    -------
+    :obj:`dict` of :pandas:`pandas.DataFrame<dataframe>`
+        Feedin timeseries per technology (dict key) and municipality (DF
+        column)
+
+    ToDo: Allow for different scenarios
+    """
+
+    # needed columns from scenario's mun data for feedin
+    cols = ['gen_capacity_wind',
+            'gen_capacity_pv_ground',
+            'gen_capacity_pv_roof_small',
+            'gen_capacity_pv_roof_large',
+            'gen_capacity_hydro',
+            'gen_capacity_bio',
+            'gen_capacity_sewage_landfill_gas',
+            'gen_capacity_conventional_large',
+            'gen_capacity_conventional_small']
+
+    # mapping for capacity columns to timeseries columns
+    # if repowering scenario present, use wind_fs time series
+    tech_mapping = {
+        'gen_capacity_wind': 'wind_sq',
+            # ToDo: Include future scenario by using wind_fs
+            #  as soon as they are defined and implemented:
+            #'wind_sq' if reg_params['repowering_scn'] == 0 else 'wind_fs',
+        'gen_capacity_pv_ground': 'pv_ground',
+        'gen_capacity_hydro': 'hydro',
+    }
+
+    # prepare capacities (for relative timeseries only)
+    cap_per_mun = region.muns[cols].rename(columns=tech_mapping)
+    cap_per_mun['pv_roof'] = \
+        cap_per_mun['gen_capacity_pv_roof_small'] + \
+        cap_per_mun['gen_capacity_pv_roof_large']
+    cap_per_mun['bio'] = \
+        cap_per_mun['gen_capacity_bio'] + \
+        cap_per_mun['gen_capacity_sewage_landfill_gas']
+    cap_per_mun['conventional'] = \
+        cap_per_mun['gen_capacity_conventional_large'] + \
+        cap_per_mun['gen_capacity_conventional_small']
+    cap_per_mun.drop(columns=['gen_capacity_pv_roof_small',
+                                 'gen_capacity_pv_roof_large',
+                                 'gen_capacity_bio',
+                                 'gen_capacity_sewage_landfill_gas',
+                                 'gen_capacity_conventional_large',
+                                 'gen_capacity_conventional_small'],
+                        inplace=True)
+
+    # calculate capacity(mun)-weighted aggregated feedin timeseries for entire region:
+    # 1) process relative TS
+    feedin_agg = {}
+    for tech in list(cap_per_mun.loc[:,
+                     cap_per_mun.columns != 'conventional'].columns):
+        feedin_agg[tech] = region.feedin_ts_init[tech] * cap_per_mun[tech]
+
+    # 2) process absolute TS (conventional plants)
+    # do not use capacities as the full load hours of the plants differ - use
+    # ratio of currently set power values and those from status quo scenario
+    conv_cap_per_mun = \
+        cap_per_mun['conventional'] /\
+        region.muns[['gen_capacity_conventional_large',
+                  'gen_capacity_conventional_small']].sum(axis=1)
+    feedin_agg['conventional'] = region.feedin_ts_init['conventional'] * conv_cap_per_mun
+
+    # if repowering scenario present, rename wind_fs time series to wind
+    feedin_agg['wind'] = feedin_agg.pop('wind_sq')
+
+    # ToDo: Include future scenario by using wind_fs
+    #  as soon as they are defined and implemented:
+    # if reg_params['repowering_scn'] == 0:
+    #     feedin_agg['wind'] = feedin_agg.pop('wind_sq')
+    # else:
+    #     feedin_agg['wind'] = feedin_agg.pop('wind_fs')
+
+    return feedin_agg
+
+
+def prepare_demand_timeseries(region):
+    """Calculate demand timeseries per sector
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+
+    Returns
+    -------
+    :obj:`dict` of :pandas:`pandas.DataFrame<dataframe>`
+        Demand timeseries per demand sector (dict key) and municipality (DF
+        column)
+
+    ToDo: Allow for different scenarios
+    """
+    demand_ts = {}
+    demand_types = region.demand_ts_init.columns.get_level_values(0).unique()
+    for dt in demand_types:
+        demand_ts[dt] = region.demand_ts_init[dt]
+
+    return demand_ts
