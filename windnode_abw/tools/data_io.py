@@ -410,8 +410,10 @@ def import_db_data():
         WnAbwDemandTs.th_hh_mfh,
         WnAbwDemandTs.th_rca
     ).order_by(WnAbwDemandTs.timestamp)
-    data['demand_ts'] = pd.read_sql_query(demandts_query.statement,
-                                          session.bind)
+    data['demand_ts'] = reformat_timeseries(
+        pd.read_sql_query(demandts_query.statement,
+                          session.bind)
+    )
 
     # import feedin timeseries
     logger.info('Importing feedin timeseries...')
@@ -424,8 +426,10 @@ def import_db_data():
         WnAbwFeedinTs.bio,
         WnAbwFeedinTs.conventional
     ).order_by(WnAbwFeedinTs.timestamp)
-    data['feedin_ts'] = pd.read_sql_query(feedints_query.statement,
-                                          session.bind)
+    data['feedin_ts'] = reformat_timeseries(
+        pd.read_sql_query(feedints_query.statement,
+                          session.bind)
+    )
 
     # import HV grid (buses, lines, trafos, substations+grid districts)
     logger.info('Importing HV grid...')
@@ -516,6 +520,26 @@ def import_db_data():
                                            index_col='id')
 
     return data
+
+
+def reformat_timeseries(ts):
+    """Reformat timeseries
+
+    Parameters
+    ----------
+    ts : :pandas:`pandas.DataFrame<dataframe>`
+        Normalized timeseries with
+
+    Returns
+    -------
+    :pandas:`pandas.DataFrame<dataframe>`
+        Normalized timeseries with technology & mun MultiIndex on columns
+    """
+
+    return ts.pivot(index=ts.index, columns='ags') \
+        .apply(lambda _: pd.Series(_.dropna().values)) \
+        .fillna(0)
+
 
 def oep_export_results(region):
     """Export results of simulation to OEP
