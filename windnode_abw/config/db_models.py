@@ -200,7 +200,7 @@ class WnAbwMun(Base):
     grid_hv_bus = relationship('WnAbwGridHvBus', back_populates='mun')
     grid_hv_transformer = relationship('WnAbwGridHvTransformer', back_populates='mun')
     grid_hvmv_substation = relationship('WnAbwGridHvmvSubstation', back_populates='mun')
-    mundata = relationship('WnAbwMundata', back_populates='mun')
+    mundata = relationship('WnAbwMundata', back_populates='mun', uselist=False)
     powerplant = relationship('WnAbwPowerplant', back_populates='mun')
 
 
