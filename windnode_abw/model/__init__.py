@@ -2,7 +2,7 @@ import logging
 logger = logging.getLogger('windnode_abw')
 
 from windnode_abw.tools import config
-from windnode_abw.tools.data_io import oep_import_data, oep_export_results
+from windnode_abw.tools.data_io import oep_import_data, oep_export_results, import_db_data
 
 import pickle
 import os
@@ -138,6 +138,18 @@ class Region:
 
         # import
         kwargs = oep_import_data()
+
+        # create the region instance
+        region = cls(**kwargs)
+
+        return region
+
+    @classmethod
+    def import_data2(cls, **kwargs):
+        """Import data to Region object"""
+
+        # import
+        kwargs = import_db_data()
 
         # create the region instance
         region = cls(**kwargs)

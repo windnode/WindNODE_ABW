@@ -63,7 +63,9 @@ def run_scenario(cfg):
         return esys, region
 
     # create region
+    region2 = Region.import_data2()
     region = Region.import_data()
+
     # create model and simulate
     esys = create_model(cfg=cfg,
                         region=region)
