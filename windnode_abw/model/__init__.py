@@ -1,11 +1,14 @@
+import pickle
+import os
+
 import logging
 logger = logging.getLogger('windnode_abw')
 
 from windnode_abw.tools import config
-from windnode_abw.tools.data_io import oep_import_data, oep_export_results, import_db_data
-
-import pickle
-import os
+from windnode_abw.tools.data_io import \
+    oep_import_data, oep_export_results, import_db_data
+from windnode_abw.model.region.tools import \
+    prepare_feedin_timeseries, prepare_demand_timeseries
 
 
 class Region:
@@ -191,3 +194,7 @@ class Region:
 
         return pickle.load(open(os.path.join(filepath,
                                              filename), 'rb'))
+
+    def prepare_timeseries(self):
+        self.feedin_ts = prepare_feedin_timeseries(self)
+        self.demand_ts = prepare_demand_timeseries(self)
