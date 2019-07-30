@@ -483,6 +483,7 @@ def import_db_data():
 
     gridhvmvsubst_query = session.query(
         WnAbwGridHvmvSubstation.subst_id,
+        WnAbwGridHvmvSubstation.otg_id.label('bus_id'),
         WnAbwGridHvmvSubstation.ags_id.label('ags'),
         WnAbwGridHvmvSubstation.voltage,
         func.ST_AsText(func.ST_Transform(
