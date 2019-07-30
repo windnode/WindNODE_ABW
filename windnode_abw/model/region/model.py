@@ -354,7 +354,11 @@ def create_nodes2(region=None, datetime_index=None):
 
     timesteps = len(datetime_index)
 
-    # create buses
+    #########
+    # BUSES #
+    #########
+
+    # grid buses
     buses = {}
     nodes = []
     for idx, row in region.buses.iterrows():
@@ -362,9 +366,42 @@ def create_nodes2(region=None, datetime_index=None):
         buses[idx] = bus
         nodes.append(bus)
 
-    # add bus for el. power import and export
-    imex_bus = solph.Bus(label='b_el_imex')
-    nodes.append(imex_bus)
+    #################
+    # EXTERNAL GRID #
+    #################
+
+    # common bus for el. power import and export (110 kV level)
+    imex_hv_bus = solph.Bus(label='b_el_imex_hv')
+    nodes.append(imex_hv_bus)
+    # common bus for el. power import and export (380 kV level)
+    imex_ehv_bus = solph.Bus(label='b_el_imex_ehv')
+    nodes.append(imex_ehv_bus)
+
+    # add sink and source for common import/export bus to represent external
+    # grid (110 kV level)
+    nodes.append(
+        solph.Sink(label='excess_el_hv',
+                   inputs={imex_hv_bus: solph.Flow(variable_costs=-50)})
+    )
+    nodes.append(
+        solph.Source(label='shortage_el_hv',
+                     outputs={imex_hv_bus: solph.Flow(variable_costs=200)})
+    )
+
+    # add sink and source for common import/export bus to represent external
+    # grid (380 kV level)
+    nodes.append(
+        solph.Sink(label='excess_el_ehv',
+                   inputs={imex_ehv_bus: solph.Flow(variable_costs=-50)})
+    )
+    nodes.append(
+        solph.Source(label='shortage_el_ehv',
+                     outputs={imex_ehv_bus: solph.Flow(variable_costs=200)})
+    )
+
+    ####################
+    # ELECTRICAL NODES #
+    ####################
 
     # create nodes for all municipalities
     for ags, mundata in region.muns.iterrows():
@@ -414,6 +451,10 @@ def create_nodes2(region=None, datetime_index=None):
                             inputs={buses[bus_id]: solph.Flow(**inflow_args)})
                     )
 
+    ################
+    # TRANSFORMERS #
+    ################
+
     # add 380/110kV trafos
     for idx, row in region.trafos.iterrows():
         bus0 = buses[row['bus0']]
@@ -432,17 +473,8 @@ def create_nodes2(region=None, datetime_index=None):
                 conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
         )
 
-    # add sink and source for common import/export bus
-    nodes.append(
-        solph.Sink(label='excess_el',
-                   inputs={imex_bus: solph.Flow(variable_costs=-50)})
-    )
-    nodes.append(
-        solph.Source(label='shortage_el',
-                     outputs={imex_bus: solph.Flow(variable_costs=200)})
-    )
-
-    # create lines for import and export (buses which are tagged with region_bus == False)
+    # create lines for import and export
+    # (buses which are tagged with region_bus == False)
     for idx, row in region.buses[~region.buses['region_bus']].iterrows():
         bus = buses[idx]
 
@@ -458,6 +490,11 @@ def create_nodes2(region=None, datetime_index=None):
         # )
 
         # CONNECTION TO COMMON IMEX BUS
+        if row['v_nom'] == 110:
+            imex_bus = imex_hv_bus
+        elif row['v_nom'] == 380:
+            imex_bus = imex_ehv_bus
+
         nodes.append(
             solph.custom.Link(
                 label='line_b{b0}_b_el_imex'.format(
