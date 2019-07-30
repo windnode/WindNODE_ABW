@@ -11,7 +11,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import func
 from shapely.wkt import loads as wkt_loads
 
-from windnode_abw.tools.geo import convert_df_wkb_to_shapely
+from windnode_abw.tools.geo import \
+    convert_df_wkb_to_shapely,\
+    convert_df_wkt_to_shapely
 from egoio.tools.db import connection
 from egoio.db_tables.model_draft import \
     WnAbwEgoDpResPowerplant as geno_res_orm,\
@@ -398,6 +400,8 @@ def import_db_data():
     data['muns'] = pd.read_sql_query(muns_query.statement,
                                      session.bind,
                                      index_col='ags')
+    data['muns'] = convert_df_wkt_to_shapely(df=data['muns'],
+                                             cols=['geom'])
 
     # import demand timeseries
     logger.info('Importing demand timeseries...')
@@ -445,6 +449,8 @@ def import_db_data():
     data['buses'] = pd.read_sql_query(gridhvbus_query.statement,
                                       session.bind,
                                       index_col='bus_id')
+    data['buses'] = convert_df_wkt_to_shapely(df=data['buses'],
+                                              cols=['geom'])
 
     gridhvlines_query = session.query(
         WnAbwGridHvLine.line_id,
@@ -462,6 +468,8 @@ def import_db_data():
     ).order_by(WnAbwGridHvLine.line_id)
     data['lines'] = pd.read_sql_query(gridhvlines_query.statement,
                                       session.bind)
+    data['lines'] = convert_df_wkt_to_shapely(df=data['lines'],
+                                              cols=['geom'])
 
     gridhvtrafo_query = session.query(
         WnAbwGridHvTransformer.trafo_id,
@@ -481,6 +489,8 @@ def import_db_data():
     data['trafos'] = pd.read_sql_query(gridhvtrafo_query.statement,
                                        session.bind,
                                        index_col='trafo_id')
+    data['trafos'] = convert_df_wkt_to_shapely(df=data['trafos'],
+                                               cols=['geom'])
 
     gridhvmvsubst_query = session.query(
         WnAbwGridHvmvSubstation.subst_id,
@@ -498,6 +508,8 @@ def import_db_data():
     data['subst'] = pd.read_sql_query(gridhvmvsubst_query.statement,
                                       session.bind,
                                       index_col='subst_id')
+    data['subst'] = convert_df_wkt_to_shapely(df=data['subst'],
+                                              cols=['geom', 'geom_mvgd'])
 
     # import generators
     logger.info('Importing generators...')
@@ -520,6 +532,8 @@ def import_db_data():
     data['generators'] = pd.read_sql_query(generators_query.statement,
                                            session.bind,
                                            index_col='id')
+    data['generators'] = convert_df_wkt_to_shapely(df=data['generators'],
+                                                   cols=['geom'])
 
     return data
 
