@@ -6,6 +6,7 @@ import pyproj
 from functools import partial
 from shapely.wkb import loads as wkb_loads
 from shapely.wkb import dumps as wkb_dumps
+from shapely.wkt import loads as wkt_loads
 
 
 def proj2equidistant():
@@ -76,5 +77,24 @@ def convert_df_shapely_to_wkb(df, cols=[]):
     """
     for col in cols:
         df[col] = df[col].apply(lambda x: wkb_dumps(x, hex=True))
+
+    return df
+
+
+def convert_df_wkt_to_shapely(df, cols=[]):
+    """Convert geometry columns of DataFrame from WKT to shapely object columns
+
+    Parameters
+    ----------
+    df : :pandas:`pandas.DataFrame`
+    cols : :obj:`list` of :obj:`str`
+        Column names
+    Returns
+    -------
+    :pandas:`pandas.DataFrame`
+        DataFrame with converted columns
+    """
+    for col in cols:
+        df[col] = df[col].apply(lambda x: wkt_loads(x))
 
     return df
