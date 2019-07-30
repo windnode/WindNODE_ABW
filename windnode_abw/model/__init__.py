@@ -18,19 +18,19 @@ class Region:
     ----------
     _name : :obj:`str`
         Name of network
-    _buses : :pandas:`pandas.DataFrame<dataframe>`
+    _buses : :pandas:`pandas.DataFrame`
         Region's buses
-    _lines : :pandas:`pandas.DataFrame<dataframe>`
+    _lines : :pandas:`pandas.DataFrame`
         Region's lines
-    _trafos : :pandas:`pandas.DataFrame<dataframe>`
+    _trafos : :pandas:`pandas.DataFrame`
         Region's transformers
-    _substations : :pandas:`pandas.DataFrame<dataframe>`
+    _substations : :pandas:`pandas.DataFrame`
         Region's substations
-    _geno_res : :pandas:`pandas.DataFrame<dataframe>`
+    _geno_res : :pandas:`pandas.DataFrame`
         Region's renewable (RES) generators
-    _geno_conv : :pandas:`pandas.DataFrame<dataframe>`
+    _geno_conv : :pandas:`pandas.DataFrame`
         Region's conventional generators
-    _demand_el : :pandas:`pandas.DataFrame<dataframe>`
+    _demand_el : :pandas:`pandas.DataFrame`
         Region's power demand per Grid District and sector
     _results_line
     """
@@ -101,7 +101,7 @@ class Region:
 
         Returns
         -------
-        :pandas:`pandas.DataFrame<dataframe>`
+        :pandas:`pandas.DataFrame`
             Grouped RES generators with MultiIndex
         """
         # access: e.g. df.loc[2303, 'gas']
@@ -119,7 +119,7 @@ class Region:
 
         Returns
         -------
-        :pandas:`pandas.DataFrame<dataframe>`
+        :pandas:`pandas.DataFrame`
             Grouped conventional generators with MultiIndex
         """
 

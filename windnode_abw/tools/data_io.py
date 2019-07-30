@@ -86,7 +86,7 @@ def oep_api_get_data(schema, table, columns=[], conditions=[], order=''):
 
     Returns
     -------
-    :pandas:`pandas.DataFrame<dataframe>`
+    :pandas:`pandas.DataFrame`
         Requested data
     """
 
@@ -136,13 +136,13 @@ def oep_api_write_data(schema, table, data):
         Database schema
     table : :obj:`str`
         Database table
-    data : :pandas:`pandas.DataFrame<dataframe>`
+    data : :pandas:`pandas.DataFrame`
         Data to be written. Column names of DataFrame have to equal column names of table.
         Note: If data involves geometries, they must follow WKB format.
 
     Returns
     -------
-    :pandas:`pandas.DataFrame<dataframe>`
+    :pandas:`pandas.DataFrame`
         Response, such as ids of inserted data
     """
 
@@ -527,12 +527,12 @@ def reformat_timeseries(ts):
 
     Parameters
     ----------
-    ts : :pandas:`pandas.DataFrame<dataframe>`
+    ts : :pandas:`pandas.DataFrame`
         Normalized timeseries with
 
     Returns
     -------
-    :pandas:`pandas.DataFrame<dataframe>`
+    :pandas:`pandas.DataFrame`
         Normalized timeseries with technology & mun MultiIndex on columns
     """
 

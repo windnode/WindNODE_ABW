@@ -324,7 +324,7 @@ def prepare_feedin_timeseries(region):
 
     Returns
     -------
-    :obj:`dict` of :pandas:`pandas.DataFrame<dataframe>`
+    :obj:`dict` of :pandas:`pandas.DataFrame`
         Feedin timeseries per technology (dict key) and municipality (DF
         column)
 
@@ -410,7 +410,7 @@ def prepare_demand_timeseries(region):
 
     Returns
     -------
-    :obj:`dict` of :pandas:`pandas.DataFrame<dataframe>`
+    :obj:`dict` of :pandas:`pandas.DataFrame`
         Demand timeseries per demand sector (dict key) and municipality (DF
         column)
 

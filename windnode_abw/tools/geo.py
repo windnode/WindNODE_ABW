@@ -47,12 +47,12 @@ def convert_df_wkb_to_shapely(df, cols=[]):
 
     Parameters
     ----------
-    df : :pandas:`pandas.DataFrame<dataframe>`
+    df : :pandas:`pandas.DataFrame`
     cols : :obj:`list` of :obj:`str`
         Column names
     Returns
     -------
-    :pandas:`pandas.DataFrame<dataframe>`
+    :pandas:`pandas.DataFrame`
         DataFrame with converted columns
     """
     for col in cols:
@@ -66,12 +66,12 @@ def convert_df_shapely_to_wkb(df, cols=[]):
 
     Parameters
     ----------
-    df : :pandas:`pandas.DataFrame<dataframe>`
+    df : :pandas:`pandas.DataFrame`
     cols : :obj:`list` of :obj:`str`
         Column names
     Returns
     -------
-    :pandas:`pandas.DataFrame<dataframe>`
+    :pandas:`pandas.DataFrame`
         DataFrame with converted columns
     """
     for col in cols:
