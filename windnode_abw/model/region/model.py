@@ -330,7 +330,8 @@ def create_oemof_model(cfg, region):
 
 
 def create_nodes2(region=None, datetime_index=None):
-    """Create nodes (oemof objects) from region
+    """Create nodes (oemof objects) and lines from region such as buses, links,
+    sources and sinks.
 
     Parameters
     ----------
