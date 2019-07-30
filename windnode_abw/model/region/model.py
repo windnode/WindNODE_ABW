@@ -287,3 +287,214 @@ def simulate(esys, solver='cbc', verbose=True):
     #     filename = os.path.join(os.path.dirname(__file__), 'input_data.csv')
     #
     # data = pd.read_csv(filename, sep=",")
+
+
+def create_oemof_model(cfg, region):
+    """Create oemof model using config and data files. An oemof energy system
+    is created, nodes are added and parametrized.
+
+    Parameters
+    ----------
+    cfg : :obj:`dict`
+        Config to be used to create model
+    region : :class:`~.model.Region`
+        Region object
+
+    Returns
+    -------
+    oemof.solph.EnergySystem
+    """
+    logger.info('Create energy system...')
+    # create time index
+    datetime_index = pd.date_range(start=cfg['date_from'],
+                                   end=cfg['date_to'],
+                                   freq=cfg['freq'])
+
+    # init energy system
+    esys = solph.EnergySystem(timeindex=datetime_index)
+
+    # create and add nodes
+    nodes = create_nodes2(
+        region=region,
+        datetime_index=datetime_index
+    )
+
+    esys.add(*nodes)
+
+    print('The following objects have been created:')
+    for n in esys.nodes:
+        oobj = str(type(n)).replace("<class 'oemof.solph.", "").replace("'>", "")
+        print(oobj + ':', n.label)
+
+    return esys
+
+
+def create_nodes2(region=None, datetime_index=None):
+    """Create nodes (oemof objects) from region
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+    datetime_index : :pandas:`pandas.DatetimeIndex`
+        Datetime index
+
+    Returns
+    -------
+    nodes : `obj`:dict of :class:`nodes <oemof.network.Node>`
+    """
+
+    if not region:
+        msg = 'No region class provided.'
+        logger.error(msg)
+        raise ValueError(msg)
+
+    logger.info("Creating objects...")
+
+    timesteps = len(datetime_index)
+
+    # create buses
+    buses = {}
+    nodes = []
+    for idx, row in region.buses.iterrows():
+        bus = solph.Bus(label='b_el_' + str(idx))
+        buses[idx] = bus
+        nodes.append(bus)
+
+    # add bus for power import and export
+    imex_bus = solph.Bus(label='b_el_imex')
+    nodes.append(imex_bus)
+
+    # create nodes for all municipalities
+    for ags, mundata in region.muns.iterrows():
+        # get all subst in mun
+        mun_subst = region.subst[region.subst.ags == ags]
+        # get buses for subst
+        mun_buses = region.buses.loc[mun_subst.bus_id]
+
+        # note: ts are distributed equally to all buses of mun
+        for bus_id, busdata in mun_buses.iterrows():
+            # create generators
+            # ToDo: Use normalized ts and cap instead?
+            for tech, ts_df in region.feedin_ts.items():
+                outflow_args = {
+                    'nominal_value': 1,
+                    'fixed':  True,
+                    'actual_value': list(ts_df[ags] /
+                                         len(mun_buses))[:timesteps]
+                }
+
+                # create node only if feedin sum is >0
+                if ts_df[ags].sum(axis=0) > 0:
+                    nodes.append(
+                        solph.Source(
+                            label='gen_b{bus_id}_{tech}'.format(
+                                bus_id=str(bus_id),
+                                tech=tech
+                            ),
+                            outputs={buses[bus_id]: solph.Flow(**outflow_args)})
+                    )
+            # create el. demands
+            # ToDo: Use normalized ts and cap instead?
+            for sector, ts_df in region.demand_ts.items():
+                # ToDo: include thermal demand
+                if sector[:3] == 'el_':
+                    inflow_args = {
+                        'nominal_value': 1,
+                        'fixed':  True,
+                        'actual_value': list(ts_df[ags] /
+                                             len(mun_buses))[:timesteps]
+                    }
+                    nodes.append(
+                        solph.Sink(label='dem_el_b{bus_id}_{sector}'.format(
+                            bus_id=str(bus_id),
+                            sector=sector
+                        ),
+                            inputs={buses[bus_id]: solph.Flow(**inflow_args)})
+                    )
+
+    # add 380/110kV trafos
+    for idx, row in region.trafos.iterrows():
+        bus0 = buses[row['bus0']]
+        bus1 = buses[row['bus1']]
+        nodes.append(
+            solph.custom.Link(
+                label='trafo_{trafo_id}_b{b0}_b{b1}'.format(
+                    trafo_id=str(idx),
+                    b0=str(row['bus0']),
+                    b1=str(row['bus1'])
+                ),
+                inputs={bus0: solph.Flow(),
+                        bus1: solph.Flow()},
+                outputs={bus0: solph.Flow(nominal_value=row['s_nom']),
+                         bus1: solph.Flow(nominal_value=row['s_nom'])},
+                conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
+        )
+
+    # COMMON IMEX SINK+SOURCE
+    # # add sink and source for import/export
+    # nodes.append(
+    #     solph.Sink(label='excess_el',
+    #                inputs={imex_bus: solph.Flow()})
+    # )
+    # nodes.append(
+    #     solph.Source(label='shortage_el',
+    #                  outputs={imex_bus: solph.Flow(variable_costs=200)})
+    # )
+
+    # create lines for import and export (buses which are tagged with region_bus == False)
+    for idx, row in region.buses[~region.buses['region_bus']].iterrows():
+        bus = buses[idx]
+
+        # add sink and source for import/export
+        nodes.append(
+            solph.Sink(label='excess_el_b{bus_id}'.format(bus_id=idx),
+                       inputs={bus: solph.Flow(variable_costs=-50)})
+        )
+        nodes.append(
+            solph.Source(label='shortage_el_b{bus_id}'.format(bus_id=idx),
+                         outputs={bus: solph.Flow(variable_costs=100)})
+        )
+
+        # CONNECTION TO COMMON IMEX BUS
+        # nodes.append(
+        #     solph.custom.Link(
+        #         label='line_b{b0}_b_el_imex'.format(
+        #             b0=str(idx)
+        #         ),
+        #         inputs={bus: solph.Flow(),
+        #                 imex_bus: solph.Flow()},
+        #         outputs={bus: solph.Flow(nominal_value=10e6,
+        #                                  variable_costs=1),
+        #                  imex_bus: solph.Flow(nominal_value=10e6,
+        #                                       variable_costs=1)
+        #                  },
+        #         conversion_factors={(bus, imex_bus): 0.98,
+        #                             (imex_bus, bus): 0.98})
+        # )
+
+    # create regular lines
+    for idx, row in region.lines.iterrows():
+        bus0 = buses[row['bus0']]
+        bus1 = buses[row['bus1']]
+
+        nodes.append(
+            solph.custom.Link(
+                label='line_{line_id}_b{b0}_b{b1}'.format(
+                    line_id=str(row['line_id']),
+                    b0=str(row['bus0']),
+                    b1=str(row['bus1'])
+                ),
+                inputs={bus0: solph.Flow(),
+                        bus1: solph.Flow()},
+                outputs={bus0: solph.Flow(nominal_value=float(row['s_nom']),
+                                          variable_costs=0.0001
+                                          ),
+                         bus1: solph.Flow(nominal_value=float(row['s_nom']),
+                                          variable_costs=0.0001
+                                          )
+                         },
+                conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
+        )
+
+    return nodes
