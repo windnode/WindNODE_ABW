@@ -479,7 +479,8 @@ def import_db_data():
             WnAbwGridHvTransformer.geom_point, srid)).label('geom'),
     ).order_by(WnAbwGridHvTransformer.trafo_id)
     data['trafos'] = pd.read_sql_query(gridhvtrafo_query.statement,
-                                       session.bind)
+                                       session.bind,
+                                       index_col='trafo_id')
 
     gridhvmvsubst_query = session.query(
         WnAbwGridHvmvSubstation.subst_id,
