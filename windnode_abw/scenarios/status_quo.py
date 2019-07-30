@@ -3,7 +3,7 @@ from windnode_abw.tools.logger import setup_logger
 logger = setup_logger()
 
 from windnode_abw.model import Region
-from windnode_abw.model.region.model import create_model, simulate
+from windnode_abw.model.region.model import create_model, simulate, create_oemof_model
 from windnode_abw.model.region.tools import calc_line_loading
 
 # load configs
@@ -62,10 +62,14 @@ def run_scenario(cfg):
 
         return esys, region
 
-    # create region
+    # NEW VERSION
     region2 = Region.import_data2()
     region2.prepare_timeseries()
 
+    esys2 = create_oemof_model(cfg=cfg,
+                               region=region2)
+
+    # create region
     region = Region.import_data()
 
     # create model and simulate
