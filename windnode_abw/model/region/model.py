@@ -362,7 +362,7 @@ def create_nodes2(region=None, datetime_index=None):
         buses[idx] = bus
         nodes.append(bus)
 
-    # add bus for power import and export
+    # add bus for el. power import and export
     imex_bus = solph.Bus(label='b_el_imex')
     nodes.append(imex_bus)
 
@@ -432,47 +432,47 @@ def create_nodes2(region=None, datetime_index=None):
                 conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
         )
 
-    # COMMON IMEX SINK+SOURCE
-    # # add sink and source for import/export
-    # nodes.append(
-    #     solph.Sink(label='excess_el',
-    #                inputs={imex_bus: solph.Flow()})
-    # )
-    # nodes.append(
-    #     solph.Source(label='shortage_el',
-    #                  outputs={imex_bus: solph.Flow(variable_costs=200)})
-    # )
+    # add sink and source for common import/export bus
+    nodes.append(
+        solph.Sink(label='excess_el',
+                   inputs={imex_bus: solph.Flow(variable_costs=-50)})
+    )
+    nodes.append(
+        solph.Source(label='shortage_el',
+                     outputs={imex_bus: solph.Flow(variable_costs=200)})
+    )
 
     # create lines for import and export (buses which are tagged with region_bus == False)
     for idx, row in region.buses[~region.buses['region_bus']].iterrows():
         bus = buses[idx]
 
-        # add sink and source for import/export
-        nodes.append(
-            solph.Sink(label='excess_el_b{bus_id}'.format(bus_id=idx),
-                       inputs={bus: solph.Flow(variable_costs=-50)})
-        )
-        nodes.append(
-            solph.Source(label='shortage_el_b{bus_id}'.format(bus_id=idx),
-                         outputs={bus: solph.Flow(variable_costs=100)})
-        )
+        # SEPARATE EXCESS+SHORTAGE BUSES
+        # # add sink and source for import/export
+        # nodes.append(
+        #     solph.Sink(label='excess_el_b{bus_id}'.format(bus_id=idx),
+        #                inputs={bus: solph.Flow(variable_costs=-50)})
+        # )
+        # nodes.append(
+        #     solph.Source(label='shortage_el_b{bus_id}'.format(bus_id=idx),
+        #                  outputs={bus: solph.Flow(variable_costs=100)})
+        # )
 
         # CONNECTION TO COMMON IMEX BUS
-        # nodes.append(
-        #     solph.custom.Link(
-        #         label='line_b{b0}_b_el_imex'.format(
-        #             b0=str(idx)
-        #         ),
-        #         inputs={bus: solph.Flow(),
-        #                 imex_bus: solph.Flow()},
-        #         outputs={bus: solph.Flow(nominal_value=10e6,
-        #                                  variable_costs=1),
-        #                  imex_bus: solph.Flow(nominal_value=10e6,
-        #                                       variable_costs=1)
-        #                  },
-        #         conversion_factors={(bus, imex_bus): 0.98,
-        #                             (imex_bus, bus): 0.98})
-        # )
+        nodes.append(
+            solph.custom.Link(
+                label='line_b{b0}_b_el_imex'.format(
+                    b0=str(idx)
+                ),
+                inputs={bus: solph.Flow(),
+                        imex_bus: solph.Flow()},
+                outputs={bus: solph.Flow(nominal_value=10e6,
+                                         variable_costs=1),
+                         imex_bus: solph.Flow(nominal_value=10e6,
+                                              variable_costs=1)
+                         },
+                conversion_factors={(bus, imex_bus): 0.98,
+                                    (imex_bus, bus): 0.98})
+        )
 
     # create regular lines
     for idx, row in region.lines.iterrows():
