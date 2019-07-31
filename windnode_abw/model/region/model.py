@@ -56,12 +56,11 @@ def create_oemof_model(cfg, region):
     esys = solph.EnergySystem(timeindex=datetime_index)
 
     # create and add nodes
-    nodes = create_nodes(
+    el_nodes = create_el_model(
         region=region,
         datetime_index=datetime_index
     )
-
-    esys.add(*nodes)
+    esys.add(*el_nodes)
 
     print('The following objects have been created:')
     for n in esys.nodes:
@@ -71,7 +70,7 @@ def create_oemof_model(cfg, region):
     return esys
 
 
-def create_nodes(region=None, datetime_index=None):
+def create_el_model(region=None, datetime_index=None):
     """Create nodes (oemof objects) and lines from region such as buses, links,
     sources and sinks.
 
