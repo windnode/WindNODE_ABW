@@ -64,7 +64,6 @@ def run_scenario(cfg):
         return esys, region
 
     region = Region.import_data()
-    region.prepare_timeseries()
 
     esys = create_oemof_model(cfg=cfg,
                               region=region)

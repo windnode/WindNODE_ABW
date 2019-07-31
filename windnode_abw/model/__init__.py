@@ -45,9 +45,9 @@ class Region:
         self._results_lines = kwargs.get('_results_lines', None)
 
         self._demand_ts_init = kwargs.get('demand_ts_init', None)
-        self._demand_ts = None
+        self._demand_ts = prepare_demand_timeseries(self)
         self._feedin_ts_init = kwargs.get('feedin_ts_init', None)
-        self._feedin_ts = None
+        self._feedin_ts = prepare_feedin_timeseries(self)
 
     @property
     def muns(self):
@@ -105,6 +105,22 @@ class Region:
     def results_lines(self, results_lines):
         self._results_lines = results_lines
 
+    @property
+    def demand_ts_init(self):
+        return self._demand_ts_init
+
+    @property
+    def demand_ts(self):
+        return self._demand_ts
+
+    @property
+    def feedin_ts_init(self):
+        return self._feedin_ts_init
+
+    @property
+    def feedin_ts(self):
+        return self._feedin_ts
+
     @classmethod
     def import_data(cls, **kwargs):
         """Import data to Region object"""
@@ -136,7 +152,3 @@ class Region:
 
         return pickle.load(open(os.path.join(filepath,
                                              filename), 'rb'))
-
-    def prepare_timeseries(self):
-        self.feedin_ts = prepare_feedin_timeseries(self)
-        self.demand_ts = prepare_demand_timeseries(self)
