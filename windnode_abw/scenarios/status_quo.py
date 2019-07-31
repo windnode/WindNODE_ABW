@@ -155,18 +155,19 @@ def plot_results(esys, region):
         rotation=90, minor=False)
     plt.show()
 
+
 if __name__ == "__main__":
 
     # configuration
     cfg = {
         'data_path': os.path.join(os.path.dirname(__file__), 'data'),
         'date_from': '2015-01-01 00:00:00',
-        'date_to': '2015-01-07 23:00:00',
+        'date_to': '2015-01-01 02:00:00',
         'freq': '60min',
         'results_path': os.path.join(config.get_data_root_dir(),
                                      config.get('user_dirs',
                                                 'results_dir')),
-        'solver': 'gurobi',
+        'solver': 'cbc',
         'verbose': True,
         'dump_esys': True,
         'load_esys': False
