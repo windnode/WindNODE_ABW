@@ -245,7 +245,6 @@ def calc_line_loading(esys, region):
 
     line_loading_mean = {
         (from_n, to_n): float(flow['sequences'].mean()) / om_flows[(from_n, to_n)].nominal_value
-        #from_n: float(flow['sequences'].mean()) / om_flows[(from_n, to_n)].nominal_value
         for (from_n, to_n), flow in results.items()
         if isinstance(from_n, solph.custom.Link)
     }
@@ -261,34 +260,31 @@ def calc_line_loading(esys, region):
 
     line_loading_max = {
         (from_n, to_n): float(flow['sequences'].max()) / om_flows[(from_n, to_n)].nominal_value
-        #from_n: float(flow['sequences'].max()) / om_flows[(from_n, to_n)].nominal_value
         for (from_n, to_n), flow in results.items()
         if isinstance(from_n, solph.custom.Link)
     }
 
-    # x = {}
-    # for k1, k2 in line_loading_max2.keys():
-    #     x[k1] = max([v for k, v in line_loading_max2.items() if k1 in k])
-
-    results_lines = region.lines[['line_id']].copy()
+    results_lines = region.lines[['line_id', 'bus0', 'bus1']].copy()
     results_lines['loading_mean'] = 0.
     results_lines['loading_max'] = 0.
 
     # calc max. of 2 loadings (both directions) and save in DF
-    for idx, row in results_lines.iterrows():
-        #results_lines.at[idx, 'loading_mean'] = line_loading_mean[esys.groups['line_' + str(int(row['line_id']))]]
-        line = esys.groups['line_' + str(int(row['line_id']))]
-        results_lines.at[idx, 'loading_mean'] = max([line_loading_mean[(from_n, to_n)]
+    for line in results_lines.itertuples():
+        link = esys.groups['line_{line_id}_b{b0}_b{b1}'.format(
+                    line_id=str(line.line_id),
+                    b0=str(line.bus0),
+                    b1=str(line.bus1)
+                )]
+        results_lines.at[line.Index, 'loading_mean'] = max([line_loading_mean[(from_n, to_n)]
                                                      for (from_n, to_n), loading in line_loading_mean.items()
-                                                     if from_n == line])
-
-        #results_lines.at[idx, 'loading_max'] = line_loading_max[esys.groups['line_' + str(int(row['line_id']))]]
-        results_lines.at[idx, 'loading_max'] = max([line_loading_max[(from_n, to_n)]
+                                                     if from_n == link])
+        results_lines.at[line.Index, 'loading_max'] = max([line_loading_max[(from_n, to_n)]
                                                     for (from_n, to_n), loading in line_loading_max.items()
-                                                    if from_n == line])
-
+                                                    if from_n == link])
+    # region.results_lines = results_lines.sort_values('loading_max')
     region.results_lines = results_lines
 
+    # # Alternative version with oemof objs (working):
     # # create DF with custom cols (node1, node 2, flow) from simulation result dict
     # flows_results = pd.Series(results).rename_axis(['node1', 'node2']).reset_index(name='flow_res')
     # flows_results.set_index(['node1', 'node2'], inplace=True)
@@ -310,7 +306,7 @@ def calc_line_loading(esys, region):
     #     else:
     #         flows_links.at[idx, 'loading_mean'] = 0.
     #         flows_links.at[idx, 'loading_max'] = 0.
-    # # flows_links.sort_values('loading_max')
+    # flows_links.sort_values('loading_max')
 
     return
 
