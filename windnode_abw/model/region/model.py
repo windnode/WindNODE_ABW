@@ -270,23 +270,16 @@ def simulate(esys, solver='cbc', verbose=True):
     """
 
     # Create problem
-    logger.info('Create optimization problem')
+    logger.info('Create optimization problem...')
     om = solph.Model(esys)
 
     # solve it
-    logger.info('Solve optimization problem')
+    logger.info('Solve optimization problem...')
     om.solve(solver=solver,
              solve_kwargs={'tee': verbose,
                            'keepfiles': True})
 
     return om
-
-
-
-    # if filename is None:
-    #     filename = os.path.join(os.path.dirname(__file__), 'input_data.csv')
-    #
-    # data = pd.read_csv(filename, sep=",")
 
 
 def create_oemof_model(cfg, region):
