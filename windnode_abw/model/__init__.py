@@ -23,15 +23,26 @@ class Region:
         Region's lines
     _trafos : :pandas:`pandas.DataFrame`
         Region's transformers
-    _substations : :pandas:`pandas.DataFrame`
+    _subst : :pandas:`pandas.DataFrame`
         Region's substations
-    _geno_res : :pandas:`pandas.DataFrame`
-        Region's renewable (RES) generators
-    _geno_conv : :pandas:`pandas.DataFrame`
-        Region's conventional generators
-    _demand_el : :pandas:`pandas.DataFrame`
-        Region's power demand per Grid District and sector
-    _results_line
+    _generators : :pandas:`pandas.DataFrame`
+        Region's renewable and conventional generators
+
+    _results_lines : :pandas:`pandas.DataFrame`
+        Line loading results
+
+    _demand_ts_init : :pandas:`pandas.DataFrame`
+        Original absolute demand (electrical+thermal) timeseries per
+        municipality and sector
+    _demand_ts : :obj:`dict` of :pandas:`pandas.DataFrame`
+        Absolute demand timeseries per demand sector (dict key) and
+        municipality (DF column)
+    _feedin_ts_init : :pandas:`pandas.DataFrame`
+        Original normalized feedin timeseries of renewable and conventional
+        generators per municipality and technology/type
+    _feedin_ts : :obj:`dict` of :pandas:`pandas.DataFrame`
+        Absolute feedin timeseries per technology/type (dict key) and
+        municipality (DF column)
     """
     def __init__(self, **kwargs):
         self._name = 'ABW region'
@@ -42,6 +53,7 @@ class Region:
         self._trafos = kwargs.get('trafos', None)
         self._subst = kwargs.get('subst', None)
         self._generators = kwargs.get('generators', None)
+
         self._results_lines = kwargs.get('_results_lines', None)
 
         self._demand_ts_init = kwargs.get('demand_ts_init', None)
