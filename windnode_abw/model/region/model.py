@@ -1,6 +1,5 @@
 import pandas as pd
 import oemof.solph as solph
-from windnode_abw.model.region.tools import grid_graph
 import logging
 logger = logging.getLogger('windnode_abw')
 
@@ -55,9 +54,6 @@ def create_oemof_model(cfg, region):
 
     # init energy system
     esys = solph.EnergySystem(timeindex=datetime_index)
-
-    graph = grid_graph(region=region,
-                       draw=True)
 
     # create and add nodes
     nodes = create_nodes(

@@ -5,6 +5,7 @@ logger = setup_logger()
 from windnode_abw.model import Region
 from windnode_abw.model.region.model import simulate, create_oemof_model
 from windnode_abw.model.region.tools import calc_line_loading
+from windnode_abw.model.region.tools import grid_graph
 
 # load configs
 from windnode_abw.tools import config
@@ -62,16 +63,15 @@ def run_scenario(cfg):
 
         return esys, region
 
-    # NEW VERSION
     region = Region.import_data()
     region.prepare_timeseries()
 
     esys = create_oemof_model(cfg=cfg,
                               region=region)
 
-    # test plot
-    graph = create_nx_graph(esys)
-    draw_graph(grph=graph, plot=True, layout='neato', node_size=100, font_size=8)
+    # plot grid (not oemof model)
+    graph = grid_graph(region=region,
+                       draw=True)
 
     om = simulate(esys=esys,
                   solver=cfg['solver'])
