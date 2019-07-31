@@ -198,7 +198,7 @@ def grid_graph(region,
         graph.add_edge(source, target)
 
     for bus in graph.nodes():
-        if bus in list(region.subst['otg_id']):
+        if bus in list(region.subst['bus_id']):
             color = (0.7, 0.7, 1)
         else:
             color = (0.8, 0.8, 0.8)
