@@ -181,7 +181,7 @@ def import_db_data():
     session = db_session('local_kopernikus')
 
     # import municipalities including stats
-    logger.info('Importing muns...')
+    logger.info('Importing municipalities...')
 
     muns_query = session.query(
         WnAbwMun.ags,
@@ -377,26 +377,6 @@ def reformat_timeseries(ts):
     return ts.pivot(index=ts.index, columns='ags') \
         .apply(lambda _: pd.Series(_.dropna().values)) \
         .fillna(0)
-
-
-def oep_export_results(region):
-    """Export results of simulation to OEP
-
-    Parameters
-    ----------
-    region : :class:`~.model.Region`
-        Region object
-    """
-    # line loading
-    con = connection(section=config.get('data', 'oep_conn_section'))
-
-    #TODO: DB table is dropped and recreated - fix this!
-    region.results_lines.to_sql(schema='model_draft',
-                                name='wn_abw_results_line',
-                                con=con,
-                                if_exists='append',
-                                index=False,
-                                index_label='line_id')
 
 
 def oemof_nodes_from_excel(filename, header_lines=0):
