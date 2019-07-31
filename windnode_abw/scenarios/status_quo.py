@@ -176,7 +176,7 @@ if __name__ == "__main__":
     calc_line_loading(esys=esys,
                       region=region)
 
-    region.export_results()
+    #region.export_results()
 
 
     plot_results(esys=esys,
