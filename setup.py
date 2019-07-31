@@ -39,7 +39,9 @@ setup(
         'networkx',
         'psycopg2-binary',
         'keyring',
-        'egoio'
+        'egoio',
+        'pyproj',
+        'pygraphviz'
     ],
     # package_data={
     #     'config': [
