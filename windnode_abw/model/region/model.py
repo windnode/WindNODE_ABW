@@ -56,8 +56,11 @@ def create_oemof_model(cfg, region):
     # init energy system
     esys = solph.EnergySystem(timeindex=datetime_index)
 
+    graph = grid_graph(region=region,
+                       draw=True)
+
     # create and add nodes
-    nodes = create_nodes2(
+    nodes = create_nodes(
         region=region,
         datetime_index=datetime_index
     )
@@ -72,7 +75,7 @@ def create_oemof_model(cfg, region):
     return esys
 
 
-def create_nodes2(region=None, datetime_index=None):
+def create_nodes(region=None, datetime_index=None):
     """Create nodes (oemof objects) and lines from region such as buses, links,
     sources and sinks.
 

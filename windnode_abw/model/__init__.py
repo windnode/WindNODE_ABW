@@ -6,7 +6,7 @@ logger = logging.getLogger('windnode_abw')
 
 from windnode_abw.tools import config
 from windnode_abw.tools.data_io import \
-    oep_import_data, oep_export_results, import_db_data
+    oep_export_results, import_db_data
 from windnode_abw.model.region.tools import \
     prepare_feedin_timeseries, prepare_demand_timeseries
 
@@ -139,18 +139,6 @@ class Region:
 
     @classmethod
     def import_data(cls, **kwargs):
-        """Import data to Region object"""
-
-        # import
-        kwargs = oep_import_data()
-
-        # create the region instance
-        region = cls(**kwargs)
-
-        return region
-
-    @classmethod
-    def import_data2(cls, **kwargs):
         """Import data to Region object"""
 
         # import
