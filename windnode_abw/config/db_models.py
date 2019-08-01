@@ -262,6 +262,7 @@ class WnAbwMundata(Base):
     gen_count_conventional_large = Column(Float(53))
     gen_count_conventional_small = Column(Float(53))
     scenario = Column(String, primary_key=True, nullable=False)
+    dem_th_energy_dist_heat_share = Column(Float(53))
 
     mun = relationship('WnAbwMun', back_populates='mundata')
 
