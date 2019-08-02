@@ -168,7 +168,7 @@ def create_el_model(region=None, datetime_index=None):
                 if ts_df[ags].sum(axis=0) > 0:
                     nodes.append(
                         solph.Source(
-                            label='gen_b{bus_id}_{tech}'.format(
+                            label='gen_el_b{bus_id}_{tech}'.format(
                                 bus_id=str(bus_id),
                                 tech=tech
                             ),
@@ -177,7 +177,6 @@ def create_el_model(region=None, datetime_index=None):
             # create el. demands
             # ToDo: Use normalized ts and cap instead?
             for sector, ts_df in region.demand_ts.items():
-                # ToDo: include thermal demand
                 if sector[:3] == 'el_':
                     inflow_args = {
                         'nominal_value': 1,
