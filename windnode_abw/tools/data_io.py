@@ -180,7 +180,9 @@ def import_db_data():
     srid = int(config.get('geo', 'srid'))
     session = db_session('local_kopernikus')
 
-    # import municipalities including stats
+    ########################################################
+    # import municipalities including stats and substation #
+    ########################################################
     logger.info('Importing municipalities...')
 
     muns_query = session.query(
@@ -232,7 +234,9 @@ def import_db_data():
     data['muns'] = convert_df_wkt_to_shapely(df=muns,
                                              cols=['geom'])
 
-    # import demand timeseries
+    ############################
+    # import demand timeseries #
+    ############################
     logger.info('Importing demand timeseries...')
     demandts_query = session.query(
         WnAbwDemandTs.ags_id.label('ags'),
@@ -248,7 +252,9 @@ def import_db_data():
                           session.bind)
     )
 
-    # import feedin timeseries
+    ############################
+    # import feedin timeseries #
+    ############################
     logger.info('Importing feedin timeseries...')
     feedints_query = session.query(
         WnAbwFeedinTs.ags_id.label('ags'),
@@ -264,7 +270,9 @@ def import_db_data():
                           session.bind)
     )
 
-    # import HV grid (buses, lines, trafos, substations+grid districts)
+    #####################################################################
+    # import HV grid (buses, lines, trafos, substations+grid districts) #
+    #####################################################################
     logger.info('Importing HV grid...')
     gridhvbus_query = session.query(
         WnAbwGridHvBus.bus_id,
@@ -339,7 +347,9 @@ def import_db_data():
     data['subst'] = convert_df_wkt_to_shapely(df=data['subst'],
                                               cols=['geom', 'geom_mvgd'])
 
-    # import generators
+    #####################
+    # import generators #
+    #####################
     logger.info('Importing generators...')
     generators_query = session.query(
         WnAbwPowerplant.id,
