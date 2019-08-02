@@ -71,8 +71,8 @@ def create_oemof_model(cfg, region):
 
 
 def create_el_model(region=None, datetime_index=None):
-    """Create nodes (oemof objects) and lines from region such as buses, links,
-    sources and sinks.
+    """Create electrical model modes (oemof objects) and lines from region such
+    as buses, links, sources and sinks.
 
     Parameters
     ----------
@@ -91,17 +91,18 @@ def create_el_model(region=None, datetime_index=None):
         logger.error(msg)
         raise ValueError(msg)
 
-    logger.info("Creating objects...")
+    logger.info("Creating el. system objects...")
 
-    timesteps = len(datetime_index)
+    timesteps_cnt = len(datetime_index)
+
+    nodes = []
 
     #########
     # BUSES #
     #########
 
-    # grid buses
+    # el. grid buses
     buses = {}
-    nodes = []
     for idx, row in region.buses.iterrows():
         bus = solph.Bus(label='b_el_' + str(idx))
         buses[idx] = bus
@@ -160,7 +161,7 @@ def create_el_model(region=None, datetime_index=None):
                     'nominal_value': 1,
                     'fixed':  True,
                     'actual_value': list(ts_df[ags] /
-                                         len(mun_buses))[:timesteps]
+                                         len(mun_buses))[:timesteps_cnt]
                 }
 
                 # create node only if feedin sum is >0
@@ -182,7 +183,7 @@ def create_el_model(region=None, datetime_index=None):
                         'nominal_value': 1,
                         'fixed':  True,
                         'actual_value': list(ts_df[ags] /
-                                             len(mun_buses))[:timesteps]
+                                             len(mun_buses))[:timesteps_cnt]
                     }
                     nodes.append(
                         solph.Sink(label='dem_el_b{bus_id}_{sector}'.format(
