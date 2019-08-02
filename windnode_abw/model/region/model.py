@@ -278,3 +278,48 @@ def create_el_model(region=None, datetime_index=None):
         )
 
     return nodes
+
+
+def create_th_model(region=None, datetime_index=None):
+    """Create thermal model modes (oemof objects) and lines from region such
+    as buses, sources and sinks.
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+    datetime_index : :pandas:`pandas.DatetimeIndex`
+        Datetime index
+
+    Returns
+    -------
+    nodes : `obj`:dict of :class:`nodes <oemof.network.Node>`
+    """
+
+    if not region:
+        msg = 'No region class provided.'
+        logger.error(msg)
+        raise ValueError(msg)
+
+    logger.info("Creating th. system objects...")
+
+    timesteps_cnt = len(datetime_index)
+
+    nodes = []
+
+    #########
+    # BUSES #
+    #########
+    buses = {}
+
+    # buses for decentralized heat supply (Dezentrale Wärmeversorgung)
+    for mun in region.muns.itertuples():
+        bus = solph.Bus(label='b_th_dec_' + str(mun.Index))
+        buses[bus.label] = bus
+        nodes.append(bus)
+
+    # buses for district heating (Fernwärme)
+    for mun in region.muns[region.muns.dem_th_energy_dist_heat_share > 0].itertuples():
+        bus = solph.Bus(label='b_th_cen_' + str(mun.Index))
+        buses[bus.label] = bus
+        nodes.append(bus)
