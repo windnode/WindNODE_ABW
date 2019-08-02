@@ -219,12 +219,17 @@ def import_db_data():
         WnAbwMundata.dem_th_energy_hh,
         WnAbwMundata.dem_th_energy_rca,
         WnAbwMundata.dem_th_energy_dist_heat_share
-    ).join(WnAbwMundata, WnAbwRelSubstIdAgsId).order_by(WnAbwMun.ags)
+    ).join(WnAbwMundata).join(WnAbwRelSubstIdAgsId).order_by(WnAbwMun.ags)
 
-    data['muns'] = pd.read_sql_query(muns_query.statement,
-                                     session.bind,
-                                     index_col='ags')
-    data['muns'] = convert_df_wkt_to_shapely(df=data['muns'],
+    muns = pd.read_sql_query(muns_query.statement,
+                             session.bind,
+                             index_col='ags')
+    # got one dataset per subst -> muns are duplicated -> create subst list
+    muns['subst_id'] = muns.groupby(muns.index)['subst_id'].apply(list)
+    # delete duplicates brought by groupby (drop_duplicates do not work here)
+    muns = muns[~muns.duplicated(subset='gen')]
+    # convert geom to shapely
+    data['muns'] = convert_df_wkt_to_shapely(df=muns,
                                              cols=['geom'])
 
     # import demand timeseries
