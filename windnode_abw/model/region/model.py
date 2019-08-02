@@ -147,10 +147,8 @@ def create_el_model(region=None, datetime_index=None):
 
     # create nodes for all municipalities
     for ags, mundata in region.muns.iterrows():
-        # get all subst in mun
-        mun_subst = region.subst[region.subst.ags == ags]
-        # get buses for subst
-        mun_buses = region.buses.loc[mun_subst.bus_id]
+        # get buses for subst in mun
+        mun_buses = region.buses.loc[region.subst.loc[mundata.subst_id].bus_id]
 
         # note: ts are distributed equally to all buses of mun
         for bus_id, busdata in mun_buses.iterrows():
@@ -370,3 +368,4 @@ def create_th_model(region=None, datetime_index=None):
                                 ags_id=str(mun.Index))]: solph.Flow(**inflow_args)})
                     )
 
+    return nodes
