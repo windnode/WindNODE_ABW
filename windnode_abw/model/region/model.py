@@ -56,6 +56,12 @@ def create_oemof_model(cfg, region):
     esys = solph.EnergySystem(timeindex=datetime_index)
 
     # create and add nodes
+    th_nodes = create_th_model(
+        region=region,
+        datetime_index=datetime_index
+    )
+    esys.add(*th_nodes)
+
     el_nodes = create_el_model(
         region=region,
         datetime_index=datetime_index
