@@ -144,7 +144,6 @@ class WnAbwGridHvmvSubstation(Base):
     status = Column(SmallInteger)
     otg_id = Column(BigInteger)
     geom = Column(Geometry('POINT', 3035), index=True)
-    ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'))
 
     mun = relationship('WnAbwMun', back_populates='grid_hvmv_substation')
 
@@ -294,3 +293,15 @@ class WnAbwPowerplant(Base):
     ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), nullable=False, index=True)
 
     mun = relationship('WnAbwMun', back_populates='powerplant')
+
+
+class WnAbwRelSubstIdAgsId(Base):
+    __tablename__ = 'wn_abw_rel_subst_id_ags_id'
+    __table_args__ = {'schema': 'windnode'}
+
+    id = Column(Integer, primary_key=True, server_default=text("nextval('windnode.wn_abw_rel_subst_id_ags_id_id_seq'::regclass)"))
+    subst_id = Column(ForeignKey('windnode.wn_abw_grid_hvmv_substation.subst_id'))
+    ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'))
+
+    ags = relationship('WnAbwMun')
+    subst = relationship('WnAbwGridHvmvSubstation')
