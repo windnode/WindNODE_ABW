@@ -327,3 +327,46 @@ def create_th_model(region=None, datetime_index=None):
         )
         buses[bus.label] = bus
         nodes.append(bus)
+
+    ################################
+    # HEAT DEMAND AND FEEDIN NODES #
+    ################################
+
+    for mun in region.muns.itertuples():
+        # heat demand
+        for sector, ts_df in region.demand_ts.items():
+            if sector[:3] == 'th_':
+                # decentralized heat supply
+                inflow_args = {
+                    'nominal_value': 1,
+                    'fixed': True,
+                    'actual_value': list(
+                        ts_df[mun.Index] *
+                        (1 - mun.dem_th_energy_dist_heat_share)
+                    )[:timesteps_cnt]
+                }
+                nodes.append(
+                    solph.Sink(label='dem_th_dec_{ags_id}_{sector}'.format(
+                        ags_id=str(mun.Index),
+                        sector=sector
+                    ),
+                        inputs={buses['b_th_dec_{ags_id}'.format(
+                            ags_id=str(mun.Index))]: solph.Flow(**inflow_args)})
+                )
+
+                # district heating
+                if mun.dem_th_energy_dist_heat_share > 0:
+                    inflow_args['actual_value'] = list(
+                            ts_df[mun.Index] *
+                            mun.dem_th_energy_dist_heat_share
+                        )[:timesteps_cnt]
+
+                    nodes.append(
+                        solph.Sink(label='dem_th_cen_{ags_id}_{sector}'.format(
+                            ags_id=str(mun.Index),
+                            sector=sector
+                        ),
+                            inputs={buses['b_th_cen_{ags_id}'.format(
+                                ags_id=str(mun.Index))]: solph.Flow(**inflow_args)})
+                    )
+
