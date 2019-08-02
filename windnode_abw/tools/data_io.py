@@ -16,7 +16,7 @@ from egoio.tools.db import connection
 from windnode_abw.config.db_models import \
     WnAbwDemandTs, WnAbwFeedinTs, WnAbwGridHvBus, WnAbwGridHvLine,\
     WnAbwGridHvmvSubstation, WnAbwGridMvGriddistrict, WnAbwGridHvTransformer,\
-    WnAbwMun, WnAbwMundata, WnAbwPowerplant
+    WnAbwMun, WnAbwMundata, WnAbwPowerplant, WnAbwRelSubstIdAgsId
 
 
 def db_session(db_section):
@@ -188,6 +188,7 @@ def import_db_data():
         WnAbwMun.name,
         func.ST_AsText(func.ST_Transform(
             WnAbwMun.geom, srid)).label('geom'),
+        WnAbwRelSubstIdAgsId.subst_id,
 
         WnAbwMundata.pop_2017,
         WnAbwMundata.area,
@@ -218,7 +219,7 @@ def import_db_data():
         WnAbwMundata.dem_th_energy_hh,
         WnAbwMundata.dem_th_energy_rca,
         WnAbwMundata.dem_th_energy_dist_heat_share
-    ).join(WnAbwMundata).order_by(WnAbwMun.ags)
+    ).join(WnAbwMundata, WnAbwRelSubstIdAgsId).order_by(WnAbwMun.ags)
 
     data['muns'] = pd.read_sql_query(muns_query.statement,
                                      session.bind,
@@ -318,7 +319,6 @@ def import_db_data():
     gridhvmvsubst_query = session.query(
         WnAbwGridHvmvSubstation.subst_id,
         WnAbwGridHvmvSubstation.otg_id.label('bus_id'),
-        WnAbwGridHvmvSubstation.ags_id.label('ags'),
         WnAbwGridHvmvSubstation.voltage,
         func.ST_AsText(func.ST_Transform(
             WnAbwGridHvmvSubstation.geom, srid)).label('geom'),
