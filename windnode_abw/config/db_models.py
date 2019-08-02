@@ -1,5 +1,6 @@
 # coding: utf-8
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, Float, ForeignKey, Integer, Numeric, SmallInteger, String, Text, text
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, Float,\
+    ForeignKey, Integer, Numeric, SmallInteger, String, Text, text
 from sqlalchemy.orm import relationship
 from geoalchemy2.types import Geometry
 from sqlalchemy.ext.declarative import declarative_base
