@@ -60,20 +60,20 @@ def create_oemof_model(cfg, region):
         region=region,
         datetime_index=datetime_index
     )
-    esys.add(*th_nodes.values())
+    esys.add(*th_nodes)
 
     el_nodes = create_el_model(
         region=region,
         datetime_index=datetime_index
     )
-    esys.add(*el_nodes.values())
+    esys.add(*el_nodes)
 
     flex_nodes = create_flexopts(
         region=region,
         datetime_index=datetime_index,
-        nodes_in=dict(el_nodes, **th_nodes)
+        nodes_in=th_nodes+el_nodes
     )
-    esys.add(*flex_nodes.values())
+    esys.add(*flex_nodes)
 
     print('The following objects have been created:')
     for n in esys.nodes:
@@ -96,8 +96,8 @@ def create_el_model(region=None, datetime_index=None):
 
     Returns
     -------
-    :obj:`dict` of :class:`nodes <oemof.network.Node>`
-        Node label as key, object as val
+    :obj:`list` of :class:`nodes <oemof.network.Node>`
+        ESys nodes
     """
 
     if not region:
@@ -291,7 +291,7 @@ def create_el_model(region=None, datetime_index=None):
                                     (bus1, bus0): 0.98})
         )
 
-    return {str(n): n for n in nodes}
+    return nodes
 
 
 def create_th_model(region=None, datetime_index=None):
@@ -307,8 +307,8 @@ def create_th_model(region=None, datetime_index=None):
 
     Returns
     -------
-    :obj:`dict` of :class:`nodes <oemof.network.Node>`
-        Node label as key, object as val
+    :obj:`list` of :class:`nodes <oemof.network.Node>`
+        ESys nodes
     """
 
     if not region:
@@ -415,10 +415,10 @@ def create_th_model(region=None, datetime_index=None):
                                 ags_id=str(mun.Index))]: solph.Flow(variable_costs=100)})
                     )
 
-    return {str(n): n for n in nodes}
+    return nodes
 
 
-def create_flexopts(region=None, datetime_index=None, nodes_in={}):
+def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
     """Create model nodes for flexibility options such as batteries, PtH and
     DSM
 
@@ -428,13 +428,13 @@ def create_flexopts(region=None, datetime_index=None, nodes_in={}):
         Region object
     datetime_index : :pandas:`pandas.DatetimeIndex`
         Datetime index
-    nodes_in : nodes : :obj:`dict` of :class:`nodes <oemof.network.Node>`
-        esys nodes - node label as key, object as val
+    nodes_in : nodes : :obj:`list` of :class:`nodes <oemof.network.Node>`
+        ESys nodes
 
     Returns
     -------
-    :obj:`dict` of :class:`nodes <oemof.network.Node>`
-        Node label as key, object as val
+    :obj:`list` of :class:`nodes <oemof.network.Node>`
+        Nodes
     """
 
     if not region:
@@ -446,6 +446,7 @@ def create_flexopts(region=None, datetime_index=None, nodes_in={}):
 
     timesteps_cnt = len(datetime_index)
 
+    nodes_in = {str(n): n for n in nodes_in}
     nodes = []
 
     #############
@@ -516,4 +517,4 @@ def create_flexopts(region=None, datetime_index=None, nodes_in={}):
                     )
                 )
 
-    return {str(n): n for n in nodes}
+    return nodes
