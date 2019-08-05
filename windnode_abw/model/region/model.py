@@ -224,7 +224,8 @@ def create_el_model(region=None, datetime_index=None):
                         bus1: solph.Flow()},
                 outputs={bus0: solph.Flow(nominal_value=row['s_nom']),
                          bus1: solph.Flow(nominal_value=row['s_nom'])},
-                conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
+                conversion_factors={(bus0, bus1): 0.98,
+                                    (bus1, bus0): 0.98})
         )
 
     # create lines for import and export
@@ -286,7 +287,8 @@ def create_el_model(region=None, datetime_index=None):
                                           variable_costs=0.0001
                                           )
                          },
-                conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
+                conversion_factors={(bus0, bus1): 0.98,
+                                    (bus1, bus0): 0.98})
         )
 
     return {str(n): n for n in nodes}
@@ -464,18 +466,29 @@ def create_flexopts(region=None, datetime_index=None, nodes_in={}):
             ##################################################
             # PTH for decentralized heat supply (heat pumps) #
             ##################################################
+            # heat source for heat pumps
+            b_heat_source = solph.Bus(label='b_heat_source')
+            nodes.append(b_heat_source)
+
             bus_out = nodes_in['b_th_dec_{ags_id}'.format(ags_id=mun.Index)]
 
             outflow_args = {'nominal_value': 1000,
                             'fixed': False,
                             'variable_costs': 500}
+
+            # coefficient of performance (COP)
+            cop = 3
+
             nodes.append(
                 solph.Transformer(
                     label='flex_dec_pth_{ags_id}'.format(
                         ags_id=str(mun.Index)
                     ),
-                    inputs={bus_in: solph.Flow()},
-                    outputs={bus_out: solph.Flow(**outflow_args)}
+                    inputs={bus_in: solph.Flow(),
+                            b_heat_source: solph.Flow()},
+                    outputs={bus_out: solph.Flow(**outflow_args)},
+                    conversion_factors={bus_in: 1 / 3,
+                                        b_heat_source: (cop - 1) / cop}
                 )
             )
 
@@ -483,7 +496,9 @@ def create_flexopts(region=None, datetime_index=None, nodes_in={}):
             # PTH for district heating (boiler) #
             #####################################
             if 'b_th_cen_{ags_id}'.format(ags_id=mun.Index) in nodes_in.keys():
-                bus_out = nodes_in['b_th_cen_{ags_id}'.format(ags_id=mun.Index)]
+                bus_out = nodes_in['b_th_cen_{ags_id}'.format(
+                    ags_id=mun.Index
+                )]
 
                 outflow_args = {'nominal_value': 1000,
                                 'fixed': False,
@@ -494,7 +509,8 @@ def create_flexopts(region=None, datetime_index=None, nodes_in={}):
                             ags_id=str(mun.Index)
                         ),
                         inputs={bus_in: solph.Flow()},
-                        outputs={bus_out: solph.Flow(**outflow_args)}
+                        outputs={bus_out: solph.Flow(**outflow_args)},
+                        conversion_factors={bus_out: 0.95}
                     )
                 )
 
