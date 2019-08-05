@@ -156,7 +156,7 @@ def create_el_model(region=None, datetime_index=None):
         # get buses for subst in mun
         mun_buses = region.buses.loc[region.subst.loc[mundata.subst_id].bus_id]
 
-        # note: ts are distributed equally to all buses of mun
+        # note: timeseries are distributed equally to all buses of mun
         for bus_id, busdata in mun_buses.iterrows():
             # create generators
             # ToDo: Use normalized ts and cap instead?
