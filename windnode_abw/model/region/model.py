@@ -60,13 +60,20 @@ def create_oemof_model(cfg, region):
         region=region,
         datetime_index=datetime_index
     )
-    esys.add(*th_nodes)
+    esys.add(*th_nodes.values())
 
     el_nodes = create_el_model(
         region=region,
         datetime_index=datetime_index
     )
-    esys.add(*el_nodes)
+    esys.add(*el_nodes.values())
+
+    flex_nodes = create_flexopts(
+        region=region,
+        datetime_index=datetime_index,
+        nodes_in=dict(el_nodes, **th_nodes)
+    )
+    esys.add(*flex_nodes.values())
 
     print('The following objects have been created:')
     for n in esys.nodes:
@@ -89,7 +96,8 @@ def create_el_model(region=None, datetime_index=None):
 
     Returns
     -------
-    nodes : :obj:`dict` of :class:`nodes <oemof.network.Node>`
+    :obj:`dict` of :class:`nodes <oemof.network.Node>`
+        Node label as key, object as val
     """
 
     if not region:
@@ -281,7 +289,7 @@ def create_el_model(region=None, datetime_index=None):
                 conversion_factors={(bus0, bus1): 0.98, (bus1, bus0): 0.98})
         )
 
-    return nodes
+    return {str(n): n for n in nodes}
 
 
 def create_th_model(region=None, datetime_index=None):
@@ -297,8 +305,8 @@ def create_th_model(region=None, datetime_index=None):
 
     Returns
     -------
-    nodes : :obj:`dict` of :class:`nodes <oemof.network.Node>`
-
+    :obj:`dict` of :class:`nodes <oemof.network.Node>`
+        Node label as key, object as val
     """
 
     if not region:
