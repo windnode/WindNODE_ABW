@@ -461,16 +461,18 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
 
         mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
+        # heat source for heat pumps
+        b_heat_source = solph.Bus(label='b_heat_source_{ags_id}'.format(
+            ags_id=mun.Index)
+        )
+        nodes.append(b_heat_source)
+
         for busdata in mun_buses.itertuples():
             bus_in = nodes_in['b_el_{bus_id}'.format(bus_id=busdata.Index)]
 
             ##################################################
             # PTH for decentralized heat supply (heat pumps) #
             ##################################################
-            # heat source for heat pumps
-            b_heat_source = solph.Bus(label='b_heat_source')
-            nodes.append(b_heat_source)
-
             bus_out = nodes_in['b_th_dec_{ags_id}'.format(ags_id=mun.Index)]
 
             outflow_args = {'nominal_value': 1000,
