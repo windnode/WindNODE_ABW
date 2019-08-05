@@ -67,3 +67,51 @@ def draw_graph(grph, edge_labels=True, node_color='#AFAFAF',
     # show output
     if plot is True:
         plt.show()
+
+
+def set_node_colors(grph):
+    """Define node colors
+
+    Parameters
+    ----------
+    grph : networkxGraph
+        A graph to draw.
+
+    Returns
+    -------
+    :obj:`dict`
+        Node colors: graph node as key, hex color as val
+
+    Notes
+    -----
+    Colors made with color brewer (http://colorbrewer2.org)
+    """
+    colors = {}
+    for node in grph.nodes():
+        if node[:4] == 'b_el':
+            colors[node] = '#bdc9e1'
+        elif node[:6] == 'gen_el':
+            colors[node] = '#016c59'
+        elif node[:6] == 'dem_el':
+            colors[node] = '#67a9cf'
+        elif node[:9] == 'excess_el':
+            colors[node] = '#ffffb2'
+        elif node[:11] == 'shortage_el':
+            colors[node] = '#ffffb2'
+        elif node[:4] == 'line':
+            colors[node] = '#f6eff7'
+
+        elif node[:8] == 'b_th_dec':
+            colors[node] = '#fecc5c'
+        elif node[:10] == 'gen_th_dec':
+            colors[node] = '#bd0026'
+        elif node[:10] == 'dem_th_dec':
+            colors[node] = '#fd8d3c'
+        elif node[:8] == 'b_th_cen':
+            colors[node] = '#d7b5d8'
+        elif node[:10] == 'gen_th_cen':
+            colors[node] = '#980043'
+        elif node[:10] == 'dem_th_cen':
+            colors[node] = '#df65b0'
+
+    return colors
