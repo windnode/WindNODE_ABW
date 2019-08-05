@@ -481,8 +481,9 @@ def create_flexopts(region=None, datetime_index=None, nodes_in={}):
 
             nodes.append(
                 solph.Transformer(
-                    label='flex_dec_pth_{ags_id}'.format(
-                        ags_id=str(mun.Index)
+                    label='flex_dec_pth_{ags_id}_b{bus_id}'.format(
+                        ags_id=str(mun.Index),
+                        bus_id=busdata.Index
                     ),
                     inputs={bus_in: solph.Flow(),
                             b_heat_source: solph.Flow()},
@@ -505,8 +506,9 @@ def create_flexopts(region=None, datetime_index=None, nodes_in={}):
                                 'variable_costs': 500}
                 nodes.append(
                     solph.Transformer(
-                        label='flex_cen_pth_{ags_id}'.format(
-                            ags_id=str(mun.Index)
+                        label='flex_cen_pth_{ags_id}_b{bus_id}'.format(
+                            ags_id=str(mun.Index),
+                            bus_id=busdata.Index
                         ),
                         inputs={bus_in: solph.Flow()},
                         outputs={bus_out: solph.Flow(**outflow_args)},
