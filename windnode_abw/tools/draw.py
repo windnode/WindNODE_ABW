@@ -95,11 +95,11 @@ def set_node_colors(grph):
         elif node[:6] == 'dem_el':
             colors[node] = '#67a9cf'
         elif node[:9] == 'excess_el':
-            colors[node] = '#ffffb2'
+            colors[node] = '#cccccc'
         elif node[:11] == 'shortage_el':
-            colors[node] = '#ffffb2'
+            colors[node] = '#cccccc'
         elif node[:4] == 'line':
-            colors[node] = '#f6eff7'
+            colors[node] = '#f7f7f7'
 
         elif node[:8] == 'b_th_dec':
             colors[node] = '#fecc5c'
@@ -113,5 +113,12 @@ def set_node_colors(grph):
             colors[node] = '#980043'
         elif node[:10] == 'dem_th_cen':
             colors[node] = '#df65b0'
+
+        elif node[:12] == 'flex_dec_pth':
+            colors[node] = '#ffffb2'
+        elif node[:12] == 'flex_cen_pth':
+            colors[node] = '#ffffb2'
+        elif node[:13] == 'b_heat_source':
+            colors[node] = '#f03b20'
 
     return colors
