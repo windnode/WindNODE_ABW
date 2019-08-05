@@ -12,7 +12,7 @@ from windnode_abw.tools import config
 config.load_config('config_data.cfg')
 config.load_config('config_misc.cfg')
 
-from windnode_abw.tools.draw import draw_graph
+from windnode_abw.tools.draw import draw_graph, set_node_colors
 
 # import oemof modules
 import oemof.solph as solph
@@ -67,6 +67,11 @@ def run_scenario(cfg):
 
     esys = create_oemof_model(cfg=cfg,
                               region=region)
+
+    # create and plot graph of energy system
+    graph = create_nx_graph(esys)
+    draw_graph(grph=graph, plot=True, layout='neato', node_size=100, font_size=0,
+               node_color=set_node_colors(graph))
 
     # plot grid (not oemof model)
     graph = grid_graph(region=region,
