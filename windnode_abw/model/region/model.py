@@ -89,7 +89,7 @@ def create_el_model(region=None, datetime_index=None):
 
     Returns
     -------
-    nodes : `obj`:dict of :class:`nodes <oemof.network.Node>`
+    nodes : :obj:`dict` of :class:`nodes <oemof.network.Node>`
     """
 
     if not region:
@@ -297,7 +297,8 @@ def create_th_model(region=None, datetime_index=None):
 
     Returns
     -------
-    nodes : `obj`:dict of :class:`nodes <oemof.network.Node>`
+    nodes : :obj:`dict` of :class:`nodes <oemof.network.Node>`
+
     """
 
     if not region:
