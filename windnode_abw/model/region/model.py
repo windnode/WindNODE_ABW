@@ -413,4 +413,89 @@ def create_th_model(region=None, datetime_index=None):
                                 ags_id=str(mun.Index))]: solph.Flow(variable_costs=100)})
                     )
 
-    return nodes
+    return {str(n): n for n in nodes}
+
+
+def create_flexopts(region=None, datetime_index=None, nodes_in={}):
+    """Create model nodes for flexibility options such as batteries, PtH and
+    DSM
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+    datetime_index : :pandas:`pandas.DatetimeIndex`
+        Datetime index
+    nodes_in : nodes : :obj:`dict` of :class:`nodes <oemof.network.Node>`
+        esys nodes - node label as key, object as val
+
+    Returns
+    -------
+    :obj:`dict` of :class:`nodes <oemof.network.Node>`
+        Node label as key, object as val
+    """
+
+    if not region:
+        msg = 'No region class provided.'
+        logger.error(msg)
+        raise ValueError(msg)
+
+    logger.info("Creating flexopt objects...")
+
+    timesteps_cnt = len(datetime_index)
+
+    nodes = []
+
+    #############
+    # BATTERIES #
+    #############
+    # ToDo: Develop location strategy, implement
+
+    #################
+    # POWER-TO-HEAT #
+    #################
+    for mun in region.muns.itertuples():
+
+        mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
+
+        for busdata in mun_buses.itertuples():
+            bus_in = nodes_in['b_el_{bus_id}'.format(bus_id=busdata.Index)]
+
+            ##################################################
+            # PTH for decentralized heat supply (heat pumps) #
+            ##################################################
+            bus_out = nodes_in['b_th_dec_{ags_id}'.format(ags_id=mun.Index)]
+
+            outflow_args = {'nominal_value': 1000,
+                            'fixed': False,
+                            'variable_costs': 500}
+            nodes.append(
+                solph.Transformer(
+                    label='flex_dec_pth_{ags_id}'.format(
+                        ags_id=str(mun.Index)
+                    ),
+                    inputs={bus_in: solph.Flow()},
+                    outputs={bus_out: solph.Flow(**outflow_args)}
+                )
+            )
+
+            #####################################
+            # PTH for district heating (boiler) #
+            #####################################
+            if 'b_th_cen_{ags_id}'.format(ags_id=mun.Index) in nodes_in.keys():
+                bus_out = nodes_in['b_th_cen_{ags_id}'.format(ags_id=mun.Index)]
+
+                outflow_args = {'nominal_value': 1000,
+                                'fixed': False,
+                                'variable_costs': 500}
+                nodes.append(
+                    solph.Transformer(
+                        label='flex_cen_pth_{ags_id}'.format(
+                            ags_id=str(mun.Index)
+                        ),
+                        inputs={bus_in: solph.Flow()},
+                        outputs={bus_out: solph.Flow(**outflow_args)}
+                    )
+                )
+
+    return {str(n): n for n in nodes}
