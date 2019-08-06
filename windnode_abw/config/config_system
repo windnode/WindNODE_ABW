@@ -13,11 +13,3 @@ config_dir = config
 data_dir = data
 log_dir = log
 results_dir = results
-
-[system_dirs]
-
-equipment_dir = equipment
-
-[equipment]
-
-# more data ...
