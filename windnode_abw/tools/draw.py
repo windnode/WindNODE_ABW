@@ -1,6 +1,12 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 
+from oemof.outputlib import views
+from oemof.graph import create_nx_graph
+
+import logging
+logger = logging.getLogger('windnode_abw')
+
 
 def draw_graph(grph, edge_labels=True, node_color='#AFAFAF',
                edge_color='#CFCFCF', plot=True, node_size=2000,
@@ -124,3 +130,61 @@ def set_node_colors(grph):
             colors[node] = '#fef0d9'
 
     return colors
+
+
+def plot_results(esys, region):
+    """Plots results of simulation
+
+    Parameters
+    ----------
+    esys : oemof.solph.EnergySystem
+        Energy system including results
+    region : :class:`~.model.Region`
+        Region object
+    """
+
+    logger.info('Plot results')
+
+    results = esys.results['main']
+    om_flows = esys.results['om_flows']
+
+    # create and plot graph of energy system
+    graph = create_nx_graph(esys)
+    draw_graph(grph=graph, plot=True, layout='neato', node_size=100, font_size=8,
+               node_color={
+                   'bus_el': '#cd3333',
+                   'bus_gas': '#7EC0EE',
+                   'bus_th': '#eeac7e'})
+
+    imex_bus_results = views.node(results, 'b_el_27144')
+    imex_bus_results_flows = imex_bus_results['sequences']
+
+    # print some sums for import/export bus
+    print(imex_bus_results_flows.sum())
+    print(imex_bus_results_flows.info())
+
+    # some example plots for bus_el
+    ax = imex_bus_results_flows.sum(axis=0).plot(kind='barh')
+    ax.set_title('Sums for optimization period')
+    ax.set_xlabel('Energy (MWh)')
+    ax.set_ylabel('Flow')
+    plt.tight_layout()
+    plt.show()
+
+    imex_bus_results_flows.plot(kind='line', drawstyle='steps-post')
+    plt.show()
+
+    ax = imex_bus_results_flows.plot(kind='bar', stacked=True, linewidth=0, width=1)
+    ax.set_title('Sums for optimization period')
+    ax.legend(loc='upper right', bbox_to_anchor=(1, 1))
+    ax.set_xlabel('Energy (MWh)')
+    ax.set_ylabel('Flow')
+    plt.tight_layout()
+
+    dates = imex_bus_results_flows.index
+    tick_distance = int(len(dates) / 7) - 1
+    ax.set_xticks(range(0, len(dates), tick_distance), minor=False)
+    ax.set_xticklabels(
+        [item.strftime('%d-%m-%Y') for item in dates.tolist()[0::tick_distance]],
+        rotation=90, minor=False)
+    plt.show()
