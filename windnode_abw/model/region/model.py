@@ -452,13 +452,35 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
     #############
     # BATTERIES #
     #############
-    # ToDo: Develop location strategy, implement
+    # ToDo: Develop location strategy
+
+    inflow_args = {'variable_costs': 10}
+
+    for mun in region.muns.itertuples():
+        mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
+
+        for busdata in mun_buses.itertuples():
+            bus = nodes_in['b_el_{bus_id}'.format(bus_id=busdata.Index)]
+
+            nodes.append(
+                solph.components.GenericStorage(
+                    label='flex_bat_{ags_id}_b{bus_id}'.format(
+                        ags_id=str(mun.Index),
+                        bus_id=busdata.Index
+                    ),
+                    inputs={bus: solph.Flow(**inflow_args)},
+                    outputs={bus: solph.Flow()},
+                    nominal_storage_capacity=1,
+                    loss_rate=0.01,
+                    initial_storage_level=0,
+                    inflow_conversion_factor=1,
+                    outflow_conversion_factor=0.8)
+            )
 
     #################
     # POWER-TO-HEAT #
     #################
     for mun in region.muns.itertuples():
-
         mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
         # heat source for heat pumps
