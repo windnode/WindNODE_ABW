@@ -191,7 +191,8 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
                 if ts_df[ags].sum(axis=0) > 0:
                     nodes.append(
                         solph.Source(
-                            label='gen_el_b{bus_id}_{tech}'.format(
+                            label='gen_el_{ags_id}_b{bus_id}_{tech}'.format(
+                                ags_id=ags,
                                 bus_id=str(bus_id),
                                 tech=tech
                             ),
@@ -209,7 +210,8 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
                     }
                     nodes.append(
                         solph.Sink(
-                            label='dem_el_b{bus_id}_{sector}'.format(
+                            label='dem_el_{ags_id}_b{bus_id}_{sector}'.format(
+                                ags_id=ags,
                                 bus_id=str(bus_id),
                                 sector=sector
                         ),
