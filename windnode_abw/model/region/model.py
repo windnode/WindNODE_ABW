@@ -481,88 +481,96 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
     #############
     # ToDo: Develop location strategy
 
-    for mun in region.muns.itertuples():
-        mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
+    if scn_data['flexopt']['flex_bat']['enabled']['enabled'] == 1:
+        for mun in region.muns.itertuples():
+            mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
-        for busdata in mun_buses.itertuples():
-            bus = nodes_in['b_el_{bus_id}'.format(bus_id=busdata.Index)]
+            for busdata in mun_buses.itertuples():
+                bus = nodes_in['b_el_{bus_id}'.format(bus_id=busdata.Index)]
 
-            nodes.append(
-                solph.components.GenericStorage(
-                    label='flex_bat_{ags_id}_b{bus_id}'.format(
-                        ags_id=str(mun.Index),
-                        bus_id=busdata.Index
-                    ),
-                    inputs={bus: solph.Flow(
-                        **scn_data['flexopt']['flex_bat']['inflow']
-                    )},
-                    outputs={bus: solph.Flow()},
-                    **scn_data['flexopt']['flex_bat']['params']
+                nodes.append(
+                    solph.components.GenericStorage(
+                        label='flex_bat_{ags_id}_b{bus_id}'.format(
+                            ags_id=str(mun.Index),
+                            bus_id=busdata.Index
+                        ),
+                        inputs={bus: solph.Flow(
+                            **scn_data['flexopt']['flex_bat']['inflow']
+                        )},
+                        outputs={bus: solph.Flow()},
+                        **scn_data['flexopt']['flex_bat']['params']
+                    )
                 )
-            )
 
     #################
     # POWER-TO-HEAT #
     #################
-    for mun in region.muns.itertuples():
-        mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
+    flex_dec_pth_enabled = True if scn_data['flexopt']['flex_dec_pth']['enabled']['enabled'] == 1 else False
+    flex_cen_pth_enabled = True if scn_data['flexopt']['flex_cen_pth']['enabled']['enabled'] == 1 else False
 
-        # heat source for heat pumps
-        b_heat_source = solph.Bus(label='b_heat_source_{ags_id}'.format(
-            ags_id=mun.Index)
-        )
-        nodes.append(b_heat_source)
+    if flex_dec_pth_enabled or flex_cen_pth_enabled:
+        for mun in region.muns.itertuples():
+            mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
-        for busdata in mun_buses.itertuples():
-            bus_in = nodes_in['b_el_{bus_id}'.format(bus_id=busdata.Index)]
-
-            ##################################################
-            # PTH for decentralized heat supply (heat pumps) #
-            ##################################################
-            bus_out = nodes_in['b_th_dec_{ags_id}'.format(ags_id=mun.Index)]
-
-            # coefficient of performance (COP)
-            cop = scn_data['flexopt']['flex_dec_pth']['params']['cop']
-
-            nodes.append(
-                solph.Transformer(
-                    label='flex_dec_pth_{ags_id}_b{bus_id}'.format(
-                        ags_id=str(mun.Index),
-                        bus_id=busdata.Index
-                    ),
-                    inputs={bus_in: solph.Flow(),
-                            b_heat_source: solph.Flow()},
-                    outputs={bus_out: solph.Flow(
-                        **scn_data['flexopt']['flex_dec_pth']['outflow']
-                    )},
-                    conversion_factors={bus_in: 1 / 3,
-                                        b_heat_source: (cop - 1) / cop}
+            if flex_dec_pth_enabled:
+                # heat source for heat pumps
+                b_heat_source = solph.Bus(label='b_heat_source_{ags_id}'.format(
+                    ags_id=mun.Index)
                 )
-            )
+                nodes.append(b_heat_source)
 
-            #####################################
-            # PTH for district heating (boiler) #
-            #####################################
-            if 'b_th_cen_{ags_id}'.format(ags_id=mun.Index) in nodes_in.keys():
-                bus_out = nodes_in['b_th_cen_{ags_id}'.format(
-                    ags_id=mun.Index
-                )]
+            for busdata in mun_buses.itertuples():
+                bus_in = nodes_in['b_el_{bus_id}'.format(bus_id=busdata.Index)]
 
-                nodes.append(
-                    solph.Transformer(
-                        label='flex_cen_pth_{ags_id}_b{bus_id}'.format(
-                            ags_id=str(mun.Index),
-                            bus_id=busdata.Index
-                        ),
-                        inputs={bus_in: solph.Flow()},
-                        outputs={bus_out: solph.Flow(
-                            **scn_data['flexopt']['flex_cen_pth']['outflow']
-                        )},
-                        conversion_factors={
-                            bus_out: scn_data['flexopt']['flex_cen_pth']
-                                             ['params']['conversion_factor']
-                        }
+                ##################################################
+                # PTH for decentralized heat supply (heat pumps) #
+                ##################################################
+                if flex_dec_pth_enabled:
+                    bus_out = nodes_in['b_th_dec_{ags_id}'.format(ags_id=mun.Index)]
+
+                    # coefficient of performance (COP)
+                    cop = scn_data['flexopt']['flex_dec_pth']['params']['cop']
+
+                    nodes.append(
+                        solph.Transformer(
+                            label='flex_dec_pth_{ags_id}_b{bus_id}'.format(
+                                ags_id=str(mun.Index),
+                                bus_id=busdata.Index
+                            ),
+                            inputs={bus_in: solph.Flow(),
+                                    b_heat_source: solph.Flow()},
+                            outputs={bus_out: solph.Flow(
+                                **scn_data['flexopt']['flex_dec_pth']['outflow']
+                            )},
+                            conversion_factors={bus_in: 1 / 3,
+                                                b_heat_source: (cop - 1) / cop}
+                        )
                     )
-                )
+
+                #####################################
+                # PTH for district heating (boiler) #
+                #####################################
+                if flex_cen_pth_enabled:
+                    if 'b_th_cen_{ags_id}'.format(ags_id=mun.Index) in nodes_in.keys():
+                        bus_out = nodes_in['b_th_cen_{ags_id}'.format(
+                            ags_id=mun.Index
+                        )]
+
+                        nodes.append(
+                            solph.Transformer(
+                                label='flex_cen_pth_{ags_id}_b{bus_id}'.format(
+                                    ags_id=str(mun.Index),
+                                    bus_id=busdata.Index
+                                ),
+                                inputs={bus_in: solph.Flow()},
+                                outputs={bus_out: solph.Flow(
+                                    **scn_data['flexopt']['flex_cen_pth']['outflow']
+                                )},
+                                conversion_factors={
+                                    bus_out: scn_data['flexopt']['flex_cen_pth']
+                                                     ['params']['conversion_factor']
+                                }
+                            )
+                        )
 
     return nodes

@@ -54,6 +54,8 @@
 
 [flexopt]
     [[flex_bat]]
+        [[[enabled]]]
+            enabled = 0
         [[[inflow]]]
             variable_costs = 10
         [[[params]]]
@@ -64,6 +66,8 @@
             outflow_conversion_factor = 0.8
 
     [[flex_dec_pth]]
+        [[[enabled]]]
+            enabled = 1
         [[[outflow]]]
             nominal_value = 1000
             variable_costs = 500
@@ -71,6 +75,8 @@
             cop = 3
 
     [[flex_cen_pth]]
+        [[[enabled]]]
+            enabled = 0
         [[[outflow]]]
             nominal_value = 1000
             variable_costs = 500
@@ -79,4 +85,6 @@
 
     # TBD
     [[dsm]]
+        [[[enabled]]]
+            enabled = 0
         hh_share = 0.1
