@@ -150,13 +150,13 @@ def plot_results(esys, region):
 
     # create and plot graph of energy system
     graph = create_nx_graph(esys)
-    draw_graph(grph=graph, plot=True, layout='neato', node_size=100, font_size=8,
+    draw_graph(grph=graph, plot=True, layout='neato', node_size=100, font_size=4,
                node_color={
                    'bus_el': '#cd3333',
                    'bus_gas': '#7EC0EE',
                    'bus_th': '#eeac7e'})
 
-    imex_bus_results = views.node(results, 'b_el_27144')
+    imex_bus_results = views.node(results, 'b_el_24050')
     imex_bus_results_flows = imex_bus_results['sequences']
 
     # print some sums for import/export bus
