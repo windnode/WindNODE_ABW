@@ -79,14 +79,14 @@ def run_scenario(cfg):
     om = simulate(esys=esys,
                   solver=cfg['solver'])
 
+    # add results to the energy system
+    esys.results['main'] = outputlib.processing.results(om)
+    esys.results['meta'] = outputlib.processing.meta_results(om)
+    # add om flows to allow access to Flow objects
+    esys.results['om_flows'] = list(om.flows.items())
+
     # dump esys to file
     if cfg['dump_esys']:
-        # add results to the energy system to make it possible to store them.
-        esys.results['main'] = outputlib.processing.results(om)
-        esys.results['meta'] = outputlib.processing.meta_results(om)
-        # add om flows to allow access to Flow objects
-        esys.results['om_flows'] = list(om.flows.items())
-
         # dump esys
         esys.dump(dpath=path,
                   filename=file_esys)
