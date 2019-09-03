@@ -106,7 +106,7 @@ if __name__ == "__main__":
         'scenario': 'status_quo',
         'data_path': os.path.join(os.path.dirname(__file__), 'data'),
         'date_from': '2015-01-01 00:00:00',
-        'date_to': '2015-01-01 02:00:00',
+        'date_to': '2015-01-01 23:00:00',
         'freq': '60min',
         'results_path': os.path.join(config.get_data_root_dir(),
                                      config.get('user_dirs',
