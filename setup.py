@@ -41,7 +41,8 @@ setup(
         'keyring',
         'egoio',
         'pyproj',
-        'pygraphviz'
+        'pygraphviz',
+        'configobj'
     ],
     # package_data={
     #     'config': [
