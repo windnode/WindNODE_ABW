@@ -356,16 +356,27 @@ def create_th_model(region=None, datetime_index=None, scn_data={}):
         buses[bus.label] = bus
         nodes.append(bus)
 
-    ################################
-    # HEAT DEMAND AND FEEDIN NODES #
-    ################################
+    #############################
+    # DECENTRALIZED HEAT SUPPLY #
+    #############################
     for mun in region.muns.itertuples():
+
+        # sources for decentralized heat supply (1 per mun)
+        # Todo: Currently just a simple shortage source, update later?
+        nodes.append(
+            solph.Source(
+                label='gen_th_dec_{ags_id}'.format(
+                    ags_id=str(mun.Index)
+                ),
+                outputs={buses['b_th_dec_{ags_id}'.format(
+                    ags_id=str(mun.Index))]: solph.Flow(
+                    **scn_data['generation']['gen_th_dec']['outflow']
+                )})
+        )
+
+        # demand per sector and mun
         for sector, ts_df in region.demand_ts.items():
             if sector[:3] == 'th_':
-                #############################
-                # decentralized heat supply #
-                #############################
-                # demand
                 inflow_args = {
                     'nominal_value': 1,
                     'fixed': True,
@@ -387,24 +398,30 @@ def create_th_model(region=None, datetime_index=None, scn_data={}):
                             ags_id=str(mun.Index))]: solph.Flow(**inflow_args)})
                 )
 
-                # feedin
-                # Todo: Currently just a simple shortage source, update later?
-                nodes.append(
-                    solph.Source(
-                        label='gen_th_dec_{ags_id}'.format(
-                            ags_id=str(mun.Index)
-                        ),
-                        outputs={buses['b_th_dec_{ags_id}'.format(
-                            ags_id=str(mun.Index))]: solph.Flow(
-                            **scn_data['generation']['gen_th_dec']['outflow']
-                        )})
-                )
+    ####################
+    # DISTRICT HEATING #
+    ####################
+    for mun in region.muns.itertuples():
 
-                ####################
-                # district heating #
-                ####################
-                if mun.dem_th_energy_dist_heat_share > 0:
-                    # demand
+        # only add if there's district heating in mun
+        if mun.dem_th_energy_dist_heat_share > 0:
+
+            # sources for district heating (1 per mun)
+            # Todo: Currently just a simple shortage source, update later?
+            nodes.append(
+                solph.Source(
+                    label='gen_th_cen_{ags_id}'.format(
+                        ags_id=str(mun.Index)
+                    ),
+                    outputs={buses['b_th_cen_{ags_id}'.format(
+                        ags_id=str(mun.Index))]: solph.Flow(
+                        **scn_data['generation']['gen_th_cen']['outflow']
+                    )})
+            )
+
+            # demand per sector and mun
+            for sector, ts_df in region.demand_ts.items():
+                if sector[:3] == 'th_':
                     inflow_args = {
                         'nominal_value': 1,
                         'fixed': True,
@@ -421,19 +438,6 @@ def create_th_model(region=None, datetime_index=None, scn_data={}):
                         ),
                             inputs={buses['b_th_cen_{ags_id}'.format(
                                 ags_id=str(mun.Index))]: solph.Flow(**inflow_args)})
-                    )
-
-                    # feedin
-                    # Todo: Currently just a simple shortage source, update later?
-                    nodes.append(
-                        solph.Source(
-                            label='gen_th_cen_{ags_id}'.format(
-                                ags_id=str(mun.Index)
-                            ),
-                            outputs={buses['b_th_cen_{ags_id}'.format(
-                                ags_id=str(mun.Index))]: solph.Flow(
-                                **scn_data['generation']['gen_th_cen']['outflow']
-                            )})
                     )
 
     return nodes
