@@ -134,14 +134,11 @@ class Region:
         return self._feedin_ts
 
     @classmethod
-    def import_data(cls, **kwargs):
+    def import_data(cls):
         """Import data to Region object"""
 
-        # import
-        kwargs = import_db_data()
-
         # create the region instance
-        region = cls(**kwargs)
+        region = cls(**import_db_data())
 
         return region
 
