@@ -113,7 +113,7 @@ if __name__ == "__main__":
                                                 'results_dir')),
         'solver': 'cbc',
         'verbose': True,
-        'dump_esys': True,
+        'dump_esys': False,
         'load_esys': False
     }
 
