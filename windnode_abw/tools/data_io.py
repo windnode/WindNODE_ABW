@@ -1,6 +1,7 @@
 import logging
 logger = logging.getLogger('windnode_abw')
 from windnode_abw.tools import config
+from configobj import ConfigObj
 
 import os
 import requests
@@ -430,3 +431,35 @@ def oemof_nodes_from_excel(filename, header_lines=0):
                 .format(filename))
 
     return nodes_data
+
+
+def load_scenario(scn_name=None):
+    """Load scenario from ConfigObj file"""
+
+    def convert2numeric(conf_dict):
+        """Convert all string numbers to float values in `conf_dict`"""
+        conf_dict2 = {}
+        for key, val in conf_dict.items():
+            if isinstance(val, dict):
+                conf_dict2[key] = convert2numeric(val)
+            else:
+                try:
+                    val = float(val)
+                except:
+                    pass
+                return {key: val}
+        return conf_dict2
+
+    if scn_name is not None:
+        import windnode_abw
+
+        path = os.path.join(windnode_abw.__path__[0],
+                            'scenarios',
+                            scn_name + '.scn')
+
+        if not os.path.isfile(path):
+            msg = 'Scenario file {path} does not exist, aborting'.format(
+                path=path)
+            logger.info(msg)
+            raise ValueError(msg)
+        return convert2numeric(dict(ConfigObj(path)))
