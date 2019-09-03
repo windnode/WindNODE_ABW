@@ -166,7 +166,7 @@ def create_el_model(region=None, datetime_index=None):
 
         # note: timeseries are distributed equally to all buses of mun
         for bus_id, busdata in mun_buses.iterrows():
-            # create generators
+            # generators
             # ToDo: Use normalized ts and cap instead?
             for tech, ts_df in region.feedin_ts.items():
                 outflow_args = {
@@ -186,7 +186,7 @@ def create_el_model(region=None, datetime_index=None):
                             ),
                             outputs={buses[bus_id]: solph.Flow(**outflow_args)})
                     )
-            # create el. demands
+            # demands
             # ToDo: Use normalized ts and cap instead?
             for sector, ts_df in region.demand_ts.items():
                 if sector[:3] == 'el_':
@@ -257,6 +257,7 @@ def create_el_model(region=None, datetime_index=None):
                 ),
                 inputs={bus: solph.Flow(),
                         imex_bus: solph.Flow()},
+                # ToDo: Check if nom val must be 0.5 for each direction!
                 outputs={bus: solph.Flow(nominal_value=10e6,
                                          variable_costs=1),
                          imex_bus: solph.Flow(nominal_value=10e6,
@@ -347,11 +348,6 @@ def create_th_model(region=None, datetime_index=None):
     ################################
     # HEAT DEMAND AND FEEDIN NODES #
     ################################
-    inflow_args = {
-        'nominal_value': 1,
-        'fixed': True
-    }
-
     for mun in region.muns.itertuples():
         for sector, ts_df in region.demand_ts.items():
             if sector[:3] == 'th_':
@@ -359,10 +355,16 @@ def create_th_model(region=None, datetime_index=None):
                 # decentralized heat supply #
                 #############################
                 # demand
-                inflow_args['actual_value'] = list(
+                inflow_args = {
+                    'nominal_value': 1,
+                    'fixed': True,
+                    'actual_value': list(
                         ts_df[mun.Index] *
                         (1 - mun.dem_th_energy_dist_heat_share)
                     )[:timesteps_cnt]
+                }
+
+                # ToDo: Include saving using different scn from db table
 
                 nodes.append(
                     solph.Sink(
@@ -390,10 +392,14 @@ def create_th_model(region=None, datetime_index=None):
                 ####################
                 if mun.dem_th_energy_dist_heat_share > 0:
                     # demand
-                    inflow_args['actual_value'] = list(
+                    inflow_args = {
+                        'nominal_value': 1,
+                        'fixed': True,
+                        'actual_value': list(
                             ts_df[mun.Index] *
                             mun.dem_th_energy_dist_heat_share
                         )[:timesteps_cnt]
+                    }
 
                     nodes.append(
                         solph.Sink(label='dem_th_cen_{ags_id}_{sector}'.format(
