@@ -58,20 +58,23 @@ def create_oemof_model(cfg, region):
     # create and add nodes
     th_nodes = create_th_model(
         region=region,
-        datetime_index=datetime_index
+        datetime_index=datetime_index,
+        scn_data=cfg['scn_data']
     )
     esys.add(*th_nodes)
 
     el_nodes = create_el_model(
         region=region,
-        datetime_index=datetime_index
+        datetime_index=datetime_index,
+        scn_data=cfg['scn_data']
     )
     esys.add(*el_nodes)
 
     flex_nodes = create_flexopts(
         region=region,
         datetime_index=datetime_index,
-        nodes_in=th_nodes+el_nodes
+        nodes_in=th_nodes+el_nodes,
+        scn_data=cfg['scn_data']
     )
     esys.add(*flex_nodes)
 
@@ -83,7 +86,7 @@ def create_oemof_model(cfg, region):
     return esys
 
 
-def create_el_model(region=None, datetime_index=None):
+def create_el_model(region=None, datetime_index=None, scn_data={}):
     """Create electrical model modes (oemof objects) and lines from region such
     as buses, links, sources and sinks.
 
@@ -137,22 +140,30 @@ def create_el_model(region=None, datetime_index=None):
     # grid (110 kV level)
     nodes.append(
         solph.Sink(label='excess_el_hv',
-                   inputs={imex_hv_bus: solph.Flow(variable_costs=-50)})
+                   inputs={imex_hv_bus: solph.Flow(
+                       **scn_data['grid']['extgrid']['excess_el_hv']['inflow']
+                   )})
     )
     nodes.append(
         solph.Source(label='shortage_el_hv',
-                     outputs={imex_hv_bus: solph.Flow(variable_costs=200)})
+                     outputs={imex_hv_bus: solph.Flow(
+                         **scn_data['grid']['extgrid']['shortage_el_hv']['outflow']
+                     )})
     )
 
     # add sink and source for common import/export bus to represent external
     # grid (380 kV level)
     nodes.append(
         solph.Sink(label='excess_el_ehv',
-                   inputs={imex_ehv_bus: solph.Flow(variable_costs=-50)})
+                   inputs={imex_ehv_bus: solph.Flow(
+                       **scn_data['grid']['extgrid']['excess_el_ehv']['inflow']
+                   )})
     )
     nodes.append(
         solph.Source(label='shortage_el_ehv',
-                     outputs={imex_ehv_bus: solph.Flow(variable_costs=200)})
+                     outputs={imex_ehv_bus: solph.Flow(
+                         **scn_data['grid']['extgrid']['shortage_el_ehv']['outflow']
+                     )})
     )
 
     ####################
@@ -295,7 +306,7 @@ def create_el_model(region=None, datetime_index=None):
     return nodes
 
 
-def create_th_model(region=None, datetime_index=None):
+def create_th_model(region=None, datetime_index=None, scn_data={}):
     """Create thermal model modes (oemof objects) and lines from region such
     as buses, sources and sinks.
 
@@ -384,7 +395,9 @@ def create_th_model(region=None, datetime_index=None):
                             ags_id=str(mun.Index)
                         ),
                         outputs={buses['b_th_dec_{ags_id}'.format(
-                            ags_id=str(mun.Index))]: solph.Flow(variable_costs=100)})
+                            ags_id=str(mun.Index))]: solph.Flow(
+                            **scn_data['generation']['gen_th_dec']['outflow']
+                        )})
                 )
 
                 ####################
@@ -418,13 +431,15 @@ def create_th_model(region=None, datetime_index=None):
                                 ags_id=str(mun.Index)
                             ),
                             outputs={buses['b_th_cen_{ags_id}'.format(
-                                ags_id=str(mun.Index))]: solph.Flow(variable_costs=100)})
+                                ags_id=str(mun.Index))]: solph.Flow(
+                                **scn_data['generation']['gen_th_cen']['outflow']
+                            )})
                     )
 
     return nodes
 
 
-def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
+def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
     """Create model nodes for flexibility options such as batteries, PtH and
     DSM
 
@@ -460,8 +475,6 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
     #############
     # ToDo: Develop location strategy
 
-    inflow_args = {'variable_costs': 10}
-
     for mun in region.muns.itertuples():
         mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
@@ -474,13 +487,12 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
                         ags_id=str(mun.Index),
                         bus_id=busdata.Index
                     ),
-                    inputs={bus: solph.Flow(**inflow_args)},
+                    inputs={bus: solph.Flow(
+                        **scn_data['flexopt']['flex_bat']['inflow']
+                    )},
                     outputs={bus: solph.Flow()},
-                    nominal_storage_capacity=1,
-                    loss_rate=0.01,
-                    initial_storage_level=0,
-                    inflow_conversion_factor=1,
-                    outflow_conversion_factor=0.8)
+                    **scn_data['flexopt']['flex_bat']['params']
+                )
             )
 
     #################
@@ -503,12 +515,8 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
             ##################################################
             bus_out = nodes_in['b_th_dec_{ags_id}'.format(ags_id=mun.Index)]
 
-            outflow_args = {'nominal_value': 1000,
-                            'fixed': False,
-                            'variable_costs': 500}
-
             # coefficient of performance (COP)
-            cop = 3
+            cop = scn_data['flexopt']['flex_dec_pth']['params']['cop']
 
             nodes.append(
                 solph.Transformer(
@@ -518,7 +526,9 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
                     ),
                     inputs={bus_in: solph.Flow(),
                             b_heat_source: solph.Flow()},
-                    outputs={bus_out: solph.Flow(**outflow_args)},
+                    outputs={bus_out: solph.Flow(
+                        **scn_data['flexopt']['flex_dec_pth']['outflow']
+                    )},
                     conversion_factors={bus_in: 1 / 3,
                                         b_heat_source: (cop - 1) / cop}
                 )
@@ -532,9 +542,6 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
                     ags_id=mun.Index
                 )]
 
-                outflow_args = {'nominal_value': 1000,
-                                'fixed': False,
-                                'variable_costs': 500}
                 nodes.append(
                     solph.Transformer(
                         label='flex_cen_pth_{ags_id}_b{bus_id}'.format(
@@ -542,8 +549,13 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
                             bus_id=busdata.Index
                         ),
                         inputs={bus_in: solph.Flow()},
-                        outputs={bus_out: solph.Flow(**outflow_args)},
-                        conversion_factors={bus_out: 0.95}
+                        outputs={bus_out: solph.Flow(
+                            **scn_data['flexopt']['flex_cen_pth']['outflow']
+                        )},
+                        conversion_factors={
+                            bus_out: scn_data['flexopt']['flex_cen_pth']
+                                             ['params']['conversion_factor']
+                        }
                     )
                 )
 
