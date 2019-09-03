@@ -398,7 +398,7 @@ def prepare_feedin_timeseries(region):
 
 
 def prepare_demand_timeseries(region):
-    """Calculate demand timeseries per sector
+    """Reformat demand timeseries: from single DF to DF per sector
 
     Parameters
     ----------
