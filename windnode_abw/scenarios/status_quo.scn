@@ -1,0 +1,79 @@
+# This file is part of WindNODE_ABW, a regional simulation model.
+# WindNODE_ABW lives at github: https://github.com/windnode/WindNODE_ABW/
+#
+# Any param additions or removals in this file must be manually adjusted in
+# the model (models.py)
+#
+# Scenario: status quo
+
+[general]
+    scn_name = sq
+
+[demand]
+    # über db table steuern
+
+[generation]
+    [[gen_th_dec]]
+        [[[outflow]]]
+            variable_costs = 100
+    [[gen_th_cen]]
+        [[[outflow]]]
+            variable_costs = 100
+
+[grid]
+    [[lines]]
+        [[[params]]]
+            conversion_factors = 0.98
+        [[[outflow]]]
+            variable_costs = 0.0001
+    [[trafos]]
+        [[[params]]]
+            conversion_factor = 0.98
+    [[extgrid]]
+        [[[imex_lines]]]
+            [[[[params]]]]
+                conversion_factor = 0.98
+            [[[[outflow]]]]
+                nominal_value = 10e6
+                variable_costs = 1
+        [[[excess_el_hv]]]
+            [[[[inflow]]]]
+                variable_costs = -50
+        [[[excess_el_ehv]]]
+            [[[[inflow]]]]
+                variable_costs = -50
+        [[[shortage_el_hv]]]
+            [[[[outflow]]]]
+                variable_costs = 200
+        [[[shortage_el_ehv]]]
+            [[[[outflow]]]]
+                variable_costs = 200
+
+[flexopt]
+    [[batteries]]
+        [[[inflow]]]
+            variable_costs = 10
+        [[[params]]]
+            nominal_storage_capacity = 1
+            loss_rate = 0.01
+            initial_storage_level = 0
+            inflow_conversion_factor = 1
+            outflow_conversion_factor = 0.8
+
+    [[pth_dec]]
+        [[[outflow]]]
+            nominal_value = 1000
+            variable_costs = 500
+        [[[params]]]
+            cop = 3
+
+    [[pth_cen]]
+        [[[outflow]]]
+            nominal_value = 1000
+            variable_costs = 500
+        [[[params]]]
+            conversion_factor = 0.95
+
+    # TBD
+    [[dsm]]
+        hh_share = 0.1
