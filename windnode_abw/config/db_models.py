@@ -48,6 +48,36 @@ class WnAbwFeedinTs(Base):
     mun = relationship('WnAbwMun', back_populates='feedin_ts')
 
 
+class WnDsmTs(Base):
+    __tablename__ = 'wn_dsmts'
+    __table_args__ = {'schema': 'windnode'}
+
+    timestamp = Column(DateTime, primary_key=True, nullable=False, index=True)
+    ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), primary_key=True, nullable=False, index=True)
+    Flex_Minus = Column(Float(53))
+    Flex_Minus_Max = Column(Float(53))
+    Flex_Plus = Column(Float(53))
+    Flex_Plus_Max = Column(Float(53))
+    Lastprofil = Column(Float(53))
+
+    ags = relationship('WnAbwMun', back_populates='dsm_ts')
+
+
+class WnDsmTsNorm(Base):
+    __tablename__ = 'wn_dsmts_norm'
+    __table_args__ = {'schema': 'windnode'}
+
+    timestamp = Column(DateTime, primary_key=True, nullable=False, index=True)
+    ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), primary_key=True, nullable=False, index=True)
+    Flex_Minus = Column(Float(53))
+    Flex_Minus_Max = Column(Float(53))
+    Flex_Plus = Column(Float(53))
+    Flex_Plus_Max = Column(Float(53))
+    Lastprofil = Column(Float(53))
+
+    ags = relationship('WnAbwMun', back_populates='dsm_ts_norm')
+
+
 class WnAbwGridHvBus(Base):
     __tablename__ = 'wn_abw_grid_hv_bus'
     __table_args__ = {'schema': 'windnode'}

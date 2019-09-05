@@ -64,6 +64,13 @@ def run_scenario(cfg):
 
     region = Region.import_data()
 
+    # Vergleich el load IÖW+SLP
+    # import pandas as pd
+    # x = pd.concat([region.dsm_ts['Lastprofil'][15001000].rename(columns={15001000: 'IÖW'}),
+    #                region.demand_ts['el_hh'][15001000].rename(columns={15001000: 'SLP'})],
+    #               axis=1)
+    # x.plot()
+
     esys = create_oemof_model(cfg=cfg,
                               region=region)
 

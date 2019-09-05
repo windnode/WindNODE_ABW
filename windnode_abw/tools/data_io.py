@@ -17,7 +17,7 @@ from egoio.tools.db import connection
 from windnode_abw.config.db_models import \
     WnAbwDemandTs, WnAbwFeedinTs, WnAbwGridHvBus, WnAbwGridHvLine,\
     WnAbwGridHvmvSubstation, WnAbwGridMvGriddistrict, WnAbwGridHvTransformer,\
-    WnAbwMun, WnAbwMundata, WnAbwPowerplant, WnAbwRelSubstIdAgsId
+    WnAbwMun, WnAbwMundata, WnAbwPowerplant, WnAbwRelSubstIdAgsId, WnDsmTs
 
 
 def db_session(db_section):
@@ -268,6 +268,23 @@ def import_db_data():
     ).order_by(WnAbwFeedinTs.timestamp)
     data['feedin_ts_init'] = reformat_timeseries(
         pd.read_sql_query(feedints_query.statement,
+                          session.bind)
+    )
+
+    ############################
+    # import feedin timeseries #
+    ############################
+    logger.info('Importing DSM timeseries...')
+    dsmts_query = session.query(
+        WnDsmTs.ags_id.label('ags'),
+        WnDsmTs.Lastprofil,
+        WnDsmTs.Flex_Minus,
+        WnDsmTs.Flex_Minus_Max,
+        WnDsmTs.Flex_Plus,
+        WnDsmTs.Flex_Plus_Max,
+    ).order_by(WnDsmTs.timestamp)
+    data['dsm_ts'] = reformat_timeseries(
+        pd.read_sql_query(dsmts_query.statement,
                           session.bind)
     )
 

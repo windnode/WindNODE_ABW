@@ -60,6 +60,7 @@ class Region:
         self._demand_ts = prepare_demand_timeseries(self)
         self._feedin_ts_init = kwargs.get('feedin_ts_init', None)
         self._feedin_ts = prepare_feedin_timeseries(self)
+        self._dsm_ts = kwargs.get('dsm_ts', None)
 
     @property
     def muns(self):
@@ -105,6 +106,7 @@ class Region:
         """
         # access: e.g. df.loc[2303, 'gas']
         # consider to reset index to convert index cols to regular cols
+        # ToDo: Revise this method
 
         return self.geno_res.groupby(['subst_id', 'generation_type'])[
             'capacity'].agg(['sum', 'count'])#.reset_index()
@@ -132,6 +134,10 @@ class Region:
     @property
     def feedin_ts(self):
         return self._feedin_ts
+
+    @property
+    def dsm_ts(self):
+        return self._dsm_ts
 
     @classmethod
     def import_data(cls):
