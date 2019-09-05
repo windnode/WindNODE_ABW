@@ -9,6 +9,7 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 metadata = Base.metadata
 
+# ToDo: Add docstrings (many can be copied from StEmp ABW)
 
 class WnAbwDemandTs(Base):
     __tablename__ = 'wn_abw_demandts'
