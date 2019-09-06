@@ -237,8 +237,9 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
                         bus1: solph.Flow()},
                 outputs={bus0: solph.Flow(nominal_value=row['s_nom']),
                          bus1: solph.Flow(nominal_value=row['s_nom'])},
-                conversion_factors={(bus0, bus1): 0.98,
-                                    (bus1, bus0): 0.98})
+                conversion_factors={
+                    (bus0, bus1): scn_data['grid']['trafos']['params']['conversion_factor'],
+                    (bus1, bus0): scn_data['grid']['trafos']['params']['conversion_factor']})
         )
 
     # create lines for import and export
@@ -294,15 +295,19 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
                 ),
                 inputs={bus0: solph.Flow(),
                         bus1: solph.Flow()},
-                outputs={bus0: solph.Flow(nominal_value=float(row['s_nom']),
-                                          variable_costs=0.0001
-                                          ),
-                         bus1: solph.Flow(nominal_value=float(row['s_nom']),
-                                          variable_costs=0.0001
-                                          )
-                         },
-                conversion_factors={(bus0, bus1): 0.98,
-                                    (bus1, bus0): 0.98})
+                outputs={
+                    bus0: solph.Flow(
+                        nominal_value=float(row['s_nom']),
+                        **scn_data['grid']['lines']['outflow']
+                    ),
+                    bus1: solph.Flow(
+                        nominal_value=float(row['s_nom']),
+                        **scn_data['grid']['lines']['outflow']
+                    )
+                },
+                conversion_factors={
+                    (bus0, bus1): scn_data['grid']['lines']['params']['conversion_factor'],
+                    (bus1, bus0): scn_data['grid']['lines']['params']['conversion_factor']})
         )
 
     return nodes
