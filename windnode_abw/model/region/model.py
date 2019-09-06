@@ -542,7 +542,7 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                             outputs={bus_out: solph.Flow(
                                 **scn_data['flexopt']['flex_dec_pth']['outflow']
                             )},
-                            conversion_factors={bus_in: 1 / 3,
+                            conversion_factors={bus_in: 1 / cop,
                                                 b_heat_source: (cop - 1) / cop}
                         )
                     )
