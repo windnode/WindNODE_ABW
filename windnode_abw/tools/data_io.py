@@ -464,7 +464,7 @@ def load_scenario(scn_name=None):
                     val = float(val)
                 except:
                     pass
-                return {key: val}
+                conf_dict2[key] = val
         return conf_dict2
 
     if scn_name is not None:
