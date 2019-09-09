@@ -36,8 +36,8 @@
         [[[imex_lines]]]
             [[[[params]]]]
                 conversion_factor = 0.98
+                max_usable_capacity = 0.1
             [[[[outflow]]]]
-                nominal_value = 10e6
                 variable_costs = 1
         [[[excess_el_hv]]]
             [[[[inflow]]]]

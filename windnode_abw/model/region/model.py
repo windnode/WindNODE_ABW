@@ -125,47 +125,6 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
         buses[idx] = bus
         nodes.append(bus)
 
-    #################
-    # EXTERNAL GRID #
-    #################
-
-    # common bus for el. power import and export (110 kV level)
-    imex_hv_bus = solph.Bus(label='b_el_imex_hv')
-    nodes.append(imex_hv_bus)
-    # common bus for el. power import and export (380 kV level)
-    imex_ehv_bus = solph.Bus(label='b_el_imex_ehv')
-    nodes.append(imex_ehv_bus)
-
-    # add sink and source for common import/export bus to represent external
-    # grid (110 kV level)
-    nodes.append(
-        solph.Sink(label='excess_el_hv',
-                   inputs={imex_hv_bus: solph.Flow(
-                       **scn_data['grid']['extgrid']['excess_el_hv']['inflow']
-                   )})
-    )
-    nodes.append(
-        solph.Source(label='shortage_el_hv',
-                     outputs={imex_hv_bus: solph.Flow(
-                         **scn_data['grid']['extgrid']['shortage_el_hv']['outflow']
-                     )})
-    )
-
-    # add sink and source for common import/export bus to represent external
-    # grid (380 kV level)
-    nodes.append(
-        solph.Sink(label='excess_el_ehv',
-                   inputs={imex_ehv_bus: solph.Flow(
-                       **scn_data['grid']['extgrid']['excess_el_ehv']['inflow']
-                   )})
-    )
-    nodes.append(
-        solph.Source(label='shortage_el_ehv',
-                     outputs={imex_ehv_bus: solph.Flow(
-                         **scn_data['grid']['extgrid']['shortage_el_ehv']['outflow']
-                     )})
-    )
-
     ####################
     # ELECTRICAL NODES #
     ####################
@@ -242,46 +201,94 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
                     (bus1, bus0): scn_data['grid']['trafos']['params']['conversion_factor']})
         )
 
-    # create lines for import and export
-    # (buses which are tagged with region_bus == False)
+    #################
+    # EXTERNAL GRID #
+    #################
+
+    # 1. Source (import) and Sink (export) for each non-region bus
+    #    (buses which are tagged with region_bus == False)
+    # 2. Line from each of those buses to common IMEX bus to reflect power
+    #    bypass through external grid
+
+    # create common IMEX bus
+    imex_bus = solph.Bus(label='b_el_imex')
+    nodes.append(imex_bus)
+
     for idx, row in region.buses[~region.buses['region_bus']].iterrows():
         bus = buses[idx]
 
         # SEPARATE EXCESS+SHORTAGE BUSES
-        # # add sink and source for import/export
-        # nodes.append(
-        #     solph.Sink(label='excess_el_b{bus_id}'.format(bus_id=idx),
-        #                inputs={bus: solph.Flow(variable_costs=-50)})
-        # )
-        # nodes.append(
-        #     solph.Source(label='shortage_el_b{bus_id}'.format(bus_id=idx),
-        #                  outputs={bus: solph.Flow(variable_costs=100)})
-        # )
+        if row['v_nom'] == 110:
+            v_level = 'hv'
+            sink_inflow_args = scn_data['grid']['extgrid']['excess_el_hv']['inflow']
+            source_outflow_args = scn_data['grid']['extgrid']['shortage_el_hv']['outflow']
+        elif row['v_nom'] == 380:
+            v_level = 'ehv'
+            sink_inflow_args = scn_data['grid']['extgrid']['excess_el_ehv']['inflow']
+            source_outflow_args = scn_data['grid']['extgrid']['shortage_el_ehv']['outflow']
+        nodes.append(
+            solph.Sink(label='excess_el_{v_level}_b{bus_id}'.format(
+                bus_id=idx,
+                v_level=v_level
+            ),
+                       inputs={bus: solph.Flow(
+                           **sink_inflow_args
+                       )})
+        )
+        nodes.append(
+            solph.Source(label='shortage_el_{v_level}_b{bus_id}'.format(
+                bus_id=idx,
+                v_level=v_level
+            ),
+                         outputs={bus: solph.Flow(
+                             **source_outflow_args
+                         )})
+        )
 
         # CONNECTION TO COMMON IMEX BUS
-        if row['v_nom'] == 110:
-            imex_bus = imex_hv_bus
-        elif row['v_nom'] == 380:
-            imex_bus = imex_ehv_bus
+        # get nom. capacity of connected line or trafo
+        if not region.lines[region.lines['bus0'] == idx]['s_nom'].empty:
+            s_nom = float(region.lines[region.lines['bus0'] == idx]['s_nom'])
+        elif not region.lines[region.lines['bus1'] == idx]['s_nom'].empty:
+            s_nom = float(region.lines[region.lines['bus1'] == idx]['s_nom'])
+        elif not region.trafos[region.trafos['bus0'] == idx]['s_nom'].empty:
+            s_nom = float(region.trafos[region.trafos['bus0'] == idx]['s_nom'])
+        elif not region.trafos[region.trafos['bus1'] == idx]['s_nom'].empty:
+            s_nom = float(region.trafos[region.trafos['bus1'] == idx]['s_nom'])
+        else:
+            raise ValueError('Nominal capacity of connected line '
+                             'not found for bus {bus_id}'.format(bus_id=idx))
 
         nodes.append(
             solph.custom.Link(
-                label='line_b{b0}_b_el_imex'.format(
-                    b0=str(idx)
+                label='line_b{bus_id}_b_el_imex'.format(
+                    bus_id=str(idx)
                 ),
                 inputs={bus: solph.Flow(),
                         imex_bus: solph.Flow()},
-                # ToDo: Check if nom val must be 0.5 for each direction!
-                outputs={bus: solph.Flow(nominal_value=10e6,
-                                         variable_costs=1),
-                         imex_bus: solph.Flow(nominal_value=10e6,
-                                              variable_costs=1)
-                         },
-                conversion_factors={(bus, imex_bus): 0.98,
-                                    (imex_bus, bus): 0.98})
+                outputs={
+                    bus: solph.Flow(
+                        nominal_value=s_nom *
+                                      scn_data['grid']['extgrid']['imex_lines']['params']['max_usable_capacity'],
+                        **scn_data['grid']['extgrid']['imex_lines']['outflow']
+                    ),
+                    imex_bus: solph.Flow(
+                        nominal_value=s_nom *
+                                      scn_data['grid']['extgrid']['imex_lines']['params']['max_usable_capacity'],
+                        **scn_data['grid']['extgrid']['imex_lines']['outflow']
+                    )
+                },
+                conversion_factors={
+                    (bus, imex_bus): scn_data['grid']['extgrid']['imex_lines']['params']['conversion_factor'],
+                    (imex_bus, bus): scn_data['grid']['extgrid']['imex_lines']['params']['conversion_factor']
+                }
+            )
         )
 
-    # create regular lines
+    #################
+    # REGION'S GRID #
+    #################
+
     for idx, row in region.lines.iterrows():
         bus0 = buses[row['bus0']]
         bus1 = buses[row['bus1']]
@@ -307,7 +314,9 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
                 },
                 conversion_factors={
                     (bus0, bus1): scn_data['grid']['lines']['params']['conversion_factor'],
-                    (bus1, bus0): scn_data['grid']['lines']['params']['conversion_factor']})
+                    (bus1, bus0): scn_data['grid']['lines']['params']['conversion_factor']
+                }
+            )
         )
 
     return nodes
