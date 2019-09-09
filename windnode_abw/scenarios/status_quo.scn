@@ -24,7 +24,7 @@
 [grid]
     [[lines]]
         [[[params]]]
-            conversion_factors = 0.98
+            conversion_factor = 0.98
         [[[outflow]]]
             variable_costs = 0.0001
 
