@@ -17,7 +17,8 @@ from egoio.tools.db import connection
 from windnode_abw.config.db_models import \
     WnAbwDemandTs, WnAbwFeedinTs, WnAbwGridHvBus, WnAbwGridHvLine,\
     WnAbwGridHvmvSubstation, WnAbwGridMvGriddistrict, WnAbwGridHvTransformer,\
-    WnAbwMun, WnAbwMundata, WnAbwPowerplant, WnAbwRelSubstIdAgsId, WnAbwDsmTs
+    WnAbwMun, WnAbwMundata, WnAbwPowerplant, WnAbwRelSubstIdAgsId, WnAbwDsmTs,\
+    WnAbwTempTs
 
 
 def db_session(db_section):
@@ -271,9 +272,9 @@ def import_db_data():
                           session.bind)
     )
 
-    ############################
+    #########################
     # import DSM timeseries #
-    ############################
+    #########################
     logger.info('Importing DSM timeseries...')
     dsmts_query = session.query(
         WnAbwDsmTs.ags_id.label('ags'),
@@ -287,6 +288,20 @@ def import_db_data():
         pd.read_sql_query(dsmts_query.statement,
                           session.bind)
     )
+
+    #################################
+    # import temperature timeseries #
+    #################################
+    logger.info('Importing temperature timeseries...')
+    tempts_query = session.query(
+        WnAbwTempTs.ags_id.label('ags'),
+        WnAbwTempTs.temp
+    ).order_by(WnAbwTempTs.timestamp)
+    data['temp_ts'] = reformat_timeseries(
+        pd.read_sql_query(tempts_query.statement,
+                          session.bind)
+    )
+    data['temp_ts'].columns = data['temp_ts'].columns.droplevel(0)
 
     #####################################################################
     # import HV grid (buses, lines, trafos, substations+grid districts) #

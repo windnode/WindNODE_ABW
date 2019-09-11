@@ -43,6 +43,8 @@ class Region:
     _feedin_ts : :obj:`dict` of :pandas:`pandas.DataFrame`
         Absolute feedin timeseries per technology/type (dict key) and
         municipality (DF column)
+    _temp_ts : :pandas:`pandas.DataFrame`
+        Temperature timeseries per municipality in degree Celsius
     """
     def __init__(self, **kwargs):
         self._name = 'ABW region'
@@ -61,6 +63,7 @@ class Region:
         self._feedin_ts_init = kwargs.get('feedin_ts_init', None)
         self._feedin_ts = prepare_feedin_timeseries(self)
         self._dsm_ts = kwargs.get('dsm_ts', None)
+        self._temp_ts = kwargs.get('temp_ts', None)
 
     @property
     def muns(self):
@@ -138,6 +141,10 @@ class Region:
     @property
     def dsm_ts(self):
         return self._dsm_ts
+
+    @property
+    def temp_ts(self):
+        return self._temp_ts
 
     @classmethod
     def import_data(cls):
