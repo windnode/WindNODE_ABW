@@ -272,7 +272,7 @@ def import_db_data():
     )
 
     ############################
-    # import feedin timeseries #
+    # import DSM timeseries #
     ############################
     logger.info('Importing DSM timeseries...')
     dsmts_query = session.query(
