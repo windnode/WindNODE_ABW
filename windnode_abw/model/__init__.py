@@ -43,6 +43,8 @@ class Region:
     _feedin_ts : :obj:`dict` of :pandas:`pandas.DataFrame`
         Absolute feedin timeseries per technology/type (dict key) and
         municipality (DF column)
+    _dsm_ts : :pandas:`pandas.DataFrame`
+        DSM timeseries per load band municipality (MultiIndex columns)
     _temp_ts : :pandas:`pandas.DataFrame`
         Temperature timeseries per municipality in degree Celsius
     """
