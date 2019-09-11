@@ -49,8 +49,8 @@ class WnAbwFeedinTs(Base):
     mun = relationship('WnAbwMun', back_populates='feedin_ts')
 
 
-class WnDsmTs(Base):
-    __tablename__ = 'wn_dsmts'
+class WnAbwDsmTs(Base):
+    __tablename__ = 'wn_abw_dsmts'
     __table_args__ = {'schema': 'windnode'}
 
     timestamp = Column(DateTime, primary_key=True, nullable=False, index=True)
@@ -64,8 +64,8 @@ class WnDsmTs(Base):
     ags = relationship('WnAbwMun', back_populates='dsm_ts')
 
 
-class WnDsmTsNorm(Base):
-    __tablename__ = 'wn_dsmts_norm'
+class WnAbwDsmTsNorm(Base):
+    __tablename__ = 'wn_abw_dsmts_norm'
     __table_args__ = {'schema': 'windnode'}
 
     timestamp = Column(DateTime, primary_key=True, nullable=False, index=True)
