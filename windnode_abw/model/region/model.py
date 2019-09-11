@@ -3,6 +3,8 @@ import oemof.solph as solph
 import logging
 logger = logging.getLogger('windnode_abw')
 
+from windnode_abw.model.region.tools import calc_heat_pump_cops
+
 
 def simulate(esys, solver='cbc', verbose=True):
     """Optimize energy system
@@ -535,8 +537,23 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                 if flex_dec_pth_enabled:
                     bus_out = nodes_in['b_th_dec_{ags_id}'.format(ags_id=mun.Index)]
 
-                    # coefficient of performance (COP)
-                    cop = scn_data['flexopt']['flex_dec_pth']['params']['cop']
+                    # calc temperature-dependent coefficient of performance (COP)
+                    params = scn_data['flexopt']['flex_dec_pth']['params']
+                    cops_hp = calc_heat_pump_cops(
+                        t_high=[params['heating_temp']],
+                        t_low=list(region.temp_ts[mun.Index]),
+                        quality_grade=params['quality_grade'],
+                        consider_icing=True,
+                        factor_icing=params['factor_icing']
+                    )
+                    
+                    # DEBUG ONLY:
+                    # print('COP: ', max(cops_hp), min(cops_hp))
+                    # xxx = {'heat_demand_mfh': region.demand_ts['th_hh_mfh'][mun.Index],
+                    #        'temp': list(region.temp_ts[mun.Index]),
+                    #        'cop': cops_hp}
+                    # x = pd.DataFrame.from_dict(xxx)
+                    # x.plot()
 
                     nodes.append(
                         solph.Transformer(
@@ -548,7 +565,7 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                             outputs={bus_out: solph.Flow(
                                 **scn_data['flexopt']['flex_dec_pth']['outflow']
                             )},
-                            conversion_factors={bus_in: 1 / cop}
+                            conversion_factors={bus_out: cops_hp}
                         )
                     )
 

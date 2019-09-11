@@ -418,3 +418,44 @@ def prepare_demand_timeseries(region):
         demand_ts[dt] = region.demand_ts_init[dt]
 
     return demand_ts
+
+
+def calc_heat_pump_cops(t_high, t_low, quality_grade,
+                        consider_icing=False, factor_icing=None):
+    """Calculate temperature-dependent COP of heat pumps
+
+    Code was taken from oemof-thermal:
+    https://github.com/oemof/oemof-thermal/blob/features/cmpr_heatpumps_and_chillers/src/oemof/thermal/compression_heatpumps_and_chillers.py
+    Related issue: https://github.com/oemof/oemof/issues/591
+
+    ToDo: Import function as soon as available on master/dev
+    """
+
+    # Expand length of lists with temperatures and convert unit to Kelvin.
+    length = max([len(t_high), len(t_low)])
+    if len(t_high) == 1:
+        list_t_high_K = [t_high[0]+273.15]*length
+    elif len(t_high) == length:
+        list_t_high_K = [t+273.15 for t in t_high]
+    if len(t_low) == 1:
+        list_t_low_K = [t_low[0]+273.15]*length
+    elif len(t_low) == length:
+        list_t_low_K = [t+273.15 for t in t_low]
+
+    # Calculate COPs
+    if not consider_icing:
+        cops = [quality_grade * t_h/(t_h-t_l) for
+                t_h, t_l in zip(list_t_high_K, list_t_low_K)]
+
+    # Temperatures below 2 degC lead to icing at evaporator in
+    # heat pumps working with ambient air as heat source.
+    elif consider_icing:
+        cops = []
+        for t_h, t_l in zip(list_t_high_K, list_t_low_K):
+            if t_l < 2+273.15:
+                f_icing = factor_icing
+                cops = cops + [f_icing*quality_grade * t_h/(t_h-t_l)]
+            if t_l >= 2+273.15:
+                cops = cops + [quality_grade * t_h / (t_h - t_l)]
+
+    return cops

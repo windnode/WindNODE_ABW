@@ -72,7 +72,9 @@
             nominal_value = 1000
             variable_costs = 500
         [[[params]]]
-            cop = 3
+            heating_temp = 35
+            quality_grade = 0.4
+            factor_icing = 0.8
 
     [[flex_cen_pth]]
         [[[enabled]]]
