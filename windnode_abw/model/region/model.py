@@ -526,13 +526,6 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
         for mun in region.muns.itertuples():
             mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
-            if flex_dec_pth_enabled:
-                # heat source for heat pumps
-                b_heat_source = solph.Bus(label='b_heat_source_{ags_id}'.format(
-                    ags_id=mun.Index)
-                )
-                nodes.append(b_heat_source)
-
             for busdata in mun_buses.itertuples():
                 bus_in = nodes_in['b_el_{bus_id}'.format(bus_id=busdata.Index)]
 
@@ -551,13 +544,11 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                                 ags_id=str(mun.Index),
                                 bus_id=busdata.Index
                             ),
-                            inputs={bus_in: solph.Flow(),
-                                    b_heat_source: solph.Flow()},
+                            inputs={bus_in: solph.Flow()},
                             outputs={bus_out: solph.Flow(
                                 **scn_data['flexopt']['flex_dec_pth']['outflow']
                             )},
-                            conversion_factors={bus_in: 1 / cop,
-                                                b_heat_source: (cop - 1) / cop}
+                            conversion_factors={bus_in: 1 / cop}
                         )
                     )
 

@@ -126,8 +126,6 @@ def set_node_colors(grph):
             colors[node] = '#ffffb2'
         elif node[:12] == 'flex_cen_pth':
             colors[node] = '#ffffb2'
-        elif node[:13] == 'b_heat_source':
-            colors[node] = '#fef0d9'
 
     return colors
 
