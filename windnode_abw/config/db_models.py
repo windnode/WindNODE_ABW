@@ -79,6 +79,17 @@ class WnAbwDsmTsNorm(Base):
     ags = relationship('WnAbwMun', back_populates='dsm_ts_norm')
 
 
+class WnAbwTempTs(Base):
+    __tablename__ = 'wn_abw_tempts'
+    __table_args__ = {'schema': 'windnode'}
+
+    timestamp = Column(DateTime, primary_key=True, nullable=False, index=True)
+    ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), primary_key=True, nullable=False, index=True)
+    temp = Column(Float(53))
+
+    ags = relationship('WnAbwMun', back_populates='temp_ts')
+
+
 class WnAbwGridHvBus(Base):
     __tablename__ = 'wn_abw_grid_hv_bus'
     __table_args__ = {'schema': 'windnode'}
@@ -228,6 +239,7 @@ class WnAbwMun(Base):
 
     demand_ts = relationship('WnAbwDemandTs', back_populates='mun')
     feedin_ts = relationship('WnAbwFeedinTs', back_populates='mun')
+    temp_ts = relationship('WnAbwTempTs', back_populates='mun')
     grid_hv_bus = relationship('WnAbwGridHvBus', back_populates='mun')
     grid_hv_transformer = relationship('WnAbwGridHvTransformer', back_populates='mun')
     grid_hvmv_substation = relationship('WnAbwGridHvmvSubstation', back_populates='mun')
