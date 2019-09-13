@@ -295,13 +295,13 @@ def import_db_data():
     logger.info('Importing temperature timeseries...')
     tempts_query = session.query(
         WnAbwTempTs.ags_id.label('ags'),
-        WnAbwTempTs.temp
+        WnAbwTempTs.air_temp,
+        WnAbwTempTs.soil_temp
     ).order_by(WnAbwTempTs.timestamp)
-    data['temp_ts'] = reformat_timeseries(
+    data['temp_ts_init'] = reformat_timeseries(
         pd.read_sql_query(tempts_query.statement,
                           session.bind)
     )
-    data['temp_ts'].columns = data['temp_ts'].columns.droplevel(0)
 
     #####################################################################
     # import HV grid (buses, lines, trafos, substations+grid districts) #

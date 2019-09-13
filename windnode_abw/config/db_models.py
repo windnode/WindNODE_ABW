@@ -85,7 +85,8 @@ class WnAbwTempTs(Base):
 
     timestamp = Column(DateTime, primary_key=True, nullable=False, index=True)
     ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), primary_key=True, nullable=False, index=True)
-    temp = Column(Float(53))
+    air_temp = Column(Float(53))
+    soil_temp = Column(Float(53))
 
     ags = relationship('WnAbwMun', back_populates='temp_ts')
 

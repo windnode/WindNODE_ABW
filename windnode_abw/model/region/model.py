@@ -546,7 +546,7 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                     params = scn_data['flexopt']['flex_dec_pth']['params']
                     cops_hp = calc_heat_pump_cops(
                         t_high=[params['heating_temp']],
-                        t_low=list(region.temp_ts[mun.Index]),
+                        t_low=list(region.temp_ts['air_temp'][mun.Index]),
                         quality_grade=params['quality_grade'],
                         consider_icing=True,
                         factor_icing=params['ASHP_factor_icing']

@@ -420,6 +420,28 @@ def prepare_demand_timeseries(region):
     return demand_ts
 
 
+def prepare_temp_timeseries(region):
+    """Reformat temperatur timeseries: from single DF to DF per temp type
+    (air+soil)
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+
+    Returns
+    -------
+    :obj:`dict` of :pandas:`pandas.DataFrame`
+        Temperature timeseries per demand sector (dict key) and municipality
+        (DF column)
+    """
+    temp_ts = {}
+    temp_types = region.temp_ts_init.columns.get_level_values(0).unique()
+    for tt in temp_types:
+        temp_ts[tt] = region.temp_ts_init[tt]
+
+    return temp_ts
+
+
 def calc_heat_pump_cops(t_high, t_low, quality_grade,
                         consider_icing=False, factor_icing=None):
     """Calculate temperature-dependent COP of heat pumps

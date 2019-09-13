@@ -7,7 +7,8 @@ logger = logging.getLogger('windnode_abw')
 from windnode_abw.tools import config
 from windnode_abw.tools.data_io import import_db_data
 from windnode_abw.model.region.tools import \
-    prepare_feedin_timeseries, prepare_demand_timeseries
+    prepare_feedin_timeseries, prepare_demand_timeseries,\
+    prepare_temp_timeseries
 
 
 class Region:
@@ -65,7 +66,8 @@ class Region:
         self._feedin_ts_init = kwargs.get('feedin_ts_init', None)
         self._feedin_ts = prepare_feedin_timeseries(self)
         self._dsm_ts = kwargs.get('dsm_ts', None)
-        self._temp_ts = kwargs.get('temp_ts', None)
+        self._temp_ts_init = kwargs.get('temp_ts_init', None)
+        self._temp_ts = prepare_temp_timeseries(self)
 
     @property
     def muns(self):
@@ -143,6 +145,10 @@ class Region:
     @property
     def dsm_ts(self):
         return self._dsm_ts
+
+    @property
+    def temp_ts_init(self):
+        return self._temp_ts_init
 
     @property
     def temp_ts(self):
