@@ -154,7 +154,7 @@ def plot_results(esys, region):
                    'bus_gas': '#7EC0EE',
                    'bus_th': '#eeac7e'})
 
-    imex_bus_results = views.node(results, 'b_el_24050')
+    imex_bus_results = views.node(results, 'b_th_dec_15001000')
     imex_bus_results_flows = imex_bus_results['sequences']
 
     # print some sums for import/export bus
