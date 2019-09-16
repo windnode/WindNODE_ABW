@@ -65,12 +65,16 @@
             inflow_conversion_factor = 1
             outflow_conversion_factor = 0.8
 
-    [[flex_dec_pth]]
+    [[flex_dec_pth]]    # per mun
         [[[enabled]]]
             enabled = 1
+        [[[technology]]]
+            share_ASHP = 0.5
+            share_GSHP = 0.5
         [[[outflow]]]
-            nominal_value = 1000
-            variable_costs = 500
+            nominal_value_total = 1000    # (thermal output)
+            variable_costs_ASHP = 500
+            variable_costs_GSHP = 600
         [[[params]]]
             heating_temp = 35
             quality_grade = 0.4
