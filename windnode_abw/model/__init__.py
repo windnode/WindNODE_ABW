@@ -46,8 +46,9 @@ class Region:
         municipality (DF column)
     _dsm_ts : :pandas:`pandas.DataFrame`
         DSM timeseries per load band municipality (MultiIndex columns)
-    _temp_ts : :pandas:`pandas.DataFrame`
-        Temperature timeseries per municipality in degree Celsius
+    _temp_ts : :obj:`dict` of :pandas:`pandas.DataFrame`
+        Temperature timeseries (air and soil -> dict key) per municipality in
+        degree Celsius
     """
     def __init__(self, **kwargs):
         self._name = 'ABW region'
