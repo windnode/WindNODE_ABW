@@ -11,12 +11,15 @@
 # Scenario: status quo #
 ########################
 
+# general options
 [general]
     scn_name = sq
 
+# electrical and heat demand
 [demand]
     # über db table steuern
 
+# electrical and heat production
 [generation]
     [[gen_th_dec]]
         [[[outflow]]]
@@ -26,7 +29,9 @@
         [[[outflow]]]
             variable_costs = 100
 
+# regional and external grid
 [grid]
+    # regional lines
     [[lines]]
         [[[params]]]
             conversion_factor = 0.98
@@ -37,6 +42,7 @@
         [[[params]]]
             conversion_factor = 0.98
 
+    # external grid
     [[extgrid]]
         [[[imex_lines]]]
             [[[[params]]]]
@@ -57,7 +63,9 @@
             [[[[outflow]]]]
                 variable_costs = 200
 
+# flexibility options
 [flexopt]
+    # batteries
     [[flex_bat]]
         [[[enabled]]]
             enabled = 0
@@ -70,12 +78,14 @@
             inflow_conversion_factor = 1
             outflow_conversion_factor = 0.8
 
-    [[flex_dec_pth]]    # per mun
+    # decentral PtH (heat pumps, per mun)
+    [[flex_dec_pth]]
         [[[enabled]]]
             enabled = 1
         [[[technology]]]
             share_ASHP = 0.5
             share_GSHP = 0.5
+        # outflow values per mun!
         [[[outflow]]]
             nominal_value_total = 1000    # (thermal output)
             variable_costs_ASHP = 500
@@ -85,6 +95,7 @@
             quality_grade = 0.4
             ASHP_factor_icing = 0.8
 
+    # central PtH (boilers)
     [[flex_cen_pth]]
         [[[enabled]]]
             enabled = 0
@@ -94,7 +105,7 @@
         [[[params]]]
             conversion_factor = 0.95
 
-    # TBD
+    # demand side management (TBD)
     [[dsm]]
         [[[enabled]]]
             enabled = 0
