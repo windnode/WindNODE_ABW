@@ -139,7 +139,6 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
         # note: timeseries are distributed equally to all buses of mun
         for bus_id, busdata in mun_buses.iterrows():
             # generators
-            # ToDo: Use normalized ts and cap instead?
             for tech, ts_df in region.feedin_ts.items():
                 outflow_args = {
                     'nominal_value': 1,
@@ -160,7 +159,6 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
                             outputs={buses[bus_id]: solph.Flow(**outflow_args)})
                     )
             # demands
-            # ToDo: Use normalized ts and cap instead?
             for sector, ts_df in region.demand_ts.items():
                 if sector[:3] == 'el_':
                     inflow_args = {
