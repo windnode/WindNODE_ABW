@@ -1,10 +1,15 @@
 # This file is part of WindNODE_ABW, a regional simulation model.
 # WindNODE_ABW lives at github: https://github.com/windnode/WindNODE_ABW/
 #
+# This file sets scenario parameters. It will be obsolete if the
+# parametrization is done via DB tables (not implemented yet).
+#
 # Any param additions or removals in this file must be manually checked in
 # the model (models.py)
 #
-# Scenario: status quo
+########################
+# Scenario: status quo #
+########################
 
 [general]
     scn_name = sq
