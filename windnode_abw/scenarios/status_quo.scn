@@ -16,8 +16,12 @@
     scn_name = sq
 
 # electrical and heat demand
+# (parametrized via DB table)
 [demand]
-    # über db table steuern
+    # households
+    [[dem_el_hh]]
+        # profile_type: slp or ioew
+        profile_type = ioew
 
 # electrical and heat production
 [generation]

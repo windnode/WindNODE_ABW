@@ -159,6 +159,7 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
                             outputs={buses[bus_id]: solph.Flow(**outflow_args)})
                     )
             # demands
+            hh_profile_type = scn_data['demand']['dem_el_hh']['profile_type']
             for sector, ts_df in region.demand_ts.items():
                 if sector[:3] == 'el_':
                     inflow_args = {
@@ -167,6 +168,13 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
                         'actual_value': list(ts_df[ags] /
                                              len(mun_buses))[:timesteps_cnt]
                     }
+
+                    # use IÖW load profile if set in scenario config
+                    if sector == 'el_hh' and hh_profile_type == 'ioew':
+                        inflow_args['actual_value'] = \
+                            list(region.dsm_ts['Lastprofil'][ags] /
+                                 len(mun_buses))[:timesteps_cnt]
+
                     nodes.append(
                         solph.Sink(
                             label='dem_el_{ags_id}_b{bus_id}_{sector}'.format(
