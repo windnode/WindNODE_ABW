@@ -91,8 +91,8 @@ def run_scenario(cfg):
     esys.results['meta'] = outputlib.processing.meta_results(om)
     # add initial params to the energy system
     esys.results['params'] = outputlib.processing.parameter_as_dict(esys)
-    # # add om flows to allow access to Flow objects
-    # esys.results['om_flows'] = list(om.flows.items())
+    # add om flows to allow access to Flow objects
+    esys.results['om_flows'] = list(om.flows.items())
 
     # dump esys to file
     if cfg['dump_esys']:
