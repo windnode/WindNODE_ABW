@@ -4,6 +4,9 @@
 # This file sets scenario parameters. It will be obsolete if the
 # parametrization is done via DB tables (not implemented yet).
 #
+# Note: All power values must be provided in MW, costs in €/MWh and emissions
+# in kg/MWh
+#
 # Any param additions or removals in this file must be manually checked in
 # the model (models.py)
 #
