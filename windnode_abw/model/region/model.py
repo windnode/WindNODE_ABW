@@ -643,4 +643,12 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                             )
                         )
 
+                ####################
+                # DSM (households) #
+                ####################
+                if scn_data['flexopt']['dsm']['enabled']['enabled'] == 1:
+                    # ToDo: Do not forget to replace the el. sinks above!
+                    # ToDo: (do not create the sinks in line 161 ff.)
+                    raise NotImplementedError
+
     return nodes
