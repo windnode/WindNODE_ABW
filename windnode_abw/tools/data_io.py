@@ -440,6 +440,8 @@ def oemof_nodes_from_excel(filename, header_lines=0):
     -------
     :obj:`dict`
         Imported nodes data
+
+    TODO: Not used, remove?
     """
     # excel file does not exist
     if not filename or not os.path.isfile(filename):
