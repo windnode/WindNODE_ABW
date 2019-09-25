@@ -38,19 +38,24 @@
     # regional lines
     [[lines]]
         [[[params]]]
+            # conversion_factor: efficiency
             conversion_factor = 0.98
         [[[outflow]]]
             variable_costs = 0.0001
 
     [[trafos]]
         [[[params]]]
+            # conversion_factor: efficiency
             conversion_factor = 0.98
 
     # external grid
     [[extgrid]]
         [[[imex_lines]]]
             [[[[params]]]]
+                # conversion_factor: efficiency
                 conversion_factor = 0.98
+                # max_usable_capacity: usable cap. of external grid
+                # (rel. to nominal power)
                 max_usable_capacity = 0.1
             [[[[outflow]]]]
                 variable_costs = 1
@@ -87,7 +92,9 @@
         [[[enabled]]]
             enabled = 1
         [[[technology]]]
+            # share of air-source heat pumps
             share_ASHP = 0.5
+            # share of ground-source heat pumps
             share_GSHP = 0.5
         # outflow values per mun!
         [[[outflow]]]
@@ -95,8 +102,11 @@
             variable_costs_ASHP = 500
             variable_costs_GSHP = 600
         [[[params]]]
+            # output temp
             heating_temp = 35
+            # general efficiency
             quality_grade = 0.4
+            # efficiency of air-source heat pumps due to icing
             ASHP_factor_icing = 0.8
 
     # central PtH (boilers)
@@ -109,8 +119,10 @@
         [[[params]]]
             conversion_factor = 0.95
 
-    # demand side management (TBD)
+    # demand side management in households (TBD)
     [[dsm]]
         [[[enabled]]]
             enabled = 0
-        hh_share = 0.1
+        [[[params]]]
+            # share of HH with DSM
+            hh_share = 0.1
