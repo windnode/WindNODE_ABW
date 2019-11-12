@@ -1,0 +1,14 @@
+version: '3'
+services:
+  windnode_scenario_db:
+    image: postgres:11
+    container_name: windnode_scenario_db
+    restart: unless-stopped
+    ports:
+    - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_DB: windnode_abw
+      POSTGRES_USER: windnode
+      POSTGRES_PASSWORD: windnode
+    volumes:
+    - $HOME/docker/volumes/postgres:/var/lib/postgresql/data
