@@ -32,4 +32,15 @@ Afterwards you can access the database via
 | User | windnode |
 | Password | windnode |
 
+### Import scenario data
+
+Scenario data is contained in the database dump [windnode_db_190926.backup](https://next.rl-institut.de/s/bMToPtWaSWo2ePr). Do the following steps to import the scenario data to your database
+
+1. Create sequences which are missing in the dump by `psql create_missing_sequences.sql`
+2. Import tables, data, and constraints by 
+   ```
+   pg_restore -U windnode -d windnode_abw -h localhost --no-owner --no-privileges --no-tablespace -1  <windnode_db_190926.backup
+   ```
+
+
 
