@@ -1,9 +1,12 @@
 version: '3'
 services:
   windnode_scenario_db:
-    image: postgres:11
+    image: postgres:11-postgis
     container_name: windnode_scenario_db
     restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile.postgis
     ports:
     - "127.0.0.1:5432:5432"
     environment:
