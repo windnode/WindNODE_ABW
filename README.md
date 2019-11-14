@@ -12,3 +12,36 @@ temporary workaround:
 Install requirements manually in your venv, **egoio** should be the last.
 Install it without dependencies by using `pip install --no-dependencies
 egoio`.
+
+### Setup postgres database with docker (optional)
+
+**Note** You don't have to necessarily use docker to create a Postgres database. Using a native installtion works as well
+
+Inside the repo's root directory (where docker-compose.yml lives) execute
+
+```
+docker-compose up -d --build
+```
+
+Afterwards you can access the database via
+
+| Field | Value |
+|---|---|
+| host | localhost |
+| port | 5432 |
+| Maintance DB | windnode_abw |
+| User | windnode |
+| Password | windnode |
+
+### Import scenario data
+
+Scenario data is contained in the database dump [windnode_db_190926.backup](https://next.rl-institut.de/s/bMToPtWaSWo2ePr). Do the following steps to import the scenario data to your database
+
+1. Create sequences which are missing in the dump by `psql create_missing_sequences.sql`
+2. Import tables, data, and constraints by 
+   ```
+   pg_restore -U windnode -d windnode_abw -h localhost --no-owner --no-privileges --no-tablespace -1  <windnode_db_190926.backup
+   ```
+
+
+
