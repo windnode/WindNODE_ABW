@@ -26,6 +26,7 @@ docker-compose up -d --build
 Afterwards you can access the database via
 
 | Field | Value |
+|---|---|
 | host | localhost |
 | port | 5432 |
 | Maintance DB | windnode_abw |
