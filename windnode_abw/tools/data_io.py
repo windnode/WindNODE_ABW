@@ -180,7 +180,7 @@ def import_db_data():
     data = {}
 
     srid = int(config.get('geo', 'srid'))
-    session = db_session('local_kopernikus')
+    session = db_session('windnode_abw')
 
     ########################################################
     # import municipalities including stats and substation #
