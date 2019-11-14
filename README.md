@@ -32,3 +32,7 @@ host = localhost
 port = 5432
 database = windnode_abw
 ```
+
+## Run model with _status quo_ scenario
+
+Execute `windnode_abw/scenarios/run_scenario.py`.
