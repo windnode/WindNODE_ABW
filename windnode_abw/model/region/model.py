@@ -649,6 +649,24 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                 if scn_data['flexopt']['dsm']['enabled']['enabled'] == 1:
                     # ToDo: Do not forget to replace the el. sinks above!
                     # ToDo: (do not create the sinks in line 161 ff.)
+
+                    print('DSM activated!')
+
+                    nodes.append(
+                        solph.custom.SinkDSM(
+                            label='dsm_el_{ags_id}_b{bus_id}'.format(
+                                ags_id=str(mun.Index),
+                                bus_id=busdata.Index
+                            ),
+                            inputs={bus_in: solph.Flow()},
+                            demand=scn_data['flexopt']['dsm']['demand'],
+                            capacity_up=scn_data['flexopt']['dsm']['cap_up'],#[datetimeindex],
+                            capacity_down=scn_data['flexopt']['dsm']['cap_down'],#datetimeindex],
+                            method=scn_data['flexopt']['dsm']['method'],
+                            shift_interval=scn_data['flexopt']['dsm']['shift_interval'],
+                            delay_time=scn_data['flexopt']['dsm']['delay_time']
+                        )
+                    )
                     raise NotImplementedError
 
     return nodes
