@@ -649,6 +649,10 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                 if scn_data['flexopt']['dsm']['enabled']['enabled'] == 1:
                     # ToDo: Do not forget to replace the el. sinks above!
                     # ToDo: (do not create the sinks in line 161 ff.)
+                    # ToDo: find out about scn_data['flexopt']...
+                    # ToDO: is config file used or DB for init?
+                    # ToDo: activate DSM
+                    # ToDo: calculate DSM inputs
 
                     print('DSM activated!')
 

@@ -481,3 +481,33 @@ def calc_heat_pump_cops(t_high, t_low, quality_grade,
                 cops = cops + [quality_grade * t_h / (t_h - t_l)]
 
     return cops
+
+
+def calc_dsm_input(databank, mode='simple'):
+    """calculates the correct format of dsm input"""
+    # ToDo: ags_id ?
+    # ToDo: find out about databank format input
+    # ToDo: what about timestamps?
+
+    ags_id = databank['ags_id']
+    flex_minus = databank['Flex_Minus']
+    flex_minus_max = databank['Flex_Minus_Max']
+    flex_plus = databank['Flex_Plus']
+    flex_plus_max = databank['Flex_Plus_Max']
+    demand = databank['Lastprofil']
+
+    if mode=='simple':
+        capacity_up = flex_plus - demand
+        capacity_down = demand - flex_minus
+    elif mode=='difficult':
+        capacity_up = flex_plus_max - demand
+        capacity_down = demand - flex_minus_max
+
+
+    # df.drop(columns=['Stunde', 'Grundlast',
+    #                  'Standardlast_und_maximal_Flexibilisierbar'],
+    #         inplace=True)
+    # df['timestamp'] = df_power.index
+    # df.set_index('timestamp', inplace=True, drop=True)
+
+    return capacity_down, capacity_up
