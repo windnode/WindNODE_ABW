@@ -125,7 +125,11 @@
     # demand side management in households (TBD)
     [[dsm]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[params]]]
             # share of HH with DSM
             hh_share = 0.1
+            method = 'interval'
+            shift_interval = 24
+            delay_time = 12
+            mode = 'simple'

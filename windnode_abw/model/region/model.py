@@ -4,6 +4,8 @@ import logging
 logger = logging.getLogger('windnode_abw')
 
 from windnode_abw.model.region.tools import calc_heat_pump_cops
+from windnode_abw.model.region.tools import calc_dsm_cap_down
+from windnode_abw.model.region.tools import calc_dsm_cap_up
 
 
 def simulate(esys, solver='cbc', verbose=True):
@@ -158,32 +160,33 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
                             ),
                             outputs={buses[bus_id]: solph.Flow(**outflow_args)})
                     )
-            # demands
-            hh_profile_type = scn_data['demand']['dem_el_hh']['profile_type']
-            for sector, ts_df in region.demand_ts.items():
-                if sector[:3] == 'el_':
-                    inflow_args = {
-                        'nominal_value': 1,
-                        'fixed':  True,
-                        'actual_value': list(ts_df[ags] /
-                                             len(mun_buses))[:timesteps_cnt]
-                    }
+            if scn_data['flexopt']['dsm']['enabled']['enabled'] == 0:
+                # demands if no dsm flex_opt
+                hh_profile_type = scn_data['demand']['dem_el_hh']['profile_type']
+                for sector, ts_df in region.demand_ts.items():
+                    if sector[:3] == 'el_':
+                        inflow_args = {
+                            'nominal_value': 1,
+                            'fixed':  True,
+                            'actual_value': list(ts_df[ags] /
+                                                 len(mun_buses))[:timesteps_cnt]
+                        }
 
-                    # use IÖW load profile if set in scenario config
-                    if sector == 'el_hh' and hh_profile_type == 'ioew':
-                        inflow_args['actual_value'] = \
-                            list(region.dsm_ts['Lastprofil'][ags] /
-                                 len(mun_buses))[:timesteps_cnt]
+                        # use IÖW load profile if set in scenario config
+                        if sector == 'el_hh' and hh_profile_type == 'ioew':
+                            inflow_args['actual_value'] = \
+                                list(region.dsm_ts['Lastprofil'][ags] /
+                                     len(mun_buses))[:timesteps_cnt]
 
-                    nodes.append(
-                        solph.Sink(
-                            label='dem_el_{ags_id}_b{bus_id}_{sector}'.format(
-                                ags_id=ags,
-                                bus_id=str(bus_id),
-                                sector=sector
-                        ),
-                            inputs={buses[bus_id]: solph.Flow(**inflow_args)})
-                    )
+                        nodes.append(
+                            solph.Sink(
+                                label='dem_el_{ags_id}_b{bus_id}_{sector}'.format(
+                                    ags_id=ags,
+                                    bus_id=str(bus_id),
+                                    sector=sector
+                            ),
+                                inputs={buses[bus_id]: solph.Flow(**inflow_args)})
+                        )
 
     ################
     # TRANSFORMERS #
@@ -647,14 +650,8 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                 # DSM (households) #
                 ####################
                 if scn_data['flexopt']['dsm']['enabled']['enabled'] == 1:
-                    # ToDo: Do not forget to replace the el. sinks above!
-                    # ToDo: (do not create the sinks in line 161 ff.)
-                    # ToDo: find out about scn_data['flexopt']...
-                    # ToDO: is config file used or DB for init?
-                    # ToDo: activate DSM
-                    # ToDo: calculate DSM inputs
+                    # if DSM is enabled normal Sinks l.161 ff. will be deactivated
 
-                    print('DSM activated!')
 
                     nodes.append(
                         solph.custom.SinkDSM(
@@ -663,14 +660,18 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                                 bus_id=busdata.Index
                             ),
                             inputs={bus_in: solph.Flow()},
-                            demand=scn_data['flexopt']['dsm']['demand'],
-                            capacity_up=scn_data['flexopt']['dsm']['cap_up'],#[datetimeindex],
-                            capacity_down=scn_data['flexopt']['dsm']['cap_down'],#datetimeindex],
-                            method=scn_data['flexopt']['dsm']['method'],
-                            shift_interval=scn_data['flexopt']['dsm']['shift_interval'],
-                            delay_time=scn_data['flexopt']['dsm']['delay_time']
+                            demand=region.dsm_ts['Lastprofil'][mun.Index]/len(mun_buses),
+                            capacity_up=calc_dsm_cap_up(region.dsm_ts, mun.Index,
+                                mode=scn_data['flexopt']['dsm']['params']['mode'])/
+                                        len(mun_buses),
+                            capacity_down=calc_dsm_cap_down(region.dsm_ts, mun.Index,
+                                mode=scn_data['flexopt']['dsm']['params']['mode'])/
+                                          len(mun_buses),
+                            method=scn_data['flexopt']['dsm']['params']['method'],
+                            shift_interval=int(scn_data['flexopt']['dsm']['params']['shift_interval']),
+                            delay_time=int(scn_data['flexopt']['dsm']['params']['delay_time'])
                         )
                     )
-                    raise NotImplementedError
+
 
     return nodes

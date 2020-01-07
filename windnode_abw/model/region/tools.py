@@ -483,31 +483,35 @@ def calc_heat_pump_cops(t_high, t_low, quality_grade,
     return cops
 
 
-def calc_dsm_input(databank, mode='simple'):
+def calc_dsm_cap_up(data, ags, mode='simple'):
     """calculates the correct format of dsm input"""
-    # ToDo: ags_id ?
-    # ToDo: find out about databank format input
-    # ToDo: what about timestamps?
+    demand = data['Lastprofil', ags]
 
-    ags_id = databank['ags_id']
-    flex_minus = databank['Flex_Minus']
-    flex_minus_max = databank['Flex_Minus_Max']
-    flex_plus = databank['Flex_Plus']
-    flex_plus_max = databank['Flex_Plus_Max']
-    demand = databank['Lastprofil']
-
-    if mode=='simple':
+    if mode == 'simple':
+        flex_plus = data['Flex_Plus', ags]
         capacity_up = flex_plus - demand
-        capacity_down = demand - flex_minus
-    elif mode=='difficult':
+    elif mode == 'advanced':
+        flex_plus_max = data['Flex_Plus_Max', ags]
         capacity_up = flex_plus_max - demand
+    else:
+        raise ValueError('False SinkDSM method')
+
+    return capacity_up
+
+
+def calc_dsm_cap_down(data, ags, mode='simple'):
+    """calculates the correct format of dsm input"""
+
+    demand = data['Lastprofil', ags]
+
+    if mode == 'simple':
+        flex_minus = data['Flex_Minus', ags]
+        capacity_down = demand - flex_minus
+    elif mode == 'advanced':
+        flex_minus_max = data['Flex_Minus_Max', ags]
         capacity_down = demand - flex_minus_max
+    else:
+        raise ValueError('False SinkDSM method')
 
+    return capacity_down
 
-    # df.drop(columns=['Stunde', 'Grundlast',
-    #                  'Standardlast_und_maximal_Flexibilisierbar'],
-    #         inplace=True)
-    # df['timestamp'] = df_power.index
-    # df.set_index('timestamp', inplace=True, drop=True)
-
-    return capacity_down, capacity_up
