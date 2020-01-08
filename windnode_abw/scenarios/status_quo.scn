@@ -130,7 +130,7 @@
         [[[params]]]
             # share of HH with DSM
             hh_share = 0.1
-            method = 'interval'
+            method = interval
             shift_interval = 24
             delay_time = 12
-            mode = 'simple'
+            mode = simple
