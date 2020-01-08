@@ -652,7 +652,6 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                 if scn_data['flexopt']['dsm']['enabled']['enabled'] == 1:
                     # if DSM is enabled normal Sinks l.161 ff. will be deactivated
 
-
                     nodes.append(
                         solph.custom.SinkDSM(
                             label='dsm_el_{ags_id}_b{bus_id}'.format(
@@ -672,6 +671,5 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                             delay_time=int(scn_data['flexopt']['dsm']['params']['delay_time'])
                         )
                     )
-
 
     return nodes
