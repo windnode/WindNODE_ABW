@@ -122,9 +122,10 @@
         [[[params]]]
             conversion_factor = 0.95
 
-    # demand side management in households (TBD)
+    # demand side management in households
     [[dsm]]
         [[[enabled]]]
+            # enabling DSM will disable residential loads
             enabled = 1
         [[[params]]]
             # share of HH with DSM
