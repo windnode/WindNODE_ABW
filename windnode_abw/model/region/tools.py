@@ -487,10 +487,10 @@ def calc_dsm_cap_up(data, ags, mode='simple'):
     """calculates the correct format of dsm input"""
     demand = data['Lastprofil', ags]
 
-    if mode == 'simple':
+    if mode == 'flex_min':
         flex_plus = data['Flex_Plus', ags]
         capacity_up = flex_plus - demand
-    elif mode == 'advanced':
+    elif mode == 'flex_max':
         flex_plus_max = data['Flex_Plus_Max', ags]
         capacity_up = flex_plus_max - demand
     else:
@@ -501,13 +501,12 @@ def calc_dsm_cap_up(data, ags, mode='simple'):
 
 def calc_dsm_cap_down(data, ags, mode='simple'):
     """calculates the correct format of dsm input"""
-
     demand = data['Lastprofil', ags]
 
-    if mode == 'simple':
+    if mode == 'flex_min':
         flex_minus = data['Flex_Minus', ags]
         capacity_down = demand - flex_minus
-    elif mode == 'advanced':
+    elif mode == 'flex_max':
         flex_minus_max = data['Flex_Minus_Max', ags]
         capacity_down = demand - flex_minus_max
     else:
