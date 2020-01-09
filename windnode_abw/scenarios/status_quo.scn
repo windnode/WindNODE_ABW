@@ -132,4 +132,4 @@
             method = 'interval'
             shift_interval = 24
             delay_time = 12
-            mode = 'simple'
+            mode = 'flex_min'
