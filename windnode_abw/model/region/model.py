@@ -194,7 +194,6 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
                                     **inflow_args)})
                         )
 
-
     ################
     # TRANSFORMERS #
     ################
