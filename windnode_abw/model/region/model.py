@@ -668,7 +668,7 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
 
                     nodes.append(
                         solph.custom.SinkDSM(
-                            label='dsm_el_{ags_id}_b{bus_id}'.format(
+                            label='flex_dsm_{ags_id}_b{bus_id}'.format(
                                 ags_id=str(mun.Index),
                                 bus_id=busdata.Index
                             ),
