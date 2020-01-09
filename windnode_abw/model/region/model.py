@@ -173,8 +173,9 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
                         inflow_args = {
                             'nominal_value': 1,
                             'fixed':  True,
-                            'actual_value': list(ts_df[ags] /
-                                                 len(mun_buses))[:timesteps_cnt]
+                            'actual_value': list(
+                                ts_df[ags] / len(mun_buses)
+                            )[:timesteps_cnt]
                         }
 
                         # use IÖW load profile if set in scenario config
@@ -560,7 +561,9 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                     params = scn_data['flexopt']['flex_dec_pth']['params']
                     cops_ASHP = calc_heat_pump_cops(
                         t_high=[params['heating_temp']],
-                        t_low=list(region.temp_ts['air_temp'][mun.Index]),
+                        t_low=list(
+                            region.temp_ts['air_temp'][mun.Index]
+                        )[:timesteps_cnt],
                         quality_grade=params['quality_grade'],
                         consider_icing=True,
                         factor_icing=params['ASHP_factor_icing']
@@ -600,7 +603,9 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                     ############################
                     cops_GSHP = calc_heat_pump_cops(
                         t_high=[params['heating_temp']],
-                        t_low=list(region.temp_ts['soil_temp'][mun.Index]),
+                        t_low=list(
+                            region.temp_ts['soil_temp'][mun.Index]
+                        )[:timesteps_cnt],
                         quality_grade=params['quality_grade'],
                         consider_icing=False
                     )
@@ -660,7 +665,7 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                     # if DSM is enabled hh Sinks in l.170 ff. will be deactivated
 
                     dsm_mode = scn_data['flexopt']['dsm']['params']['mode']
-                    
+
                     nodes.append(
                         solph.custom.SinkDSM(
                             label='dsm_el_{ags_id}_b{bus_id}'.format(
@@ -668,14 +673,22 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                                 bus_id=busdata.Index
                             ),
                             inputs={bus_in: solph.Flow()},
-                            demand=region.dsm_ts['Lastprofil']
-                                   [mun.Index]/len(mun_buses),
-                            capacity_up=calc_dsm_cap_up(region.dsm_ts, mun.Index,
-                                mode=dsm_mode)/
-                                        len(mun_buses),
-                            capacity_down=calc_dsm_cap_down(region.dsm_ts, mun.Index,
-                                mode=dsm_mode)/
-                                          len(mun_buses),
+                            demand=(region.dsm_ts['Lastprofil']
+                                    [mun.Index] / len(mun_buses))[:timesteps_cnt],
+                            capacity_up=(
+                                calc_dsm_cap_up(
+                                    region.dsm_ts,
+                                    mun.Index,
+                                    mode=dsm_mode
+                                ) / len(mun_buses)
+                                        )[:timesteps_cnt],
+                            capacity_down=(
+                                calc_dsm_cap_down(
+                                    region.dsm_ts,
+                                    mun.Index,
+                                    mode=dsm_mode
+                                ) / len(mun_buses)
+                                          )[:timesteps_cnt],
                             method=scn_data['flexopt']['dsm']['params']['method'],
                             shift_interval=int(scn_data['flexopt']['dsm']['params']['shift_interval']),
                             delay_time=int(scn_data['flexopt']['dsm']['params']['delay_time'])
