@@ -166,24 +166,23 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
 
             for sector, ts_df in region.demand_ts.items():
                 if sector[:3] == 'el_':
-                    inflow_args = {
-                        'nominal_value': 1,
-                        'fixed':  True,
-                        'actual_value': list(ts_df[ags] /
-                                             len(mun_buses))[:timesteps_cnt]
-                    }
-
-                    # use IÖW load profile if set in scenario config
-                    if sector == 'el_hh' and hh_profile_type == 'ioew' \
-                            and hh_dsm == 0:
-                        inflow_args['actual_value'] = \
-                            list(region.dsm_ts['Lastprofil'][ags] /
-                                 len(mun_buses))[:timesteps_cnt]
-
                     # deactivate hh_sinks if DSM is enabled in scenario config
                     if sector == 'el_hh' and hh_dsm == 1:
                         pass
                     else:
+                        inflow_args = {
+                            'nominal_value': 1,
+                            'fixed':  True,
+                            'actual_value': list(ts_df[ags] /
+                                                 len(mun_buses))[:timesteps_cnt]
+                        }
+
+                        # use IÖW load profile if set in scenario config
+                        if sector == 'el_hh' and hh_profile_type == 'ioew':
+                            inflow_args['actual_value'] = \
+                                list(region.dsm_ts['Lastprofil'][ags] /
+                                     len(mun_buses))[:timesteps_cnt]
+
                         nodes.append(
                             solph.Sink(
                                 label='dem_el_{ags_id}_b{bus_id}_{sector}'.format(
