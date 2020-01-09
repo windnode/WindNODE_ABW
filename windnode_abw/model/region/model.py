@@ -160,33 +160,41 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
                             ),
                             outputs={buses[bus_id]: solph.Flow(**outflow_args)})
                     )
-            if scn_data['flexopt']['dsm']['enabled']['enabled'] == 0:
-                # demands if no dsm flex_opt
-                hh_profile_type = scn_data['demand']['dem_el_hh']['profile_type']
-                for sector, ts_df in region.demand_ts.items():
-                    if sector[:3] == 'el_':
-                        inflow_args = {
-                            'nominal_value': 1,
-                            'fixed':  True,
-                            'actual_value': list(ts_df[ags] /
-                                                 len(mun_buses))[:timesteps_cnt]
-                        }
 
-                        # use IÖW load profile if set in scenario config
-                        if sector == 'el_hh' and hh_profile_type == 'ioew':
-                            inflow_args['actual_value'] = \
-                                list(region.dsm_ts['Lastprofil'][ags] /
-                                     len(mun_buses))[:timesteps_cnt]
+            hh_profile_type = scn_data['demand']['dem_el_hh']['profile_type']
+            hh_dsm = scn_data['flexopt']['dsm']['enabled']['enabled']
 
+            for sector, ts_df in region.demand_ts.items():
+                if sector[:3] == 'el_':
+                    inflow_args = {
+                        'nominal_value': 1,
+                        'fixed':  True,
+                        'actual_value': list(ts_df[ags] /
+                                             len(mun_buses))[:timesteps_cnt]
+                    }
+
+                    # use IÖW load profile if set in scenario config
+                    if sector == 'el_hh' and hh_profile_type == 'ioew' \
+                            and hh_dsm == 0:
+                        inflow_args['actual_value'] = \
+                            list(region.dsm_ts['Lastprofil'][ags] /
+                                 len(mun_buses))[:timesteps_cnt]
+
+                    # deactivate hh_sinks if DSM is enabled in scenario config
+                    if sector == 'el_hh' and hh_dsm == 1:
+                        pass
+                    else:
                         nodes.append(
                             solph.Sink(
                                 label='dem_el_{ags_id}_b{bus_id}_{sector}'.format(
                                     ags_id=ags,
                                     bus_id=str(bus_id),
                                     sector=sector
-                            ),
-                                inputs={buses[bus_id]: solph.Flow(**inflow_args)})
+                                ),
+                                inputs={buses[bus_id]: solph.Flow(
+                                    **inflow_args)})
                         )
+
 
     ################
     # TRANSFORMERS #
@@ -532,8 +540,9 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
     #################
     flex_dec_pth_enabled = True if scn_data['flexopt']['flex_dec_pth']['enabled']['enabled'] == 1 else False
     flex_cen_pth_enabled = True if scn_data['flexopt']['flex_cen_pth']['enabled']['enabled'] == 1 else False
+    flex_hh_dsm_enabled = True if scn_data['flexopt']['dsm']['enabled']['enabled'] == 1 else False
 
-    if flex_dec_pth_enabled or flex_cen_pth_enabled:
+    if flex_dec_pth_enabled or flex_cen_pth_enabled or flex_hh_dsm_enabled:
         for mun in region.muns.itertuples():
             mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
@@ -649,9 +658,8 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                 ####################
                 # DSM (households) #
                 ####################
-                if scn_data['flexopt']['dsm']['enabled']['enabled'] == 1:
-                    # if DSM is enabled normal Sinks l.161 ff. will be deactivated
-
+                if flex_hh_dsm_enabled:
+                    # if DSM is enabled hh Sinks l.161 ff. will be deactivated
 
                     nodes.append(
                         solph.custom.SinkDSM(
@@ -660,7 +668,8 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                                 bus_id=busdata.Index
                             ),
                             inputs={bus_in: solph.Flow()},
-                            demand=region.dsm_ts['Lastprofil'][mun.Index]/len(mun_buses),
+                            demand=region.dsm_ts['Lastprofil']
+                                   [mun.Index]/len(mun_buses),
                             capacity_up=calc_dsm_cap_up(region.dsm_ts, mun.Index,
                                 mode=scn_data['flexopt']['dsm']['params']['mode'])/
                                         len(mun_buses),
@@ -672,6 +681,5 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                             delay_time=int(scn_data['flexopt']['dsm']['params']['delay_time'])
                         )
                     )
-
 
     return nodes
