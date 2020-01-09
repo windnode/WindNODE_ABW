@@ -481,3 +481,36 @@ def calc_heat_pump_cops(t_high, t_low, quality_grade,
                 cops = cops + [quality_grade * t_h / (t_h - t_l)]
 
     return cops
+
+
+def calc_dsm_cap_up(data, ags, mode='simple'):
+    """calculates the correct format of dsm input"""
+    demand = data['Lastprofil', ags]
+
+    if mode == 'flex_min':
+        flex_plus = data['Flex_Plus', ags]
+        capacity_up = flex_plus - demand
+    elif mode == 'flex_max':
+        flex_plus_max = data['Flex_Plus_Max', ags]
+        capacity_up = flex_plus_max - demand
+    else:
+        raise ValueError('False SinkDSM method')
+
+    return capacity_up
+
+
+def calc_dsm_cap_down(data, ags, mode='simple'):
+    """calculates the correct format of dsm input"""
+    demand = data['Lastprofil', ags]
+
+    if mode == 'flex_min':
+        flex_minus = data['Flex_Minus', ags]
+        capacity_down = demand - flex_minus
+    elif mode == 'flex_max':
+        flex_minus_max = data['Flex_Minus_Max', ags]
+        capacity_down = demand - flex_minus_max
+    else:
+        raise ValueError('False SinkDSM method')
+
+    return capacity_down
+

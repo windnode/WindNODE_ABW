@@ -102,3 +102,6 @@ ENV/
 
 # exclude project files
 .idea/
+
+# database
+*.backup
