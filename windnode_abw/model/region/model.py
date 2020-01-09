@@ -659,6 +659,8 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                 if flex_hh_dsm_enabled:
                     # if DSM is enabled hh Sinks in l.170 ff. will be deactivated
 
+                    dsm_mode = scn_data['flexopt']['dsm']['params']['mode']
+                    
                     nodes.append(
                         solph.custom.SinkDSM(
                             label='dsm_el_{ags_id}_b{bus_id}'.format(
@@ -669,10 +671,10 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                             demand=region.dsm_ts['Lastprofil']
                                    [mun.Index]/len(mun_buses),
                             capacity_up=calc_dsm_cap_up(region.dsm_ts, mun.Index,
-                                mode=scn_data['flexopt']['dsm']['params']['mode'])/
+                                mode=dsm_mode)/
                                         len(mun_buses),
                             capacity_down=calc_dsm_cap_down(region.dsm_ts, mun.Index,
-                                mode=scn_data['flexopt']['dsm']['params']['mode'])/
+                                mode=dsm_mode)/
                                           len(mun_buses),
                             method=scn_data['flexopt']['dsm']['params']['method'],
                             shift_interval=int(scn_data['flexopt']['dsm']['params']['shift_interval']),
