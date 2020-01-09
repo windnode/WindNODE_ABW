@@ -657,7 +657,7 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
                 # DSM (households) #
                 ####################
                 if flex_hh_dsm_enabled:
-                    # if DSM is enabled hh Sinks l.161 ff. will be deactivated
+                    # if DSM is enabled hh Sinks in l.170 ff. will be deactivated
 
                     nodes.append(
                         solph.custom.SinkDSM(
