@@ -483,7 +483,7 @@ def calc_heat_pump_cops(t_high, t_low, quality_grade,
     return cops
 
 
-def calc_dsm_cap_up(data, ags, mode='simple'):
+def calc_dsm_cap_up(data, ags, mode='flex_min'):
     """calculates the correct format of dsm input"""
     demand = data['Lastprofil', ags]
 
@@ -499,7 +499,7 @@ def calc_dsm_cap_up(data, ags, mode='simple'):
     return capacity_up
 
 
-def calc_dsm_cap_down(data, ags, mode='simple'):
+def calc_dsm_cap_down(data, ags, mode='flex_min'):
     """calculates the correct format of dsm input"""
     demand = data['Lastprofil', ags]
 
