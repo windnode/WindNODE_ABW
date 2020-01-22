@@ -51,7 +51,7 @@ class Region:
         degree Celsius
     _heating_structure : :pandas:`pandas.DataFrame`
         Heating structure of thermal loads per municpality, sector and
-        commodity
+        energy source
     """
     def __init__(self, **kwargs):
         self._name = 'ABW region'
