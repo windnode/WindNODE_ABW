@@ -8,7 +8,7 @@ from windnode_abw.tools import config
 from windnode_abw.tools.data_io import import_db_data
 from windnode_abw.model.region.tools import \
     prepare_feedin_timeseries, prepare_demand_timeseries,\
-    prepare_temp_timeseries
+    prepare_temp_timeseries, rescale_heating_structure
 
 
 class Region:
@@ -76,7 +76,10 @@ class Region:
         self._temp_ts_init = kwargs.get('temp_ts_init', None)
         self._temp_ts = prepare_temp_timeseries(self)
 
-        self._heating_structure = kwargs.get('heating_structure', None)
+        self._heating_structure = rescale_heating_structure(
+            cfg=self._cfg,
+            heating_structure=kwargs.get('heating_structure', None)
+        )
 
     @property
     def muns(self):

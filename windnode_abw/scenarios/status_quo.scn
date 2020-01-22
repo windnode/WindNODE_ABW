@@ -28,6 +28,8 @@
 
 # electrical and heat production
 [generation]
+    [[general]]
+        source_min_share = 0.01
     [[gen_th_dec]]
         [[[outflow]]]
             variable_costs = 100

@@ -514,3 +514,30 @@ def calc_dsm_cap_down(data, ags, mode=None):
 
     return capacity_down
 
+
+def rescale_heating_structure(cfg, heating_structure):
+    """Recalculate the sources' share in the heating
+
+    Based upon min. share threshold, energy sources are neglected in heat
+    production. Therefore, considered sources are scaled up by weight.
+    """
+    source_min_share = cfg['scn_data']['generation']['general']['source_min_share']
+
+    # check sums
+    if not (heating_structure.groupby(
+            ['ags_id', 'scenario']).agg('sum', axis=0) == 1).all().all() == True:
+        raise ValueError('Sums of heating structure shares '
+                         'are not 1. Check your data!')
+
+    if source_min_share > 0:
+        # set values below threshold to zero
+        heating_structure = heating_structure[
+            heating_structure > source_min_share
+        ].fillna(0)
+        # calculate scale factors
+        source_scale_factor = 1 / heating_structure.groupby(
+            ['ags_id', 'scenario']).agg('sum', axis=0)
+        # apply
+        heating_structure = heating_structure * source_scale_factor
+
+    return heating_structure
