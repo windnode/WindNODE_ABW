@@ -93,7 +93,7 @@
     # decentral PtH (heat pumps, per mun)
     [[flex_dec_pth]]
         [[[enabled]]]
-            enabled = 1
+            enabled = 0
         [[[technology]]]
             # share of air-source heat pumps
             share_ASHP = 0.5
@@ -126,7 +126,7 @@
     [[dsm]]
         [[[enabled]]]
             # enabling DSM will disable residential loads
-            enabled = 1
+            enabled = 0
         [[[params]]]
             # share of HH with DSM
             hh_share = 0.1
