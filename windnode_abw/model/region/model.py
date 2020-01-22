@@ -426,7 +426,7 @@ def create_th_model(region=None, datetime_index=None, scn_data={}):
                     solph.Sink(
                         label='dem_th_dec_{ags_id}_{sector}'.format(
                             ags_id=str(mun.Index),
-                            sector=sector
+                            sector=sector[3:]
                     ),
                         inputs={buses['b_th_dec_{ags_id}'.format(
                             ags_id=str(mun.Index))]: solph.Flow(**inflow_args)})
