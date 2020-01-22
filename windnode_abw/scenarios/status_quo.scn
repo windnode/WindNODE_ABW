@@ -16,7 +16,7 @@
 
 # general options
 [general]
-    scn_name = sq
+    name = sq
 
 # electrical and heat demand
 # (parametrized via DB table)
