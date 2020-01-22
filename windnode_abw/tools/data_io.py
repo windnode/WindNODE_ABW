@@ -18,7 +18,7 @@ from windnode_abw.config.db_models import \
     WnAbwDemandTs, WnAbwFeedinTs, WnAbwGridHvBus, WnAbwGridHvLine,\
     WnAbwGridHvmvSubstation, WnAbwGridMvGriddistrict, WnAbwGridHvTransformer,\
     WnAbwMun, WnAbwMundata, WnAbwPowerplant, WnAbwRelSubstIdAgsId, WnAbwDsmTs,\
-    WnAbwTempTs
+    WnAbwTempTs, WnAbwHeatingStructure
 
 
 def db_session(db_section):
@@ -405,6 +405,22 @@ def import_db_data():
                                            index_col='id')
     data['generators'] = convert_df_wkt_to_shapely(df=data['generators'],
                                                    cols=['geom'])
+
+    #####################################
+    # import heating structure (hh+rca) #
+    #####################################
+    logger.info('Importing heating structure...')
+    heating_structure_query = session.query(
+        WnAbwHeatingStructure.ags_id,
+        WnAbwHeatingStructure.energy_source,
+        WnAbwHeatingStructure.scenario,
+        WnAbwHeatingStructure.tech_share_hh,
+        WnAbwHeatingStructure.tech_share_rca
+    )
+    data['heating_structure'] = pd.read_sql_query(
+        heating_structure_query.statement,
+        session.bind,
+        index_col=['ags_id', 'energy_source', 'scenario'])
 
     return data
 
