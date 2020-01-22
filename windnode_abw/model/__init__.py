@@ -45,10 +45,13 @@ class Region:
         Absolute feedin timeseries per technology/type (dict key) and
         municipality (DF column)
     _dsm_ts : :pandas:`pandas.DataFrame`
-        DSM timeseries per load band municipality (MultiIndex columns)
+        DSM timeseries per load band and municipality (MultiIndex columns)
     _temp_ts : :obj:`dict` of :pandas:`pandas.DataFrame`
         Temperature timeseries (air and soil -> dict key) per municipality in
         degree Celsius
+    _heating_structure : :pandas:`pandas.DataFrame`
+        Heating structure of thermal loads per municpality, sector and
+        commodity
     """
     def __init__(self, **kwargs):
         self._name = 'ABW region'
@@ -69,6 +72,8 @@ class Region:
         self._dsm_ts = kwargs.get('dsm_ts', None)
         self._temp_ts_init = kwargs.get('temp_ts_init', None)
         self._temp_ts = prepare_temp_timeseries(self)
+
+        self._heating_structure = kwargs.get('heating_structure', None)
 
     @property
     def muns(self):
@@ -154,6 +159,10 @@ class Region:
     @property
     def temp_ts(self):
         return self._temp_ts
+
+    @property
+    def heating_structure(self):
+        return self._heating_structure
 
     @classmethod
     def import_data(cls):
