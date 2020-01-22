@@ -18,6 +18,8 @@ class Region:
     ----------
     _name : :obj:`str`
         Name of network
+    _cfg : :obj:`dict`
+        Run configuration such as timerange, solver, scenario, ...
     _buses : :pandas:`pandas.DataFrame`
         Region's buses
     _lines : :pandas:`pandas.DataFrame`
@@ -55,6 +57,7 @@ class Region:
     """
     def __init__(self, **kwargs):
         self._name = 'ABW region'
+        self._cfg = kwargs.get('cfg', None)
 
         self._muns = kwargs.get('muns', None)
         self._buses = kwargs.get('buses', None)
@@ -79,6 +82,11 @@ class Region:
     def muns(self):
         """Returns region's municipalities"""
         return self._muns
+
+    @property
+    def cfg(self):
+        """Returns run config"""
+        return self._cfg
 
     @property
     def buses(self):
@@ -165,11 +173,14 @@ class Region:
         return self._heating_structure
 
     @classmethod
-    def import_data(cls):
+    def import_data(cls, cfg=None):
         """Import data to Region object"""
 
+        if cfg is None:
+            raise ValueError('Please provide config')
+
         # create the region instance
-        region = cls(**import_db_data())
+        region = cls(**{**import_db_data(), 'cfg': cfg})
 
         return region
 
