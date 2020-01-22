@@ -483,8 +483,8 @@ def calc_heat_pump_cops(t_high, t_low, quality_grade,
     return cops
 
 
-def calc_dsm_cap_up(data, ags, mode='simple'):
-    """calculates the correct format of dsm input"""
+def calc_dsm_cap_up(data, ags, mode=None):
+    """Calculate the max. positive DSM capacity"""
     demand = data['Lastprofil', ags]
 
     if mode == 'flex_min':
@@ -494,13 +494,13 @@ def calc_dsm_cap_up(data, ags, mode='simple'):
         flex_plus_max = data['Flex_Plus_Max', ags]
         capacity_up = flex_plus_max - demand
     else:
-        raise ValueError('False SinkDSM method')
+        raise ValueError('Invalid SinkDSM mode')
 
     return capacity_up
 
 
-def calc_dsm_cap_down(data, ags, mode='simple'):
-    """calculates the correct format of dsm input"""
+def calc_dsm_cap_down(data, ags, mode=None):
+    """Calculate the max. negative DSM capacity"""
     demand = data['Lastprofil', ags]
 
     if mode == 'flex_min':
@@ -510,7 +510,7 @@ def calc_dsm_cap_down(data, ags, mode='simple'):
         flex_minus_max = data['Flex_Minus_Max', ags]
         capacity_down = demand - flex_minus_max
     else:
-        raise ValueError('False SinkDSM method')
+        raise ValueError('Invalid SinkDSM mode')
 
     return capacity_down
 
