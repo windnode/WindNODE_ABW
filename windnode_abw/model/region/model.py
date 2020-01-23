@@ -373,15 +373,23 @@ def create_th_model(region=None, datetime_index=None, scn_data={}):
     #########
     buses = {}
 
+    # get th. sectors from demand TS
+    th_sectors = [sec[3:] for sec in region.demand_ts.keys() if sec[:3] == 'th_']
+
     # buses for decentralized heat supply (Dezentrale Wärmeversorgung)
+    # (1 per sector and mun)
     for mun in region.muns.itertuples():
-        bus = solph.Bus(label='b_th_dec_{ags_id}'.format(
-            ags_id=str(mun.Index))
-        )
-        buses[bus.label] = bus
-        nodes.append(bus)
+        for sector in th_sectors:
+            bus = solph.Bus(label='b_th_dec_{ags_id}_{sector}'.format(
+                ags_id=str(mun.Index),
+                sector=sector[11:])
+            )
+            buses[bus.label] = bus
+            nodes.append(bus)
 
     # buses for district heating (Fernwärme)
+    # (1 per sector and mun)
+    # TODO: Replace dist heat share by new param table
     for mun in region.muns[region.muns.dem_th_energy_dist_heat_share > 0].\
             itertuples():
         bus = solph.Bus(label='b_th_cen_{ags_id}'.format(
