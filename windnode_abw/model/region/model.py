@@ -62,23 +62,20 @@ def create_oemof_model(cfg, region):
     # create and add nodes
     th_nodes = create_th_model(
         region=region,
-        datetime_index=datetime_index,
-        scn_data=cfg['scn_data']
+        datetime_index=datetime_index
     )
     esys.add(*th_nodes)
 
     el_nodes = create_el_model(
         region=region,
-        datetime_index=datetime_index,
-        scn_data=cfg['scn_data']
+        datetime_index=datetime_index
     )
     esys.add(*el_nodes)
 
     flex_nodes = create_flexopts(
         region=region,
         datetime_index=datetime_index,
-        nodes_in=th_nodes+el_nodes,
-        scn_data=cfg['scn_data']
+        nodes_in=th_nodes+el_nodes
     )
     esys.add(*flex_nodes)
 
@@ -90,7 +87,7 @@ def create_oemof_model(cfg, region):
     return esys
 
 
-def create_el_model(region=None, datetime_index=None, scn_data={}):
+def create_el_model(region=None, datetime_index=None):
     """Create electrical model modes (oemof objects) and lines from region such
     as buses, links, sources and sinks.
 
@@ -111,6 +108,8 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
         msg = 'No region class provided.'
         logger.error(msg)
         raise ValueError(msg)
+
+    scn_data = region.cfg['scn_data']
 
     logger.info("Creating el. system objects...")
 
@@ -342,7 +341,7 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
     return nodes
 
 
-def create_th_model(region=None, datetime_index=None, scn_data={}):
+def create_th_model(region=None, datetime_index=None):
     """Create thermal model modes (oemof objects) and lines from region such
     as buses, sources and sinks.
 
@@ -364,6 +363,8 @@ def create_th_model(region=None, datetime_index=None, scn_data={}):
         logger.error(msg)
         raise ValueError(msg)
 
+    scn_data = region.cfg['scn_data']
+
     logger.info("Creating th. system objects...")
 
     timesteps_cnt = len(datetime_index)
@@ -376,7 +377,7 @@ def create_th_model(region=None, datetime_index=None, scn_data={}):
     buses = {}
 
     # get th. sectors from demand TS
-    th_sectors = [sec[3:] for sec in region.demand_ts.keys() if sec[:3] == 'th_']
+    th_sectors = region.cfg['scn_data']['demand']['dem_th_general']['sectors']
 
     # buses for decentralized heat supply (Dezentrale Wärmeversorgung)
     # (1 per sector and mun)
@@ -487,7 +488,7 @@ def create_th_model(region=None, datetime_index=None, scn_data={}):
     return nodes
 
 
-def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
+def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
     """Create model nodes for flexibility options such as batteries, PtH and
     DSM
 
@@ -510,6 +511,8 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[], scn_data={}):
         msg = 'No region class provided.'
         logger.error(msg)
         raise ValueError(msg)
+
+    scn_data = region.cfg['scn_data']
 
     logger.info("Creating flexopt objects...")
 
