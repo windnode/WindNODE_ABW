@@ -274,8 +274,10 @@ def create_el_model(region=None, datetime_index=None, scn_data={}):
         elif not region.trafos[region.trafos['bus1'] == idx]['s_nom'].empty:
             s_nom = float(region.trafos[region.trafos['bus1'] == idx]['s_nom'])
         else:
-            raise ValueError('Nominal capacity of connected line '
-                             'not found for bus {bus_id}'.format(bus_id=idx))
+            msg = 'Nominal capacity of connected line '
+            'not found for bus {bus_id}'.format(bus_id=idx)
+            logger.error(msg)
+            raise ValueError(msg)
 
         nodes.append(
             solph.custom.Link(

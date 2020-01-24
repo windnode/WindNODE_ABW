@@ -494,7 +494,9 @@ def calc_dsm_cap_up(data, ags, mode=None):
         flex_plus_max = data['Flex_Plus_Max', ags]
         capacity_up = flex_plus_max - demand
     else:
-        raise ValueError('Invalid SinkDSM mode')
+        msg = 'Invalid SinkDSM mode'
+        logger.error(msg)
+        raise ValueError(msg)
 
     return capacity_up
 
@@ -510,7 +512,9 @@ def calc_dsm_cap_down(data, ags, mode=None):
         flex_minus_max = data['Flex_Minus_Max', ags]
         capacity_down = demand - flex_minus_max
     else:
-        raise ValueError('Invalid SinkDSM mode')
+        msg = 'Invalid SinkDSM mode'
+        logger.error(msg)
+        raise ValueError(msg)
 
     return capacity_down
 
@@ -526,8 +530,10 @@ def rescale_heating_structure(cfg, heating_structure):
     # check sums
     if not (heating_structure.groupby(
             ['ags_id', 'scenario']).agg('sum', axis=0) == 1).all().all() == True:
-        raise ValueError('Sums of heating structure shares '
-                         'are not 1. Check your data!')
+        msg = 'Sums of heating structure shares '\
+              'are not 1. Check your data!'
+        logger.error(msg)
+        raise ValueError(msg)
 
     if source_min_share > 0:
         # set values below threshold to zero

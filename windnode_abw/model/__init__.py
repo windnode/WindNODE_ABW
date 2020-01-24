@@ -180,7 +180,9 @@ class Region:
         """Import data to Region object"""
 
         if cfg is None:
-            raise ValueError('Please provide config')
+            msg = 'Please provide config'
+            logger.error(msg)
+            raise ValueError(msg)
 
         # create the region instance
         region = cls(**{**import_db_data(), 'cfg': cfg})
