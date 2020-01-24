@@ -414,7 +414,8 @@ def import_db_data():
         WnAbwHeatingStructure.ags_id,
         WnAbwHeatingStructure.energy_source,
         WnAbwHeatingStructure.scenario,
-        WnAbwHeatingStructure.tech_share_hh,
+        WnAbwHeatingStructure.tech_share_hh_efh,
+        WnAbwHeatingStructure.tech_share_hh_mfh,
         WnAbwHeatingStructure.tech_share_rca
     )
     data['heating_structure'] = pd.read_sql_query(

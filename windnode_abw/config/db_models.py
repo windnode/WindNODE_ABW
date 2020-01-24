@@ -359,6 +359,7 @@ class WnAbwHeatingStructure(Base):
     energy_source = Column(Text, primary_key=True, nullable=False, index=True)
     scenario = Column(String, primary_key=True, nullable=False, index=True)
     tech_share_rca = Column(Float(53))
-    tech_share_hh = Column(Float(53))
+    tech_share_hh_efh = Column(Float(53))
+    tech_share_hh_mfh = Column(Float(53))
 
     ags = relationship('WnAbwMun', back_populates='heating_structure')
