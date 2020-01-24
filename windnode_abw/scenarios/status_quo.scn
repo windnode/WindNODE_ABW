@@ -21,6 +21,8 @@
 # electrical and heat demand
 # (parametrized via DB table)
 [demand]
+    [[dem_th_general]]
+        sectors = hh_efh,hh_mfh,rca
     # households
     [[dem_el_hh]]
         # profile_type: slp or ioew

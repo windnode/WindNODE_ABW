@@ -385,13 +385,13 @@ def create_th_model(region=None, datetime_index=None):
         for sector in th_sectors:
             bus = solph.Bus(label='b_th_dec_{ags_id}_{sector}'.format(
                 ags_id=str(mun.Index),
-                sector=sector[11:])
+                sector=sector)
             )
             buses[bus.label] = bus
             nodes.append(bus)
 
     # buses for district heating (Fernwärme)
-    # (1 per sector and mun)
+    # (1 per mun)
     # TODO: Replace dist heat share by new param table
     for mun in region.muns[region.muns.dem_th_energy_dist_heat_share > 0].\
             itertuples():
