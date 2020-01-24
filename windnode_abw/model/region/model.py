@@ -406,42 +406,51 @@ def create_th_model(region=None, datetime_index=None):
     #############################
     for mun in region.muns.itertuples():
 
-        # sources for decentralized heat supply (1 per mun)
-        # Todo: Currently just a simple shortage source, update later?
-        nodes.append(
-            solph.Source(
-                label='gen_th_dec_{ags_id}'.format(
-                    ags_id=str(mun.Index)
-                ),
-                outputs={buses['b_th_dec_{ags_id}'.format(
-                    ags_id=str(mun.Index))]: solph.Flow(
-                    **scn_data['generation']['gen_th_dec']['outflow']
-                )})
-        )
+        # load heating structure for current scenario
+        heating_structure = region.heating_structure.xs(
+            mun.Index, level='ags_id').xs(
+            scn_data['general']['name'], level='scenario')
+
+        # sources for decentralized heat supply (1 per technology, sector, mun)
+        for energy_source in heating_structure.itertuples():
+            for sector in th_sectors:
+                nodes.append(
+                    solph.Source(
+                        label='gen_th_dec_{ags_id}_{sector}_{src}'.format(
+                            ags_id=str(mun.Index),
+                            sector=sector,
+                            src=str(energy_source.Index)
+                        ),
+                        outputs={buses['b_th_dec_{ags_id}_{sector}'.format(
+                            ags_id=str(mun.Index),
+                            sector=sector)]: solph.Flow(
+                            **scn_data['generation']['gen_th_dec']['outflow']
+                        )})
+                )
 
         # demand per sector and mun
-        for sector, ts_df in region.demand_ts.items():
-            if sector[:3] == 'th_':
-                inflow_args = {
-                    'nominal_value': 1,
-                    'fixed': True,
-                    'actual_value': list(
-                        ts_df[mun.Index] *
-                        (1 - mun.dem_th_energy_dist_heat_share)
-                    )[:timesteps_cnt]
-                }
+        # TODO: Include efficiencies
+        for sector in th_sectors:
+            inflow_args = {
+                'nominal_value': 1,
+                'fixed': True,
+                'actual_value': list(
+                    region.demand_ts['th_' + sector][mun.Index] *
+                    (1 - mun.dem_th_energy_dist_heat_share)
+                )[:timesteps_cnt]
+            }
 
-                # ToDo: Include saving using different scn from db table
-
-                nodes.append(
-                    solph.Sink(
-                        label='dem_th_dec_{ags_id}_{sector}'.format(
-                            ags_id=str(mun.Index),
-                            sector=sector[3:]
-                    ),
-                        inputs={buses['b_th_dec_{ags_id}'.format(
-                            ags_id=str(mun.Index))]: solph.Flow(**inflow_args)})
-                )
+            # ToDo: Include saving using different scn from db table
+            nodes.append(
+                solph.Sink(
+                    label='dem_th_dec_{ags_id}_{sector}'.format(
+                        ags_id=str(mun.Index),
+                        sector=sector
+                ),
+                    inputs={buses['b_th_dec_{ags_id}_{sector}'.format(
+                        ags_id=str(mun.Index),
+                        sector=sector)]: solph.Flow(**inflow_args)})
+            )
 
     ####################
     # DISTRICT HEATING #
@@ -465,25 +474,24 @@ def create_th_model(region=None, datetime_index=None):
             )
 
             # demand per sector and mun
-            for sector, ts_df in region.demand_ts.items():
-                if sector[:3] == 'th_':
-                    inflow_args = {
-                        'nominal_value': 1,
-                        'fixed': True,
-                        'actual_value': list(
-                            ts_df[mun.Index] *
-                            mun.dem_th_energy_dist_heat_share
-                        )[:timesteps_cnt]
-                    }
+            for sector in th_sectors:
+                inflow_args = {
+                    'nominal_value': 1,
+                    'fixed': True,
+                    'actual_value': list(
+                        region.demand_ts['th_' + sector][mun.Index] *
+                        mun.dem_th_energy_dist_heat_share
+                    )[:timesteps_cnt]
+                }
 
-                    nodes.append(
-                        solph.Sink(label='dem_th_cen_{ags_id}_{sector}'.format(
-                            ags_id=str(mun.Index),
-                            sector=sector
-                        ),
-                            inputs={buses['b_th_cen_{ags_id}'.format(
-                                ags_id=str(mun.Index))]: solph.Flow(**inflow_args)})
-                    )
+                nodes.append(
+                    solph.Sink(label='dem_th_cen_{ags_id}_{sector}'.format(
+                        ags_id=str(mun.Index),
+                        sector=sector
+                    ),
+                        inputs={buses['b_th_cen_{ags_id}'.format(
+                            ags_id=str(mun.Index))]: solph.Flow(**inflow_args)})
+                )
 
     return nodes
 
