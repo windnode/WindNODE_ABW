@@ -135,6 +135,10 @@ def create_el_model(region=None, datetime_index=None):
     # get el. sectors from cfg
     el_sectors = region.cfg['scn_data']['demand']['dem_el_general']['sectors']
 
+    # get el. demand profile type for households and DSM status from cfg
+    hh_profile_type = scn_data['demand']['dem_el_hh']['profile_type']
+    hh_dsm = scn_data['flexopt']['dsm']['enabled']['enabled']
+
     # create nodes for all municipalities
     for ags, mundata in region.muns.iterrows():
         # get buses for subst in mun
@@ -162,9 +166,6 @@ def create_el_model(region=None, datetime_index=None):
                             ),
                             outputs={buses[bus_id]: solph.Flow(**outflow_args)})
                     )
-
-            hh_profile_type = scn_data['demand']['dem_el_hh']['profile_type']
-            hh_dsm = scn_data['flexopt']['dsm']['enabled']['enabled']
 
             for sector in el_sectors:
                 # deactivate hh_sinks if DSM is enabled in scenario config
