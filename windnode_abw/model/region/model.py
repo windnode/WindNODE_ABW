@@ -376,7 +376,7 @@ def create_th_model(region=None, datetime_index=None):
     #########
     buses = {}
 
-    # get th. sectors from demand TS
+    # get th. sectors from cfg
     th_sectors = region.cfg['scn_data']['demand']['dem_th_general']['sectors']
 
     # buses for decentralized heat supply (Dezentrale Wärmeversorgung)
