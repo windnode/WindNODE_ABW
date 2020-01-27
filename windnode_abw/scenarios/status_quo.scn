@@ -21,12 +21,14 @@
 # electrical and heat demand
 # (parametrized via DB table)
 [demand]
-    [[dem_th_general]]
-        sectors = hh_efh,hh_mfh,rca
+    [[dem_el_general]]
+        sectors = hh,rca,ind
     # households
     [[dem_el_hh]]
         # profile_type: slp or ioew
         profile_type = ioew
+    [[dem_th_general]]
+        sectors = hh_efh,hh_mfh,rca
 
 # electrical and heat production
 [generation]
