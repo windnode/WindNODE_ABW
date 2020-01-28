@@ -460,7 +460,9 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 ),
                     inputs={buses['b_th_dec_{ags_id}_{sector}'.format(
                         ags_id=str(mun.Index),
-                        sector=sector)]: solph.Flow(**inflow_args)})
+                        sector=sector)]: solph.Flow(**inflow_args)
+                            }
+                )
             )
 
     ####################
