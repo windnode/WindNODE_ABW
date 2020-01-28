@@ -60,22 +60,23 @@ def create_oemof_model(cfg, region):
     esys = solph.EnergySystem(timeindex=datetime_index)
 
     # create and add nodes
-    th_nodes = create_th_model(
-        region=region,
-        datetime_index=datetime_index
-    )
-    esys.add(*th_nodes)
-
     el_nodes = create_el_model(
         region=region,
         datetime_index=datetime_index
     )
     esys.add(*el_nodes)
 
+    th_nodes = create_th_model(
+        region=region,
+        datetime_index=datetime_index,
+        esys_nodes=el_nodes
+    )
+    esys.add(*th_nodes)
+
     flex_nodes = create_flexopts(
         region=region,
         datetime_index=datetime_index,
-        nodes_in=th_nodes+el_nodes
+        esys_nodes=th_nodes+el_nodes
     )
     esys.add(*flex_nodes)
 
@@ -345,7 +346,7 @@ def create_el_model(region=None, datetime_index=None):
     return nodes
 
 
-def create_th_model(region=None, datetime_index=None):
+def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     """Create thermal model modes (oemof objects) and lines from region such
     as buses, sources and sinks.
 
@@ -355,6 +356,8 @@ def create_th_model(region=None, datetime_index=None):
         Region object
     datetime_index : :pandas:`pandas.DatetimeIndex`
         Datetime index
+    esys_nodes : nodes : :obj:`list` of :class:`nodes <oemof.network.Node>`
+        ESys nodes
 
     Returns
     -------
@@ -373,6 +376,7 @@ def create_th_model(region=None, datetime_index=None):
 
     timesteps_cnt = len(datetime_index)
 
+    esys_nodes = {str(n): n for n in esys_nodes}
     nodes = []
 
     #########
@@ -501,7 +505,7 @@ def create_th_model(region=None, datetime_index=None):
     return nodes
 
 
-def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
+def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     """Create model nodes for flexibility options such as batteries, PtH and
     DSM
 
@@ -511,7 +515,7 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
         Region object
     datetime_index : :pandas:`pandas.DatetimeIndex`
         Datetime index
-    nodes_in : nodes : :obj:`list` of :class:`nodes <oemof.network.Node>`
+    esys_nodes : nodes : :obj:`list` of :class:`nodes <oemof.network.Node>`
         ESys nodes
 
     Returns
@@ -531,7 +535,7 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
 
     timesteps_cnt = len(datetime_index)
 
-    nodes_in = {str(n): n for n in nodes_in}
+    esys_nodes = {str(n): n for n in esys_nodes}
     nodes = []
 
     #############
@@ -544,7 +548,7 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
             mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
             for busdata in mun_buses.itertuples():
-                bus = nodes_in['b_el_{bus_id}'.format(bus_id=busdata.Index)]
+                bus = esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]
 
                 nodes.append(
                     solph.components.GenericStorage(
@@ -572,13 +576,13 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
             mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
             for busdata in mun_buses.itertuples():
-                bus_in = nodes_in['b_el_{bus_id}'.format(bus_id=busdata.Index)]
+                bus_in = esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]
 
                 ##################################################
                 # PTH for decentralized heat supply (heat pumps) #
                 ##################################################
                 if flex_dec_pth_enabled:
-                    bus_out = nodes_in['b_th_dec_{ags_id}'.format(ags_id=mun.Index)]
+                    bus_out = esys_nodes['b_th_dec_{ags_id}'.format(ags_id=mun.Index)]
 
                     #########################
                     # Air Source Heat Pumps #
@@ -662,8 +666,8 @@ def create_flexopts(region=None, datetime_index=None, nodes_in=[]):
                 # PTH for district heating (boiler) #
                 #####################################
                 if flex_cen_pth_enabled:
-                    if 'b_th_cen_{ags_id}'.format(ags_id=mun.Index) in nodes_in.keys():
-                        bus_out = nodes_in['b_th_cen_{ags_id}'.format(
+                    if 'b_th_cen_{ags_id}'.format(ags_id=mun.Index) in esys_nodes.keys():
+                        bus_out = esys_nodes['b_th_cen_{ags_id}'.format(
                             ags_id=mun.Index
                         )]
 
