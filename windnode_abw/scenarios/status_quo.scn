@@ -32,9 +32,10 @@
 
 # electrical and heat production
 [generation]
-    [[general]]
-        source_min_share = 0.01
     [[gen_th_dec]]
+        [[[general]]]
+            # min share of energy source to be considered
+            source_min_share = 0.01
         [[[outflow]]]
             variable_costs = 100
 
