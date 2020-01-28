@@ -249,22 +249,24 @@ def create_el_model(region=None, datetime_index=None):
             sink_inflow_args = scn_data['grid']['extgrid']['excess_el_ehv']['inflow']
             source_outflow_args = scn_data['grid']['extgrid']['shortage_el_ehv']['outflow']
         nodes.append(
-            solph.Sink(label='excess_el_{v_level}_b{bus_id}'.format(
-                bus_id=idx,
-                v_level=v_level
-            ),
-                       inputs={bus: solph.Flow(
-                           **sink_inflow_args
-                       )})
+            solph.Sink(
+                label='excess_el_{v_level}_b{bus_id}'.format(
+                    bus_id=idx,
+                    v_level=v_level
+                ),
+                inputs={bus: solph.Flow(
+                    **sink_inflow_args
+                )})
         )
         nodes.append(
-            solph.Source(label='shortage_el_{v_level}_b{bus_id}'.format(
-                bus_id=idx,
-                v_level=v_level
-            ),
-                         outputs={bus: solph.Flow(
-                             **source_outflow_args
-                         )})
+            solph.Source(
+                label='shortage_el_{v_level}_b{bus_id}'.format(
+                    bus_id=idx,
+                    v_level=v_level
+                ),
+                outputs={bus: solph.Flow(
+                    **source_outflow_args
+                )})
         )
 
         # CONNECTION TO COMMON IMEX BUS
