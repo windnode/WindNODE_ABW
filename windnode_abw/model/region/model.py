@@ -422,8 +422,23 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             scn_data['general']['name'], level='scenario')
 
         # sources for decentralized heat supply (1 per technology, sector, mun)
-        for energy_source in heating_structure.itertuples():
-            for sector in th_sectors:
+        for sector in th_sectors:
+            for energy_source in heating_structure.itertuples():
+                energy_source_share = heating_structure[
+                    'tech_share_{sector}'.format(
+                        sector=sector)].loc[energy_source.Index
+                ]
+                outflow_args = {
+                    'nominal_value': 1,
+                    'fixed': True,
+                    'actual_value': list(
+                        region.demand_ts['th_{sector}'.format(
+                            sector=sector)][mun.Index] *
+                        (1 - mun.dem_th_energy_dist_heat_share) * energy_source_share
+
+                    )[:timesteps_cnt]
+                }
+
                 nodes.append(
                     solph.Source(
                         label='gen_th_dec_{ags_id}_{sector}_{src}'.format(
@@ -433,9 +448,9 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                         ),
                         outputs={buses['b_th_dec_{ags_id}_{sector}'.format(
                             ags_id=str(mun.Index),
-                            sector=sector)]: solph.Flow(
-                            **scn_data['generation']['gen_th_dec']['outflow']
-                        )})
+                            sector=sector)]: solph.Flow(**outflow_args)
+                                 }
+                    )
                 )
 
         # demand per sector and mun
