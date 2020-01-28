@@ -545,5 +545,8 @@ def rescale_heating_structure(cfg, heating_structure):
             ['ags_id', 'scenario']).agg('sum', axis=0)
         # apply
         heating_structure = heating_structure * source_scale_factor
+        # delete sources with no share
+        heating_structure = heating_structure[
+            heating_structure.sum(axis=1) > 0]
 
     return heating_structure
