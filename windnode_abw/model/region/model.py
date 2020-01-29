@@ -3,9 +3,8 @@ import oemof.solph as solph
 import logging
 logger = logging.getLogger('windnode_abw')
 
-from windnode_abw.model.region.tools import calc_heat_pump_cops
-from windnode_abw.model.region.tools import calc_dsm_cap_down
-from windnode_abw.model.region.tools import calc_dsm_cap_up
+from windnode_abw.model.region.tools import calc_heat_pump_cops,\
+    calc_dsm_cap_down, calc_dsm_cap_up, create_maintenance_timeseries
 
 
 def simulate(esys, solver='cbc', verbose=True):
@@ -517,6 +516,9 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     # only add if there's district heating in mun
     for mun in region.muns[region.muns.dem_th_energy_dist_heat_share > 0].itertuples():
 
+        mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
+        bus_th = buses['b_th_cen_{ags_id}'.format(ags_id=str(mun.Index))]
+
         # sources for district heating (1 per mun)
         # Todo: Currently just a simple shortage source, update later?
         nodes.append(
@@ -524,11 +526,73 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 label='gen_th_cen_{ags_id}'.format(
                     ags_id=str(mun.Index)
                 ),
-                outputs={buses['b_th_cen_{ags_id}'.format(
-                    ags_id=str(mun.Index))]: solph.Flow(
+                outputs={bus_th: solph.Flow(
                     **scn_data['generation']['gen_th_cen']['outflow']
                 )})
         )
+
+        # Dessau: CHP
+        # Unit: GuD
+        if mun.Index == 15001000:
+            pass
+
+        # Bitterfeld-Wolfen, Köthen, Wittenberg
+        # Units: CHP (BHKW) (base) + gas boiler (peak)
+        if mun.Index in [15082015, 15091375, 15082180]:
+
+            th_peak_load = sum(
+                [region.demand_ts['th_{sector}'.format(
+                    sector=sector)][mun.Index]
+                 for sector in th_sectors]
+            ).max() * mun.dem_th_energy_dist_heat_share
+
+            # CHP (BHKW)
+            # TODO. Replace efficiency by data from db table?
+            chp_uptimes = create_maintenance_timeseries(
+                datetime_index,
+                scn_data['generation']['gen_th_cen'][
+                    'bhkw']['maint_months'],
+                scn_data['generation']['gen_th_cen'][
+                    'bhkw']['maint_duration']
+            )
+            chp_eff = scn_data['generation']['gen_th_cen'][
+                'bhkw']['efficiency']
+            chp_pq_coeff = scn_data['generation']['gen_th_cen'][
+                'bhkw']['pq_coeff']
+            chp_th_power = round(th_peak_load * 0.25)
+            chp_el_power = chp_th_power * chp_pq_coeff
+            chp_th_conv_fac = chp_eff * 1 / (1 + chp_pq_coeff)
+            chp_el_conv_fac = chp_eff * chp_pq_coeff / (1 + chp_pq_coeff) /\
+                              len(mun_buses)
+
+            outputs_el = {
+                esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]: solph.Flow(
+                    nominal_value=chp_el_power / len(mun_buses)
+                )
+                for busdata in mun_buses.itertuples()
+            }
+
+            nodes.append(
+                solph.Transformer(
+                    label='gen_th_cen_{ags_id}_bhkw'.format(
+                        ags_id=str(mun.Index)
+                    ),
+                    inputs={commodities['natural_gas']: solph.Flow()},
+                    outputs={
+                        bus_th: solph.Flow(nominal_value=chp_th_power,
+                                           max=chp_uptimes),
+                        **outputs_el
+                    },
+                    conversion_factors={
+                        bus_th: chp_th_conv_fac,
+                        **{b_el: chp_el_conv_fac for b_el in outputs_el.keys()}
+                    }
+                )
+            )
+
+            # gas boiler
+            # TODO
+
 
         # demand per sector and mun
         # TODO: Include efficiencies (also in sources above)
