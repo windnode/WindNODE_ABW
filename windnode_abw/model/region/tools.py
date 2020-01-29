@@ -558,3 +558,30 @@ def rescale_heating_structure(cfg, heating_structure):
             heating_structure.sum(axis=1) > 0]
 
     return heating_structure
+
+
+def create_maintenance_timeseries(datetime_index, months, duration):
+    """Create a list of activation (1) / deactivation (0) times due to
+    maintenance
+
+    Parameters
+    ----------
+    months : :obj:`list` of :obj:`int`
+        Months where service takes place, e.g. [1]
+    duration : :obj:`int`
+        Duration of maintenance in days
+    datetime_index : :pandas:`pandas.DatetimeIndex`
+        Datetime index
+
+    Returns
+    -------
+    :obj:`list` of :obj:`int` (1 or 0)
+        List of (de)activation times
+    """
+    mask = [True] * len(datetime_index)
+    for month in months:
+        start = pd.to_datetime(f'{datetime_index[0].year}-{month}-01 00:00:00')
+        end = start + pd.to_timedelta(f'{duration} days')
+        mask = mask & ~((datetime_index >= start) & (datetime_index < end))
+
+    return list(map(int, mask))
