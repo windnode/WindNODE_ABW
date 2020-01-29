@@ -422,6 +422,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             scn_data['general']['name'], level='scenario')
 
         # sources for decentralized heat supply (1 per technology, sector, mun)
+        # Caution: existing heat pumps and other el. powered heating is not supported yet!
         for sector in th_sectors:
             for energy_source in heating_structure.itertuples():
                 energy_source_share = heating_structure[
