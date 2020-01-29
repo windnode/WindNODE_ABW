@@ -578,9 +578,12 @@ def create_maintenance_timeseries(datetime_index, months, duration):
     :obj:`list` of :obj:`int` (1 or 0)
         List of (de)activation times
     """
+    if ~isinstance(months, list):
+        months = [months]
     mask = [True] * len(datetime_index)
     for month in months:
-        start = pd.to_datetime(f'{datetime_index[0].year}-{month}-01 00:00:00')
+        start = pd.to_datetime(f'{datetime_index[0].year}-'
+                               f'{int(month)}-01 00:00:00')
         end = start + pd.to_timedelta(f'{duration} days')
         mask = mask & ~((datetime_index >= start) & (datetime_index < end))
 
