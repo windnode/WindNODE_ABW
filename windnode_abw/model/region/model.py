@@ -601,7 +601,8 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 'nominal_value': 1,
                 'fixed': True,
                 'actual_value': list(
-                    region.demand_ts['th_' + sector][mun.Index] *
+                    region.demand_ts['th_{sector}'.format(
+                        sector=sector)][mun.Index] *
                     mun.dem_th_energy_dist_heat_share
                 )[:timesteps_cnt]
             }
