@@ -484,43 +484,42 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     ####################
     # DISTRICT HEATING #
     ####################
-    for mun in region.muns.itertuples():
+    # only add if there's district heating in mun
+    for mun in region.muns[region.muns.dem_th_energy_dist_heat_share > 0].itertuples():
 
-        # only add if there's district heating in mun
-        if mun.dem_th_energy_dist_heat_share > 0:
+        # sources for district heating (1 per mun)
+        # Todo: Currently just a simple shortage source, update later?
+        nodes.append(
+            solph.Source(
+                label='gen_th_cen_{ags_id}'.format(
+                    ags_id=str(mun.Index)
+                ),
+                outputs={buses['b_th_cen_{ags_id}'.format(
+                    ags_id=str(mun.Index))]: solph.Flow(
+                    **scn_data['generation']['gen_th_cen']['outflow']
+                )})
+        )
 
-            # sources for district heating (1 per mun)
-            # Todo: Currently just a simple shortage source, update later?
+        # demand per sector and mun
+        # TODO: Include efficiencies (also in sources above)
+        for sector in th_sectors:
+            inflow_args = {
+                'nominal_value': 1,
+                'fixed': True,
+                'actual_value': list(
+                    region.demand_ts['th_' + sector][mun.Index] *
+                    mun.dem_th_energy_dist_heat_share
+                )[:timesteps_cnt]
+            }
+
             nodes.append(
-                solph.Source(
-                    label='gen_th_cen_{ags_id}'.format(
-                        ags_id=str(mun.Index)
-                    ),
-                    outputs={buses['b_th_cen_{ags_id}'.format(
-                        ags_id=str(mun.Index))]: solph.Flow(
-                        **scn_data['generation']['gen_th_cen']['outflow']
-                    )})
+                solph.Sink(label='dem_th_cen_{ags_id}_{sector}'.format(
+                    ags_id=str(mun.Index),
+                    sector=sector
+                ),
+                    inputs={buses['b_th_cen_{ags_id}'.format(
+                        ags_id=str(mun.Index))]: solph.Flow(**inflow_args)})
             )
-
-            # demand per sector and mun
-            for sector in th_sectors:
-                inflow_args = {
-                    'nominal_value': 1,
-                    'fixed': True,
-                    'actual_value': list(
-                        region.demand_ts['th_' + sector][mun.Index] *
-                        mun.dem_th_energy_dist_heat_share
-                    )[:timesteps_cnt]
-                }
-
-                nodes.append(
-                    solph.Sink(label='dem_th_cen_{ags_id}_{sector}'.format(
-                        ags_id=str(mun.Index),
-                        sector=sector
-                    ),
-                        inputs={buses['b_th_cen_{ags_id}'.format(
-                            ags_id=str(mun.Index))]: solph.Flow(**inflow_args)})
-                )
 
     return nodes
 
