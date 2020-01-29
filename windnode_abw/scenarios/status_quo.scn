@@ -17,6 +17,11 @@
 # general options
 [general]
     name = sq
+    
+# commodities
+[commodities]
+    # comm. to be created
+    commodities = fuel_oil,natural_gas,wood,coal
 
 # electrical and heat demand
 # (parametrized via DB table)

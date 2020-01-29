@@ -411,6 +411,36 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
         buses[bus.label] = bus
         nodes.append(bus)
 
+    ###############
+    # COMMODITIES #
+    ###############
+    # create a commodity for each energy source in cfg
+    # except for el. energy and ambient_heat (el. bus is used)
+
+    # make sure all sources have data in heating structure
+    if not all([_ in region.heating_structure.index.get_level_values('energy_source').unique()
+                for _ in scn_data['commodities']['commodities']]):
+        msg = 'You have invalid commodities in your config! (at ' \
+              'least one is not contained in heating structure)'
+        logger.error(msg)
+        raise ValueError(msg)
+
+    commodities = {}
+    # TODO: Add costs etc.
+    for es in scn_data['commodities']['commodities']:
+        if es not in ['el_energy', 'dist_heating']:
+            bus = solph.Bus(label='b_{es}'.format(es=es))
+            com = solph.Source(
+                label='{es}'.format(es=str(es)),
+                outputs={bus: solph.Flow(
+                    # TODO: replace costs
+                    variable_costs=1
+                )
+                }
+            )
+            commodities[com.label] = com
+            nodes.append(com)
+
     #############################
     # DECENTRALIZED HEAT SUPPLY #
     #############################
