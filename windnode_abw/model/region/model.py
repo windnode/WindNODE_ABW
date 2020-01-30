@@ -519,8 +519,14 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
         mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
         bus_th = buses['b_th_cen_{ags_id}'.format(ags_id=str(mun.Index))]
 
-        # Dessau: CHP
-        # Unit: GuD
+        # get thermal peak load
+        th_peak_load = sum(
+            [region.demand_ts['th_{sector}'.format(
+                sector=sector)][mun.Index]
+             for sector in th_sectors]
+        ).max() * mun.dem_th_energy_dist_heat_share
+
+        # Dessau: CHP (GuD)
         if mun.Index == 15001000:
             # sources for district heating (1 per mun)
             # Todo: Currently just a simple shortage source, update later?
@@ -537,12 +543,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
         # Bitterfeld-Wolfen, Köthen, Wittenberg
         # Units: CHP (BHKW) (base) + gas boiler (peak)
         if mun.Index in [15082015, 15091375, 15082180]:
-
-            th_peak_load = sum(
-                [region.demand_ts['th_{sector}'.format(
-                    sector=sector)][mun.Index]
-                 for sector in th_sectors]
-            ).max() * mun.dem_th_energy_dist_heat_share
 
             # CHP (BHKW)
             # TODO. Replace efficiency by data from db table?
