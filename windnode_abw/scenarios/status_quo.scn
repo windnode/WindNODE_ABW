@@ -145,9 +145,8 @@
             # output temp
             heating_temp = 35
             # general efficiency
-            quality_grade = 0.4
-            # efficiency of air-source heat pumps due to icing
-            ASHP_factor_icing = 0.8
+            quality_grade_ASHP = 0.4
+            quality_grade_GSHP = 0.5
 
     # central PtH (boilers)
     [[flex_cen_pth]]

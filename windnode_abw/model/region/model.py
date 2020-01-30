@@ -728,9 +728,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                         t_low=list(
                             region.temp_ts['air_temp'][mun.Index]
                         )[:timesteps_cnt],
-                        quality_grade=params['quality_grade'],
-                        consider_icing=True,
-                        factor_icing=params['ASHP_factor_icing']
+                        quality_grade=params['quality_grade_ASHP']
                     )
                     # DEBUG ONLY:
                     # print('COP: ', max(cops_hp), min(cops_hp))
@@ -776,8 +774,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                         t_low=list(
                             region.temp_ts['soil_temp'][mun.Index]
                         )[:timesteps_cnt],
-                        quality_grade=params['quality_grade'],
-                        consider_icing=False
+                        quality_grade=params['quality_grade_GSHP']
                     )
 
                     for sector in th_sectors:
