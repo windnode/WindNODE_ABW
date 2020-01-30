@@ -546,18 +546,15 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
 
             # CHP (BHKW)
             # TODO. Replace efficiency by data from db table?
+            bhkw_cfg = scn_data['generation']['gen_th_cen']['bhkw']
             chp_uptimes = create_maintenance_timeseries(
                 datetime_index,
-                scn_data['generation']['gen_th_cen'][
-                    'bhkw']['maint_months'],
-                scn_data['generation']['gen_th_cen'][
-                    'bhkw']['maint_duration']
+                bhkw_cfg['maint_months'],
+                bhkw_cfg['maint_duration']
             )
-            chp_eff = scn_data['generation']['gen_th_cen'][
-                'bhkw']['efficiency']
-            chp_pq_coeff = scn_data['generation']['gen_th_cen'][
-                'bhkw']['pq_coeff']
-            chp_th_power = round(th_peak_load * 0.25)
+            chp_eff = bhkw_cfg['efficiency']
+            chp_pq_coeff = bhkw_cfg['pq_coeff']
+            chp_th_power = round(th_peak_load * bhkw_cfg['nom_th_power_rel_to_pl'])
             chp_el_power = chp_th_power * chp_pq_coeff
             chp_th_conv_fac = chp_eff * 1 / (1 + chp_pq_coeff)
             chp_el_conv_fac = chp_eff * chp_pq_coeff / (1 + chp_pq_coeff) /\
@@ -570,6 +567,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 for busdata in mun_buses.itertuples()
             }
 
+            # TODO: Check if summer uptime is enough to rech FLH (if not, fix the production)
             nodes.append(
                 solph.Transformer(
                     label='gen_th_cen_{ags_id}_bhkw'.format(

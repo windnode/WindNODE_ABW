@@ -52,6 +52,9 @@
 
     [[gen_th_cen]]
         [[[bhkw]]]
+            # nominal th. power in relation to peak load
+            nom_th_power_rel_to_pl = 0.25
+            # efficiency
             efficiency = 0.9
             # Stromkennzahl BHKW (P/Q ratio)
             pq_coeff = 0.85
