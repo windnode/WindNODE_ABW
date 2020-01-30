@@ -519,22 +519,20 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
         mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
         bus_th = buses['b_th_cen_{ags_id}'.format(ags_id=str(mun.Index))]
 
-        # sources for district heating (1 per mun)
-        # Todo: Currently just a simple shortage source, update later?
-        nodes.append(
-            solph.Source(
-                label='gen_th_cen_{ags_id}'.format(
-                    ags_id=str(mun.Index)
-                ),
-                outputs={bus_th: solph.Flow(
-                    **scn_data['generation']['gen_th_cen']['outflow']
-                )})
-        )
-
         # Dessau: CHP
         # Unit: GuD
         if mun.Index == 15001000:
-            pass
+            # sources for district heating (1 per mun)
+            # Todo: Currently just a simple shortage source, update later?
+            nodes.append(
+                solph.Source(
+                    label='gen_th_cen_{ags_id}'.format(
+                        ags_id=str(mun.Index)
+                    ),
+                    outputs={bus_th: solph.Flow(
+                        **scn_data['generation']['gen_th_cen']['outflow']
+                    )})
+            )
 
         # Bitterfeld-Wolfen, Köthen, Wittenberg
         # Units: CHP (BHKW) (base) + gas boiler (peak)
