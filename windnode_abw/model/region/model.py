@@ -576,7 +576,10 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     inputs={commodities['natural_gas']: solph.Flow()},
                     outputs={
                         bus_th: solph.Flow(nominal_value=chp_th_power,
-                                           max=chp_uptimes),
+                                           max=chp_uptimes,
+                                           # TODO: Replace costs
+                                           variable_costs=1
+                                           ),
                         **outputs_el
                     },
                     conversion_factors={
