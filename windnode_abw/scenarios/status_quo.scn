@@ -64,9 +64,12 @@
             # duration of BHKW maintenance in days
             maint_duration = 1
 
-        [[[boiler]]]
-            # Stromkennzahl GuD (P/Q ratio)
-            chp_gud_pq_coeff = 0.83
+        [[[gas_boiler]]]
+            # nominal th. power in relation to peak load
+            nom_th_power_rel_to_pl = 1.0
+            # efficiency
+            efficiency = 0.9
+
         [[[outflow]]]
             variable_costs = 100
 

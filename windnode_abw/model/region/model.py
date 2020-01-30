@@ -590,7 +590,26 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             )
 
             # gas boiler
-            # TODO
+            gas_boiler_cfg = scn_data['generation']['gen_th_cen']['gas_boiler']
+            chp_th_power = round(th_peak_load * gas_boiler_cfg['nom_th_power_rel_to_pl'])
+            chp_eff = gas_boiler_cfg['efficiency']
+
+            nodes.append(
+                solph.Transformer(
+                    label='gen_th_cen_{ags_id}_gas_boiler'.format(
+                        ags_id=str(mun.Index)
+                    ),
+                    inputs={commodities['natural_gas']: solph.Flow()},
+                    outputs={
+                        bus_th: solph.Flow(nominal_value=chp_th_power,
+                                           variable_costs=10
+                                           )
+                    },
+                    conversion_factors={
+                        bus_th: chp_eff
+                    }
+                )
+            )
 
 
         # demand per sector and mun
