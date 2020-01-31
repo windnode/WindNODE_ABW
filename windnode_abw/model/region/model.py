@@ -576,6 +576,9 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     inputs={commodities['natural_gas']: solph.Flow()},
                     outputs={
                         bus_th: solph.Flow(nominal_value=chp_th_power,
+                                           min=list(map(lambda _:
+                                                        _*bhkw_cfg['min_power'],
+                                                        chp_uptimes)),
                                            max=chp_uptimes,
                                            # TODO: Replace costs
                                            variable_costs=1

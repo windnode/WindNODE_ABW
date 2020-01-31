@@ -53,7 +53,9 @@
     [[gen_th_cen]]
         [[[bhkw]]]
             # nominal th. power in relation to peak load
-            nom_th_power_rel_to_pl = 0.25
+            nom_th_power_rel_to_pl = 0.17
+            # minimal th/el power in relation to nominal
+            min_power = 0.7
             # efficiency
             efficiency = 0.9
             # Stromkennzahl BHKW (P/Q ratio)
