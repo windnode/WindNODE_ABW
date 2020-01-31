@@ -531,16 +531,63 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
 
         # Dessau: CHP (GuD)
         if mun.Index == 15001000:
-            # sources for district heating (1 per mun)
-            # Todo: Currently just a simple shortage source, update later?
+
+            gud_cfg = scn_data['generation']['gen_th_cen']['gud']
+            chp_eff = gud_cfg['efficiency']
+            chp_pq_coeff = gud_cfg['pq_coeff']
+            chp_th_power = gud_cfg['nom_th_power']
+            chp_el_power = chp_th_power * chp_pq_coeff
+            chp_th_conv_fac = chp_eff * 1 / (1 + chp_pq_coeff)
+            chp_el_conv_fac = chp_eff * chp_pq_coeff / (1 + chp_pq_coeff) /\
+                              len(mun_buses)
+
+            outputs_el = {
+                esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]: solph.Flow(
+                    nominal_value=chp_el_power / len(mun_buses)
+                )
+                for busdata in mun_buses.itertuples()
+            }
+
             nodes.append(
-                solph.Source(
-                    label='gen_th_cen_{ags_id}'.format(
+                solph.Transformer(
+                    label='gen_th_cen_{ags_id}_gud'.format(
                         ags_id=str(mun.Index)
                     ),
-                    outputs={bus_th: solph.Flow(
-                        **scn_data['generation']['gen_th_cen']['outflow']
-                    )})
+                    inputs={commodities['natural_gas']: solph.Flow()},
+                    outputs={
+                        bus_th: solph.Flow(nominal_value=chp_th_power,
+                                           min=gud_cfg['min_power'],
+                                           # TODO: Replace costs
+                                           variable_costs=1
+                                           ),
+                        **outputs_el
+                    },
+                    conversion_factors={
+                        bus_th: chp_th_conv_fac,
+                        **{b_el: chp_el_conv_fac for b_el in outputs_el.keys()}
+                    }
+                )
+            )
+
+            # gas boiler
+            chp_th_power = round(th_peak_load *
+                                 gas_boiler_cfg['nom_th_power_rel_to_pl'])
+            nodes.append(
+                solph.Transformer(
+                    label='gen_th_cen_{ags_id}_gas_boiler'.format(
+                        ags_id=str(mun.Index)
+                    ),
+                    inputs={commodities['natural_gas']: solph.Flow()},
+                    outputs={
+                        bus_th: solph.Flow(nominal_value=chp_th_power,
+                                           # TODO: Replace costs
+                                           variable_costs=10
+                                           )
+                    },
+                    conversion_factors={
+                        bus_th: gas_boiler_cfg['efficiency']
+                    }
+                )
             )
 
         # Bitterfeld-Wolfen, Köthen, Wittenberg

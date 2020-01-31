@@ -74,7 +74,6 @@
         [[[gud]]]
             # nominal power
             nom_th_power = 30
-            nom_el_power = 25
             # minimal th/el power in relation to nominal
             min_power = 0.5
             # efficiency
