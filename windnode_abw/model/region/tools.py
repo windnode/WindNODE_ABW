@@ -578,7 +578,7 @@ def create_maintenance_timeseries(datetime_index, months, duration):
     :obj:`list` of :obj:`int` (1 or 0)
         List of (de)activation times
     """
-    if ~isinstance(months, list):
+    if not isinstance(months, list):
         months = [months]
     mask = [True] * len(datetime_index)
     for month in months:
