@@ -626,7 +626,9 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                         inputs={bus_th_net_in: solph.Flow(
                             **scn_data['storage']['th_cen_storage']['inflow']
                         )},
-                        outputs={bus_th_net_in: solph.Flow()},
+                        outputs={bus_th_net_in: solph.Flow(
+                            **scn_data['storage']['th_cen_storage']['outflow']
+                        )},
                         **scn_data['storage']['th_cen_storage']['params']
                     )
                 )

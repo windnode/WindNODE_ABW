@@ -87,13 +87,15 @@
 # storages
 [storage]
     # Storage for Dessau
-    # TODO: Replace with realistic values
+    # TODO: Replace with realistic params
     [[th_cen_storage]]
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]
             nominal_value = 30
             variable_costs = 1
+        [[[outflow]]]
+            nominal_value = 30
         [[[params]]]
             nominal_storage_capacity = 600
             loss_rate = 0.01
