@@ -553,7 +553,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             )
         )
 
-        # Dessau: CHP (GuD)
+        # Dessau
         if mun.Index == 15001000:
 
             gud_cfg = scn_data['generation']['gen_th_cen']['gud']
@@ -565,6 +565,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             chp_el_conv_fac = chp_eff * chp_pq_coeff / (1 + chp_pq_coeff) /\
                               len(mun_buses)
 
+            # GuD
             outputs_el = {
                 esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]: solph.Flow(
                     nominal_value=chp_el_power / len(mun_buses)
@@ -613,6 +614,21 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     }
                 )
             )
+
+            # storage
+            if scn_data['storage']['th_cen_storage']['enabled']['enabled'] == 1:
+                nodes.append(
+                    solph.components.GenericStorage(
+                        label='stor_th_cen_{ags_id}'.format(
+                            ags_id=str(mun.Index),
+                        ),
+                        inputs={bus_th_net_in: solph.Flow(
+                            **scn_data['storage']['th_cen_storage']['inflow']
+                        )},
+                        outputs={bus_th_net_in: solph.Flow()},
+                        **scn_data['storage']['th_cen_storage']['params']
+                    )
+                )
 
         # Bitterfeld-Wolfen, Köthen, Wittenberg
         # Units: CHP (BHKW) (base) + gas boiler (peak)
