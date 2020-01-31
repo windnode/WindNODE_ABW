@@ -527,12 +527,13 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
         bus_th_net_in = buses['b_th_cen_in_{ags_id}'.format(ags_id=str(mun.Index))]
         bus_th_net_out = buses['b_th_cen_out_{ags_id}'.format(ags_id=str(mun.Index))]
 
-        # get thermal peak load
+        # get thermal peak load (consider network losses)
         th_peak_load = sum(
             [region.demand_ts['th_{sector}'.format(
                 sector=sector)][mun.Index]
              for sector in th_sectors]
-        ).max() * mun.dem_th_energy_dist_heat_share
+        ).max() * mun.dem_th_energy_dist_heat_share / scn_data['generation'][
+                    'gen_th_cen']['network']['efficiency']
 
         # get gas boiler config
         gas_boiler_cfg = scn_data['generation']['gen_th_cen']['gas_boiler']
