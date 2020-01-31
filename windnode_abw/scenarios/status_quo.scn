@@ -137,7 +137,6 @@
         [[[params]]]
             nominal_storage_capacity = 1
             loss_rate = 0.01
-            initial_storage_level = 0
             inflow_conversion_factor = 1
             outflow_conversion_factor = 0.8
 
