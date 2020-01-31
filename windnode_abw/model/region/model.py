@@ -526,6 +526,9 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
              for sector in th_sectors]
         ).max() * mun.dem_th_energy_dist_heat_share
 
+        # get gas boiler config
+        gas_boiler_cfg = scn_data['generation']['gen_th_cen']['gas_boiler']
+
         # Dessau: CHP (GuD)
         if mun.Index == 15001000:
             # sources for district heating (1 per mun)
@@ -593,10 +596,8 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             )
 
             # gas boiler
-            gas_boiler_cfg = scn_data['generation']['gen_th_cen']['gas_boiler']
-            chp_th_power = round(th_peak_load * gas_boiler_cfg['nom_th_power_rel_to_pl'])
-            chp_eff = gas_boiler_cfg['efficiency']
-
+            chp_th_power = round(th_peak_load *
+                                 gas_boiler_cfg['nom_th_power_rel_to_pl'])
             nodes.append(
                 solph.Transformer(
                     label='gen_th_cen_{ags_id}_gas_boiler'.format(
@@ -609,7 +610,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                                            )
                     },
                     conversion_factors={
-                        bus_th: chp_eff
+                        bus_th: gas_boiler_cfg['efficiency']
                     }
                 )
             )
