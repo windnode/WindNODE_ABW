@@ -570,7 +570,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 for busdata in mun_buses.itertuples()
             }
 
-            # TODO: Check if summer uptime is enough to rech FLH (if not, fix the production)
             nodes.append(
                 solph.Transformer(
                     label='gen_th_cen_{ags_id}_bhkw'.format(
@@ -606,6 +605,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     inputs={commodities['natural_gas']: solph.Flow()},
                     outputs={
                         bus_th: solph.Flow(nominal_value=chp_th_power,
+                                           # TODO: Replace costs
                                            variable_costs=10
                                            )
                     },
@@ -614,7 +614,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     }
                 )
             )
-
 
         # demand per sector and mun
         # TODO: Include efficiencies (also in sources above)
