@@ -404,7 +404,14 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     # TODO: Replace dist heat share by new param table
     for mun in region.muns[region.muns.dem_th_energy_dist_heat_share > 0].\
             itertuples():
-        bus = solph.Bus(label='b_th_cen_{ags_id}'.format(
+        # heating network bus for feedin (to grid)
+        bus = solph.Bus(label='b_th_cen_in_{ags_id}'.format(
+            ags_id=str(mun.Index))
+        )
+        buses[bus.label] = bus
+        nodes.append(bus)
+        # heating network bus for output (from grid)
+        bus = solph.Bus(label='b_th_cen_out_{ags_id}'.format(
             ags_id=str(mun.Index))
         )
         buses[bus.label] = bus
@@ -517,7 +524,8 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     for mun in region.muns[region.muns.dem_th_energy_dist_heat_share > 0].itertuples():
 
         mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
-        bus_th = buses['b_th_cen_{ags_id}'.format(ags_id=str(mun.Index))]
+        bus_th_net_in = buses['b_th_cen_in_{ags_id}'.format(ags_id=str(mun.Index))]
+        bus_th_net_out = buses['b_th_cen_out_{ags_id}'.format(ags_id=str(mun.Index))]
 
         # get thermal peak load
         th_peak_load = sum(
@@ -528,6 +536,22 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
 
         # get gas boiler config
         gas_boiler_cfg = scn_data['generation']['gen_th_cen']['gas_boiler']
+
+        # heating network
+        nodes.append(
+            solph.Transformer(
+                label='network_th_cen_{ags_id}'.format(
+                    ags_id=str(mun.Index)
+                ),
+                inputs={bus_th_net_in: solph.Flow()},
+                outputs={bus_th_net_out: solph.Flow(
+                    variable_costs=1
+                )
+                },
+                conversion_factors={bus_th_net_out: scn_data['generation'][
+                    'gen_th_cen']['network']['efficiency']}
+            )
+        )
 
         # Dessau: CHP (GuD)
         if mun.Index == 15001000:
@@ -555,15 +579,15 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     ),
                     inputs={commodities['natural_gas']: solph.Flow()},
                     outputs={
-                        bus_th: solph.Flow(nominal_value=chp_th_power,
-                                           min=gud_cfg['min_power'],
-                                           # TODO: Replace costs
-                                           variable_costs=1
-                                           ),
+                        bus_th_net_in: solph.Flow(nominal_value=chp_th_power,
+                                                  min=gud_cfg['min_power'],
+                                                  # TODO: Replace costs
+                                                  variable_costs=1
+                                                  ),
                         **outputs_el
                     },
                     conversion_factors={
-                        bus_th: chp_th_conv_fac,
+                        bus_th_net_in: chp_th_conv_fac,
                         **{b_el: chp_el_conv_fac for b_el in outputs_el.keys()}
                     }
                 )
@@ -579,13 +603,13 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     ),
                     inputs={commodities['natural_gas']: solph.Flow()},
                     outputs={
-                        bus_th: solph.Flow(nominal_value=chp_th_power,
-                                           # TODO: Replace costs
-                                           variable_costs=10
-                                           )
+                        bus_th_net_in: solph.Flow(nominal_value=chp_th_power,
+                                                  # TODO: Replace costs
+                                                  variable_costs=10
+                                                  )
                     },
                     conversion_factors={
-                        bus_th: gas_boiler_cfg['efficiency']
+                        bus_th_net_in: gas_boiler_cfg['efficiency']
                     }
                 )
             )
@@ -624,18 +648,19 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     ),
                     inputs={commodities['natural_gas']: solph.Flow()},
                     outputs={
-                        bus_th: solph.Flow(nominal_value=chp_th_power,
-                                           min=list(map(lambda _:
-                                                        _*bhkw_cfg['min_power'],
-                                                        chp_uptimes)),
-                                           max=chp_uptimes,
-                                           # TODO: Replace costs
-                                           variable_costs=1
-                                           ),
+                        bus_th_net_in: solph.Flow(
+                            nominal_value=chp_th_power,
+                            min=list(map(lambda _:
+                                         _ * bhkw_cfg['min_power'],
+                                         chp_uptimes)),
+                            max=chp_uptimes,
+                            # TODO: Replace costs
+                            variable_costs=1
+                        ),
                         **outputs_el
                     },
                     conversion_factors={
-                        bus_th: chp_th_conv_fac,
+                        bus_th_net_in: chp_th_conv_fac,
                         **{b_el: chp_el_conv_fac for b_el in outputs_el.keys()}
                     }
                 )
@@ -651,13 +676,14 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     ),
                     inputs={commodities['natural_gas']: solph.Flow()},
                     outputs={
-                        bus_th: solph.Flow(nominal_value=chp_th_power,
-                                           # TODO: Replace costs
-                                           variable_costs=10
-                                           )
+                        bus_th_net_in: solph.Flow(
+                            nominal_value=chp_th_power,
+                            # TODO: Replace costs
+                            variable_costs=10
+                        )
                     },
                     conversion_factors={
-                        bus_th: gas_boiler_cfg['efficiency']
+                        bus_th_net_in: gas_boiler_cfg['efficiency']
                     }
                 )
             )
@@ -680,7 +706,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     ags_id=str(mun.Index),
                     sector=sector
                 ),
-                    inputs={buses['b_th_cen_{ags_id}'.format(
+                    inputs={buses['b_th_cen_out_{ags_id}'.format(
                         ags_id=str(mun.Index))]: solph.Flow(**inflow_args)})
             )
 
@@ -860,8 +886,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                 # PTH for district heating (boiler) #
                 #####################################
                 if flex_cen_pth_enabled:
-                    if 'b_th_cen_{ags_id}'.format(ags_id=mun.Index) in esys_nodes.keys():
-                        bus_out = esys_nodes['b_th_cen_{ags_id}'.format(
+                    if 'b_th_cen_in_{ags_id}'.format(ags_id=mun.Index) in esys_nodes.keys():
+                        bus_out = esys_nodes['b_th_cen_in_{ags_id}'.format(
                             ags_id=mun.Index
                         )]
 

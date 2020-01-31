@@ -81,6 +81,9 @@
             # Stromkennzahl GuD (P/Q ratio)
             pq_coeff = 0.83
 
+        [[[network]]]
+            efficiency = 0.8
+
         [[[outflow]]]
             variable_costs = 100
 
