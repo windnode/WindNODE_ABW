@@ -96,7 +96,7 @@ def create_el_model(region=None, datetime_index=None):
     region : :class:`~.model.Region`
         Region object
     datetime_index : :pandas:`pandas.DatetimeIndex`
-        Datetime index
+        Datetime index of simulation timerange
 
     Returns
     -------
@@ -112,8 +112,6 @@ def create_el_model(region=None, datetime_index=None):
     scn_data = region.cfg['scn_data']
 
     logger.info("Creating el. system objects...")
-
-    timesteps_cnt = len(datetime_index)
 
     nodes = []
 
@@ -151,8 +149,8 @@ def create_el_model(region=None, datetime_index=None):
                 outflow_args = {
                     'nominal_value': 1,
                     'fixed':  True,
-                    'actual_value': list(ts_df[ags] /
-                                         len(mun_buses))[:timesteps_cnt]
+                    'actual_value': list((ts_df[ags] /
+                                          len(mun_buses))[datetime_index])
                 }
 
                 # create node only if feedin sum is >0
@@ -176,16 +174,20 @@ def create_el_model(region=None, datetime_index=None):
                         'nominal_value': 1,
                         'fixed':  True,
                         'actual_value': list(
-                            region.demand_ts['el_{sector}'.format(
+                            (region.demand_ts['el_{sector}'.format(
                                 sector=sector)][ags] / len(mun_buses)
-                        )[:timesteps_cnt]
+                             )[datetime_index]
+                        )
                     }
 
                     # use IÖW load profile if set in scenario config
                     if sector == 'hh' and hh_profile_type == 'ioew':
                         inflow_args['actual_value'] = \
-                            list(region.dsm_ts['Lastprofil'][ags] /
-                                 len(mun_buses))[:timesteps_cnt]
+                            list(
+                                (region.dsm_ts['Lastprofil'][ags] /
+                                 len(mun_buses)
+                                 )[datetime_index]
+                            )
 
                     nodes.append(
                         solph.Sink(
@@ -356,7 +358,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     region : :class:`~.model.Region`
         Region object
     datetime_index : :pandas:`pandas.DatetimeIndex`
-        Datetime index
+        Datetime index of simulation timerange
     esys_nodes : nodes : :obj:`list` of :class:`nodes <oemof.network.Node>`
         ESys nodes
 
@@ -374,8 +376,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     scn_data = region.cfg['scn_data']
 
     logger.info("Creating th. system objects...")
-
-    timesteps_cnt = len(datetime_index)
 
     esys_nodes = {str(n): n for n in esys_nodes}
     nodes = []
@@ -469,11 +469,11 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     'nominal_value': 1,
                     'fixed': True,
                     'actual_value': list(
-                        region.demand_ts['th_{sector}'.format(
+                        (region.demand_ts['th_{sector}'.format(
                             sector=sector)][mun.Index] *
-                        (1 - mun.dem_th_energy_dist_heat_share) * energy_source_share
-
-                    )[:timesteps_cnt]
+                         (1 - mun.dem_th_energy_dist_heat_share) * energy_source_share
+                         )[datetime_index]
+                    )
                 }
 
                 nodes.append(
@@ -497,10 +497,11 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 'nominal_value': 1,
                 'fixed': True,
                 'actual_value': list(
-                    region.demand_ts['th_{sector}'.format(
+                    (region.demand_ts['th_{sector}'.format(
                         sector=sector)][mun.Index] *
-                    (1 - mun.dem_th_energy_dist_heat_share)
-                )[:timesteps_cnt]
+                     (1 - mun.dem_th_energy_dist_heat_share)
+                     )[datetime_index]
+                )
             }
 
             # ToDo: Include saving using different scn from db table
@@ -714,10 +715,11 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 'nominal_value': 1,
                 'fixed': True,
                 'actual_value': list(
-                    region.demand_ts['th_{sector}'.format(
+                    (region.demand_ts['th_{sector}'.format(
                         sector=sector)][mun.Index] *
-                    mun.dem_th_energy_dist_heat_share
-                )[:timesteps_cnt]
+                     mun.dem_th_energy_dist_heat_share
+                     )[datetime_index]
+                )
             }
 
             nodes.append(
@@ -741,7 +743,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     region : :class:`~.model.Region`
         Region object
     datetime_index : :pandas:`pandas.DatetimeIndex`
-        Datetime index
+        Datetime index of simulation timerange
     esys_nodes : nodes : :obj:`list` of :class:`nodes <oemof.network.Node>`
         ESys nodes
 
@@ -759,8 +761,6 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     scn_data = region.cfg['scn_data']
 
     logger.info("Creating flexopt objects...")
-
-    timesteps_cnt = len(datetime_index)
 
     esys_nodes = {str(n): n for n in esys_nodes}
     nodes = []
@@ -821,8 +821,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     cops_ASHP = calc_heat_pump_cops(
                         t_high=[params['heating_temp']],
                         t_low=list(
-                            region.temp_ts['air_temp'][mun.Index]
-                        )[:timesteps_cnt],
+                            (region.temp_ts['air_temp'][mun.Index]
+                            )[datetime_index]
+                        ),
                         quality_grade=params['quality_grade_ASHP']
                     )
                     # DEBUG ONLY:
@@ -867,8 +868,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     cops_GSHP = calc_heat_pump_cops(
                         t_high=[params['heating_temp']],
                         t_low=list(
-                            region.temp_ts['soil_temp'][mun.Index]
-                        )[:timesteps_cnt],
+                            (region.temp_ts['soil_temp'][mun.Index]
+                            )[datetime_index]
+                        ),
                         quality_grade=params['quality_grade_GSHP']
                     )
 
@@ -942,22 +944,25 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 bus_id=busdata.Index
                             ),
                             inputs={bus_in: solph.Flow()},
-                            demand=(region.dsm_ts['Lastprofil']
-                                    [mun.Index] / len(mun_buses))[:timesteps_cnt],
-                            capacity_up=(
-                                calc_dsm_cap_up(
+                            demand=list(
+                                (region.dsm_ts['Lastprofil']
+                                 [mun.Index] / len(mun_buses)
+                                 )[datetime_index]
+                            ),
+                            capacity_up=list(
+                                (calc_dsm_cap_up(
                                     region.dsm_ts,
                                     mun.Index,
-                                    mode=dsm_mode
-                                ) / len(mun_buses)
-                                        )[:timesteps_cnt],
-                            capacity_down=(
-                                calc_dsm_cap_down(
+                                    mode=dsm_mode) / len(mun_buses)
+                                 )[datetime_index]
+                            ),
+                            capacity_down=list(
+                                (calc_dsm_cap_down(
                                     region.dsm_ts,
                                     mun.Index,
-                                    mode=dsm_mode
-                                ) / len(mun_buses)
-                                          )[:timesteps_cnt],
+                                    mode=dsm_mode) / len(mun_buses)
+                                 )[datetime_index]
+                            ),
                             method=scn_data['flexopt']['dsm']['params']['method'],
                             shift_interval=int(scn_data['flexopt']['dsm']['params']['shift_interval']),
                             delay_time=int(scn_data['flexopt']['dsm']['params']['delay_time'])

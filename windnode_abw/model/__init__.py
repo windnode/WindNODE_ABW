@@ -185,7 +185,7 @@ class Region:
             raise ValueError(msg)
 
         # create the region instance
-        region = cls(**{**import_db_data(), 'cfg': cfg})
+        region = cls(**{**import_db_data(cfg), 'cfg': cfg})
 
         return region
 

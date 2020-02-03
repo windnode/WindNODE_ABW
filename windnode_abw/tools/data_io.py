@@ -174,13 +174,29 @@ def oep_api_write_data(schema, table, data):
     return pd.DataFrame(result.json())
 
 
-def import_db_data():
-    """Import data from DB using SQLA DB models"""
+def import_db_data(cfg):
+    """Import data from DB using SQLA DB models
+
+    Parameters
+    ----------
+    cfg : :obj:`dict`
+        Config to be used to create model
+
+    Returns
+    -------
+    :obj:`dict`
+        Imported data
+    """
 
     data = {}
 
     srid = int(config.get('geo', 'srid'))
     session = db_session('windnode_abw')
+
+    year = pd.to_datetime(cfg['date_from']).year
+    datetime_index_full_year = pd.date_range(start=f'{year}-01-01 00:00:00',
+                                             end=f'{year}-12-31 23:00:00',
+                                             freq=cfg['freq'])
 
     ########################################################
     # import municipalities including stats and substation #
@@ -253,6 +269,7 @@ def import_db_data():
         pd.read_sql_query(demandts_query.statement,
                           session.bind)
     )
+    data['demand_ts_init'].index = datetime_index_full_year
 
     ############################
     # import feedin timeseries #
@@ -271,6 +288,7 @@ def import_db_data():
         pd.read_sql_query(feedints_query.statement,
                           session.bind)
     )
+    data['feedin_ts_init'].index = datetime_index_full_year
 
     #########################
     # import DSM timeseries #
@@ -288,6 +306,7 @@ def import_db_data():
         pd.read_sql_query(dsmts_query.statement,
                           session.bind)
     )
+    data['dsm_ts'].index = datetime_index_full_year
 
     #################################
     # import temperature timeseries #
@@ -302,6 +321,7 @@ def import_db_data():
         pd.read_sql_query(tempts_query.statement,
                           session.bind)
     )
+    data['temp_ts_init'].index = datetime_index_full_year
 
     #####################################################################
     # import HV grid (buses, lines, trafos, substations+grid districts) #
