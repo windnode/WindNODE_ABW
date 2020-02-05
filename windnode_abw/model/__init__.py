@@ -178,8 +178,24 @@ class Region:
         return self._heating_structure
 
     @property
+    def heating_structure_scn(self):
+        """Return heating structure for current scenario set in cfg"""
+        return self._heating_structure.xs(
+            self._cfg['scn_data']['general']['name'],
+            level='scenario'
+        )
+
+    @property
     def tech_assumptions(self):
         return self._tech_assumptions
+
+    @property
+    def tech_assumptions_scn(self):
+        """Return technical assumptions for current scenario set in cfg"""
+        return self._tech_assumptions.xs(
+            self._cfg['scn_data']['general']['name'],
+            level='scenario'
+        )
 
     @classmethod
     def import_data(cls, cfg=None):

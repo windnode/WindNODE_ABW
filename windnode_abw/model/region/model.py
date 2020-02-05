@@ -453,9 +453,8 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     for mun in region.muns.itertuples():
 
         # load heating structure for current scenario
-        heating_structure = region.heating_structure.xs(
-            mun.Index, level='ags_id').xs(
-            scn_data['general']['name'], level='scenario')
+        heating_structure = region.heating_structure_scn.xs(
+            mun.Index, level='ags_id')
 
         # sources for decentralized heat supply (1 per technology, sector, mun)
         # Caution: existing heat pumps and other el. powered heating is not supported yet!
