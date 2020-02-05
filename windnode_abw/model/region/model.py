@@ -476,17 +476,19 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     )
                 }
 
-                nodes.append(
-                    solph.Source(
-                        label='gen_th_dec_{ags_id}_{sector}_{src}'.format(
-                            ags_id=str(mun.Index),
-                            sector=sector,
-                            src=str(energy_source.Index)
-                        ),
-                        outputs={buses['b_th_dec_{ags_id}_{sector}'.format(
-                            ags_id=str(mun.Index),
-                            sector=sector)]: solph.Flow(**outflow_args)
-                                 }
+                if energy_source_share > 0:
+                    nodes.append(
+                        solph.Source(
+                            label='gen_th_dec_{ags_id}_{sector}_{src}'.format(
+                                ags_id=str(mun.Index),
+                                sector=sector,
+                                src=str(energy_source.Index)
+                            ),
+                            outputs={buses['b_th_dec_{ags_id}_{sector}'.format(
+                                ags_id=str(mun.Index),
+                                sector=sector)]: solph.Flow(**outflow_args)
+                                     }
+                        )
                     )
                 )
 
@@ -568,7 +570,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             bus_el = esys_nodes['b_el_27977']
 
             # GuD
-
             nodes.append(
                 solph.Transformer(
                     label='gen_th_cen_{ags_id}_gud'.format(
