@@ -564,16 +564,10 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             chp_th_power = gud_cfg['nom_th_power']
             chp_el_power = chp_th_power * chp_pq_coeff
             chp_th_conv_fac = chp_eff * 1 / (1 + chp_pq_coeff)
-            chp_el_conv_fac = chp_eff * chp_pq_coeff / (1 + chp_pq_coeff) /\
-                              len(mun_buses)
+            chp_el_conv_fac = chp_eff * chp_pq_coeff / (1 + chp_pq_coeff)
+            bus_el = esys_nodes['b_el_27977']
 
             # GuD
-            outputs_el = {
-                esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]: solph.Flow(
-                    nominal_value=chp_el_power / len(mun_buses)
-                )
-                for busdata in mun_buses.itertuples()
-            }
 
             nodes.append(
                 solph.Transformer(
@@ -587,12 +581,12 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                                                   # TODO: Replace costs
                                                   variable_costs=1
                                                   ),
-                        **outputs_el
+                        bus_el: solph.Flow(nominal_value=chp_el_power)
                     },
                     conversion_factors={
                         bus_th_net_in: chp_th_conv_fac,
-                        **{b_el: chp_el_conv_fac for b_el in outputs_el.keys()}
-                    }
+                        bus_el: chp_el_conv_fac
+                    },
                 )
             )
 
