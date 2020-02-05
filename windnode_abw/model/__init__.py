@@ -81,6 +81,8 @@ class Region:
             heating_structure=kwargs.get('heating_structure', None)
         )
 
+        self._tech_assumptions = kwargs.get('tech_assumptions', None)
+
     @property
     def muns(self):
         """Returns region's municipalities"""
@@ -174,6 +176,10 @@ class Region:
     @property
     def heating_structure(self):
         return self._heating_structure
+
+    @property
+    def tech_assumptions(self):
+        return self._tech_assumptions
 
     @classmethod
     def import_data(cls, cfg=None):

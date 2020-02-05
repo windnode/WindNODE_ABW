@@ -18,7 +18,7 @@ from windnode_abw.config.db_models import \
     WnAbwDemandTs, WnAbwFeedinTs, WnAbwGridHvBus, WnAbwGridHvLine,\
     WnAbwGridHvmvSubstation, WnAbwGridMvGriddistrict, WnAbwGridHvTransformer,\
     WnAbwMun, WnAbwMundata, WnAbwPowerplant, WnAbwRelSubstIdAgsId, WnAbwDsmTs,\
-    WnAbwTempTs, WnAbwHeatingStructure
+    WnAbwTempTs, WnAbwHeatingStructure, WnAbwTechAssumptions
 
 
 def db_session(db_section):
@@ -442,6 +442,25 @@ def import_db_data(cfg):
         heating_structure_query.statement,
         session.bind,
         index_col=['ags_id', 'energy_source', 'scenario'])
+
+    #######################################################
+    # import technical assumptions (costs, eff, emissions #
+    #######################################################
+    logger.info('Importing technical assumptions...')
+    tech_assumptions_query = session.query(
+        WnAbwTechAssumptions.technology,
+        WnAbwTechAssumptions.scenario,
+        WnAbwTechAssumptions.capex,
+        WnAbwTechAssumptions.opex_fix,
+        WnAbwTechAssumptions.opex_var,
+        WnAbwTechAssumptions.lifespan,
+        WnAbwTechAssumptions.emissions,
+        WnAbwTechAssumptions.sys_eff
+    )
+    data['tech_assumptions'] = pd.read_sql_query(
+        tech_assumptions_query.statement,
+        session.bind,
+        index_col=['technology', 'scenario'])
 
     return data
 
