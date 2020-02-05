@@ -465,6 +465,9 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     'tech_share_{sector}'.format(
                         sector=sector)].loc[energy_source.Index
                 ]
+                bus_th = buses['b_th_dec_{ags_id}_{sector}'.format(
+                                ags_id=str(mun.Index),
+                                sector=sector)]
                 outflow_args = {
                     'nominal_value': 1,
                     'fixed': True,
@@ -478,16 +481,16 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
 
                 if energy_source_share > 0:
                     nodes.append(
-                        solph.Source(
+                        solph.Transformer(
                             label='gen_th_dec_{ags_id}_{sector}_{src}'.format(
                                 ags_id=str(mun.Index),
                                 sector=sector,
                                 src=str(energy_source.Index)
                             ),
-                            outputs={buses['b_th_dec_{ags_id}_{sector}'.format(
-                                ags_id=str(mun.Index),
-                                sector=sector)]: solph.Flow(**outflow_args)
-                                     }
+                            inputs={commodities[energy_source.Index]: solph.Flow()},
+                            outputs={bus_th: solph.Flow(**outflow_args)},
+                            # ToDo: Replace efficiency
+                            conversion_factors={bus_th: 1.}
                         )
                     )
                 )
