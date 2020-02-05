@@ -7,8 +7,9 @@ logger = logging.getLogger('windnode_abw')
 from windnode_abw.tools import config
 from windnode_abw.tools.data_io import import_db_data
 from windnode_abw.model.region.tools import \
-    prepare_feedin_timeseries, prepare_demand_timeseries,\
-    prepare_temp_timeseries, rescale_heating_structure
+    prepare_feedin_timeseries, prepare_demand_timeseries, \
+    prepare_temp_timeseries, rescale_heating_structure, \
+    calc_annuity
 
 
 class Region:
@@ -81,7 +82,10 @@ class Region:
             heating_structure=kwargs.get('heating_structure', None)
         )
 
-        self._tech_assumptions = kwargs.get('tech_assumptions', None)
+        self._tech_assumptions = calc_annuity(
+            cfg=self._cfg,
+            tech_assumptions=kwargs.get('tech_assumptions', None)
+        )
 
     @property
     def muns(self):

@@ -23,6 +23,9 @@
     # comm. to be created
     commodities = fuel_oil,natural_gas,wood,coal
 
+[economics]
+    wacc = 0.06
+
 # electrical and heat demand
 # (parametrized via DB table)
 [demand]

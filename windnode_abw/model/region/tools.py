@@ -5,8 +5,10 @@ import pandas as pd
 from pandas import compat
 import networkx as nx
 import matplotlib.pyplot as plt
+from numpy import nan
 
 import oemof.solph as solph
+from oemof.tools.economics import annuity
 
 
 def remove_isolates():
@@ -588,3 +590,15 @@ def create_maintenance_timeseries(datetime_index, months, duration):
         mask = mask & ~((datetime_index >= start) & (datetime_index < end))
 
     return list(map(int, mask))
+
+
+def calc_annuity(cfg, tech_assumptions):
+    """Calculate equivalent annual cost"""
+
+    tech_assumptions['annuity'] = tech_assumptions.replace(0, nan).apply(
+        lambda row: annuity(row['capex'],
+                            row['lifespan'],
+                            cfg['scn_data']['economics']['wacc']),
+        axis=1)
+
+    return tech_assumptions
