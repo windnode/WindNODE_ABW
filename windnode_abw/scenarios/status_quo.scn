@@ -57,7 +57,7 @@
         [[[bhkw]]]
             # nominal th. power in relation to peak load
             nom_th_power_rel_to_pl = 0.17
-            # minimal th/el power in relation to nominal
+            # minimal th/el power in relation to nominal (currently unused)
             min_power = 0.7
             # efficiency
             efficiency = 0.9
@@ -76,13 +76,13 @@
 
         [[[gud]]]
             # nominal power
-            nom_th_power = 30
-            # minimal th/el power in relation to nominal
+            nom_th_power = 60
+            # minimal th/el power in relation to nominal (currently unused)
             min_power = 0.5
             # efficiency
             efficiency = 0.9
             # Stromkennzahl GuD (P/Q ratio)
-            pq_coeff = 0.83
+            pq_coeff = 1
 
         [[[network]]]
             efficiency = 0.8
