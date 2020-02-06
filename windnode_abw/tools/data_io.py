@@ -278,6 +278,7 @@ def import_db_data(cfg):
     feedints_query = session.query(
         WnAbwFeedinTs.ags_id.label('ags'),
         WnAbwFeedinTs.wind_sq,
+        WnAbwFeedinTs.wind_fs,
         WnAbwFeedinTs.pv_ground,
         WnAbwFeedinTs.pv_roof,
         WnAbwFeedinTs.hydro,
