@@ -380,6 +380,7 @@ def prepare_feedin_timeseries(region):
         columns=['wind_fs' if scenario == 'sq'
                  else 'wind_sq'
                  ],
+        level=0,
         inplace=True
     )
 
