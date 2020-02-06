@@ -161,6 +161,10 @@ class Region:
     def feedin_ts_init(self):
         return self._feedin_ts_init
 
+    @feedin_ts_init.setter
+    def feedin_ts_init(self, feedin_ts_init):
+        self._feedin_ts_init = feedin_ts_init
+
     @property
     def feedin_ts(self):
         return self._feedin_ts

@@ -367,16 +367,16 @@ def prepare_feedin_timeseries(region):
                      inplace=True)
 
     # adjust feedin ts columns
-    feedin_ts = pd.concat(
+    region.feedin_ts_init = pd.concat(
         [region.feedin_ts_init,
          region.feedin_ts_init[['pv_roof']].rename(
              columns={'pv_roof': 'pv_roof_small'})],
         axis=1)
-    feedin_ts.rename(columns={'pv_roof': 'pv_roof_large',
-                              'hydro': 'run_of_river'},
-                     inplace=True)
+    region.feedin_ts_init.rename(columns={'pv_roof': 'pv_roof_large',
+                                          'hydro': 'run_of_river'},
+                                 inplace=True)
 
-    feedin_ts.drop(
+    region.feedin_ts_init.drop(
         columns=['wind_fs' if scenario == 'sq'
                  else 'wind_sq'
                  ],
@@ -389,7 +389,7 @@ def prepare_feedin_timeseries(region):
     feedin_agg = {}
     for tech in list(cap_per_mun.loc[:,
                      cap_per_mun.columns != 'conventional'].columns):
-        feedin_agg[tech] = feedin_ts[tech] * cap_per_mun[tech]
+        feedin_agg[tech] = region.feedin_ts_init[tech] * cap_per_mun[tech]
 
     # 2) process absolute TS (conventional plants)
     # do not use capacities as the full load hours of the plants differ - use
@@ -398,7 +398,7 @@ def prepare_feedin_timeseries(region):
         cap_per_mun['conventional'] /\
         region.muns[['gen_capacity_conventional_large',
                   'gen_capacity_conventional_small']].sum(axis=1)
-    feedin_agg['conventional'] = feedin_ts['conventional'] * conv_cap_per_mun
+    feedin_agg['conventional'] = region.feedin_ts_init['conventional'] * conv_cap_per_mun
 
     # rename wind column depending on scenario
     if scenario == 'sq':
