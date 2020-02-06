@@ -447,12 +447,15 @@ def import_db_data(cfg):
     #######################################################
     # import technical assumptions (costs, eff, emissions #
     #######################################################
+    # convert units to MW/MWh (cf. table "Kosten_Emissionen_Wirkungsgrade")
     logger.info('Importing technical assumptions...')
     tech_assumptions_query = session.query(
         WnAbwTechAssumptions.technology,
         WnAbwTechAssumptions.scenario,
-        WnAbwTechAssumptions.capex,
-        WnAbwTechAssumptions.opex_fix,
+        (WnAbwTechAssumptions.capex * 1000).label('capex'),
+        (WnAbwTechAssumptions.opex_fix * 1000).label('opex_fix'),
+        # TODO: Change opex_var unit as soon as it is changed to kWh in Table
+        #(WnAbwTechAssumptions.opex_var * 1000).label('opex_var'),
         WnAbwTechAssumptions.opex_var,
         WnAbwTechAssumptions.lifespan,
         WnAbwTechAssumptions.emissions,
