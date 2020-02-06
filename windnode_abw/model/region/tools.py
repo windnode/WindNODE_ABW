@@ -326,8 +326,8 @@ def prepare_feedin_timeseries(region):
         Absolute feedin timeseries per technology (dict key) and municipality
         (DF column)
 
-    ToDo: Allow for different scenarios
     """
+    scenario = region.cfg['scn_data']['general']['name']
 
     # needed columns from scenario's mun data for feedin
     cols = ['gen_capacity_wind',
@@ -343,39 +343,52 @@ def prepare_feedin_timeseries(region):
     # mapping for capacity columns to timeseries columns
     # if repowering scenario present, use wind_fs time series
     tech_mapping = {
-        'gen_capacity_wind': 'wind_sq',
-            # ToDo: Include future scenario by using wind_fs
-            #  as soon as they are defined and implemented:
-            #'wind_sq' if reg_params['repowering_scn'] == 0 else 'wind_fs',
+        'gen_capacity_wind':
+            'wind_sq' if scenario == 'sq'
+                      else 'wind_fs',
         'gen_capacity_pv_ground': 'pv_ground',
-        'gen_capacity_hydro': 'hydro',
+        'gen_capacity_pv_roof_small': 'pv_roof_small',
+        'gen_capacity_pv_roof_large': 'pv_roof_large',
+        'gen_capacity_hydro': 'run_of_river',
     }
 
     # prepare capacities (for relative timeseries only)
     cap_per_mun = region.muns[cols].rename(columns=tech_mapping)
-    cap_per_mun['pv_roof'] = \
-        cap_per_mun['gen_capacity_pv_roof_small'] + \
-        cap_per_mun['gen_capacity_pv_roof_large']
     cap_per_mun['bio'] = \
         cap_per_mun['gen_capacity_bio'] + \
         cap_per_mun['gen_capacity_sewage_landfill_gas']
     cap_per_mun['conventional'] = \
         cap_per_mun['gen_capacity_conventional_large'] + \
         cap_per_mun['gen_capacity_conventional_small']
-    cap_per_mun.drop(columns=['gen_capacity_pv_roof_small',
-                                 'gen_capacity_pv_roof_large',
-                                 'gen_capacity_bio',
-                                 'gen_capacity_sewage_landfill_gas',
-                                 'gen_capacity_conventional_large',
-                                 'gen_capacity_conventional_small'],
-                        inplace=True)
+    cap_per_mun.drop(columns=['gen_capacity_bio',
+                              'gen_capacity_sewage_landfill_gas',
+                              'gen_capacity_conventional_large',
+                              'gen_capacity_conventional_small'],
+                     inplace=True)
+
+    # adjust feedin ts columns
+    feedin_ts = pd.concat(
+        [region.feedin_ts_init,
+         region.feedin_ts_init[['pv_roof']].rename(
+             columns={'pv_roof': 'pv_roof_small'})],
+        axis=1)
+    feedin_ts.rename(columns={'pv_roof': 'pv_roof_large',
+                              'hydro': 'run_of_river'},
+                     inplace=True)
+
+    feedin_ts.drop(
+        columns=['wind_fs' if scenario == 'sq'
+                 else 'wind_sq'
+                 ],
+        inplace=True
+    )
 
     # calculate capacity(mun)-weighted aggregated feedin timeseries for entire region:
     # 1) process relative TS
     feedin_agg = {}
     for tech in list(cap_per_mun.loc[:,
                      cap_per_mun.columns != 'conventional'].columns):
-        feedin_agg[tech] = region.feedin_ts_init[tech] * cap_per_mun[tech]
+        feedin_agg[tech] = feedin_ts[tech] * cap_per_mun[tech]
 
     # 2) process absolute TS (conventional plants)
     # do not use capacities as the full load hours of the plants differ - use
@@ -384,17 +397,13 @@ def prepare_feedin_timeseries(region):
         cap_per_mun['conventional'] /\
         region.muns[['gen_capacity_conventional_large',
                   'gen_capacity_conventional_small']].sum(axis=1)
-    feedin_agg['conventional'] = region.feedin_ts_init['conventional'] * conv_cap_per_mun
+    feedin_agg['conventional'] = feedin_ts['conventional'] * conv_cap_per_mun
 
-    # if repowering scenario present, rename wind_fs time series to wind
-    feedin_agg['wind'] = feedin_agg.pop('wind_sq')
-
-    # ToDo: Include future scenario by using wind_fs
-    #  as soon as they are defined and implemented:
-    # if reg_params['repowering_scn'] == 0:
-    #     feedin_agg['wind'] = feedin_agg.pop('wind_sq')
-    # else:
-    #     feedin_agg['wind'] = feedin_agg.pop('wind_fs')
+    # rename wind column depending on scenario
+    if scenario == 'sq':
+        feedin_agg['wind'] = feedin_agg.pop('wind_sq')
+    else:
+        feedin_agg['wind'] = feedin_agg.pop('wind_fs')
 
     return feedin_agg
 
