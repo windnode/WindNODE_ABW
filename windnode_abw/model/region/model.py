@@ -503,7 +503,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 )
 
         # demand per sector and mun
-        # TODO: Include efficiencies
         for sector in th_sectors:
             inflow_args = {
                 'nominal_value': 1,
