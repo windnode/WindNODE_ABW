@@ -588,12 +588,17 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     ),
                     inputs={commodities['natural_gas']: solph.Flow()},
                     outputs={
-                        bus_th_net_in: solph.Flow(nominal_value=chp_th_power,
-                                                  # min=gud_cfg['min_power'],
-                                                  # TODO: Replace costs
-                                                  variable_costs=1
-                                                  ),
-                        bus_el: solph.Flow(nominal_value=chp_el_power)
+                        bus_th_net_in: solph.Flow(
+                            nominal_value=chp_th_power,
+                            # min=gud_cfg['min_power'],
+                        ),
+                        bus_el: solph.Flow(
+                            nominal_value=chp_el_power,
+                            variable_costs=region.tech_assumptions_scn.loc[
+                                'pp_natural_gas_gud']['opex_var'],
+                            emissions=region.tech_assumptions_scn.loc[
+                                'pp_natural_gas_gud']['emissions']
+                        )
                     },
                     conversion_factors={
                         bus_th_net_in: chp_th_conv_fac,
@@ -612,10 +617,13 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     ),
                     inputs={commodities['natural_gas']: solph.Flow()},
                     outputs={
-                        bus_th_net_in: solph.Flow(nominal_value=chp_th_power,
-                                                  # TODO: Replace costs
-                                                  variable_costs=10
-                                                  )
+                        bus_th_net_in: solph.Flow(
+                            nominal_value=chp_th_power,
+                            variable_costs=region.tech_assumptions_scn.loc[
+                                'pp_natural_gas_boiler']['opex_var'],
+                            emissions=region.tech_assumptions_scn.loc[
+                                'pp_natural_gas_boiler']['emissions']
+                        )
                     },
                     conversion_factors={
                         bus_th_net_in: gas_boiler_cfg['efficiency']
@@ -662,7 +670,11 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
 
             outputs_el = {
                 esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]: solph.Flow(
-                    nominal_value=chp_el_power / len(mun_buses)
+                    nominal_value=chp_el_power / len(mun_buses),
+                    variable_costs=region.tech_assumptions_scn.loc[
+                        'pp_bhkw']['opex_var'] / len(mun_buses),
+                    emissions=region.tech_assumptions_scn.loc[
+                        'pp_bhkw']['emissions'] / len(mun_buses)
                 )
                 for busdata in mun_buses.itertuples()
             }
@@ -680,8 +692,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                             #              _ * bhkw_cfg['min_power'],
                             #              chp_uptimes)),
                             max=chp_uptimes,
-                            # TODO: Replace costs
-                            variable_costs=1
                         ),
                         **outputs_el
                     },
@@ -704,8 +714,10 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     outputs={
                         bus_th_net_in: solph.Flow(
                             nominal_value=chp_th_power,
-                            # TODO: Replace costs
-                            variable_costs=10
+                            variable_costs=region.tech_assumptions_scn.loc[
+                                'pp_natural_gas_boiler']['opex_var'],
+                            emissions=region.tech_assumptions_scn.loc[
+                                'pp_natural_gas_boiler']['emissions']
                         )
                     },
                     conversion_factors={
