@@ -789,8 +789,6 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     #############
     # BATTERIES #
     #############
-    # ToDo: Develop location strategy
-
     if scn_data['flexopt']['flex_bat']['enabled']['enabled'] == 1:
         for mun in region.muns.itertuples():
             mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
@@ -805,10 +803,12 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                             bus_id=busdata.Index
                         ),
                         inputs={bus: solph.Flow(
-                            **scn_data['flexopt']['flex_bat']['inflow']
+                            variable_costs=region.tech_assumptions_scn.loc[
+                                'stor_battery_large']['opex_var']
                         )},
                         outputs={bus: solph.Flow()},
                         **scn_data['flexopt']['flex_bat']['params']
+                        # Note: efficiencies are read from cfg, not tech table
                     )
                 )
 
