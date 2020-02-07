@@ -435,15 +435,16 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
         raise ValueError(msg)
 
     commodities = {}
-    # TODO: Add costs etc.
     for es in scn_data['commodities']['commodities']:
         if es not in ['el_energy', 'dist_heating']:
             bus = solph.Bus(label='b_{es}'.format(es=es))
             com = solph.Source(
                 label='{es}'.format(es=str(es)),
                 outputs={bus: solph.Flow(
-                    # TODO: replace costs
-                    variable_costs=1
+                    variable_costs=region.tech_assumptions_scn.loc[
+                        'comm_' + es]['capex'],
+                    emissions=region.tech_assumptions_scn.loc[
+                        'comm_' + es]['emissions']
                 )
                 }
             )
