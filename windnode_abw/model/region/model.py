@@ -947,7 +947,13 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 ),
                                 inputs={bus_in: solph.Flow()},
                                 outputs={bus_out: solph.Flow(
-                                    **scn_data['flexopt']['flex_cen_pth']['outflow']
+                                    # TODO: get from DB table?
+                                    nominal_value=scn_data['flexopt'][
+                                        'flex_cen_pth']['outflow']['nominal_value'],
+                                    variable_costs=region.tech_assumptions_scn.loc[
+                                        'heating_rod']['opex_var'],
+                                    emissions = region.tech_assumptions_scn.loc[
+                                        'heating_rod']['emissions']
                                 )},
                                 conversion_factors={
                                     bus_out: scn_data['flexopt']['flex_cen_pth']
