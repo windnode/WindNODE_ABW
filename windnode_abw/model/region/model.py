@@ -153,7 +153,11 @@ def create_el_model(region=None, datetime_index=None):
                     'nominal_value': 1,
                     'fixed':  True,
                     'actual_value': list((ts_df[ags] /
-                                          len(mun_buses))[datetime_index])
+                                          len(mun_buses))[datetime_index]),
+                    'variable_costs': region.tech_assumptions_scn.loc[
+                        tech]['opex_var'],
+                    'emissions': region.tech_assumptions_scn.loc[
+                        tech]['emissions']
                 }
 
                 # create node only if feedin sum is >0
