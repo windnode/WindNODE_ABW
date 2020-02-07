@@ -454,9 +454,7 @@ def import_db_data(cfg):
         WnAbwTechAssumptions.scenario,
         (WnAbwTechAssumptions.capex * 1000).label('capex'),
         (WnAbwTechAssumptions.opex_fix * 1000).label('opex_fix'),
-        # TODO: Change opex_var unit as soon as it is changed to kWh in Table
-        #(WnAbwTechAssumptions.opex_var * 1000).label('opex_var'),
-        WnAbwTechAssumptions.opex_var,
+        (WnAbwTechAssumptions.opex_var * 1000).label('opex_var'),
         WnAbwTechAssumptions.lifespan,
         WnAbwTechAssumptions.emissions,
         WnAbwTechAssumptions.sys_eff
