@@ -145,7 +145,10 @@ def create_el_model(region=None, datetime_index=None):
         # note: timeseries are distributed equally to all buses of mun
         for bus_id, busdata in mun_buses.iterrows():
             # generators
-            for tech, ts_df in region.feedin_ts.items():
+            for tech, ts_df in {t: ts for t, ts
+                                in region.feedin_ts.items()
+                                if t in scn_data[
+                    'generation']['gen_el']['technologies']}.items():
                 outflow_args = {
                     'nominal_value': 1,
                     'fixed':  True,

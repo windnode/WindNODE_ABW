@@ -41,6 +41,10 @@
 
 # electrical and heat production
 [generation]
+    [[gen_el]]
+        # technologies to be included, possible values:
+        # (pv_ground, pv_roof_small, pv_roof_large, run_of_river, bio, conventional, wind)
+        technologies = pv_ground,pv_roof_small,pv_roof_large,run_of_river,wind
     [[gen_th_dec]]
         [[[general]]]
             # filter sources for which a Source node is created
