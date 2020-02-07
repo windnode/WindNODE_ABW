@@ -860,13 +860,16 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                             sector=sector
                         )]
                         outflow_args = {
+                            # TODO: get from DB table?
                             'nominal_value': scn_data['flexopt']['flex_dec_pth']
                                              ['outflow']['nominal_value_total'] *
                                              scn_data['flexopt']['flex_dec_pth']
                                              ['technology']['share_ASHP'] /
                                              len(mun_buses),
-                            'variable_costs': scn_data['flexopt']['flex_dec_pth']
-                                              ['outflow']['variable_costs_ASHP']
+                            'variable_costs': region.tech_assumptions_scn.loc[
+                                'heating_ashp']['opex_var'],
+                            'emissions': region.tech_assumptions_scn.loc[
+                                'heating_ashp']['emissions'],
                         }
                         nodes.append(
                             solph.Transformer(
@@ -901,13 +904,16 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                             sector=sector
                         )]
                         outflow_args = {
+                            # TODO: get from DB table?
                             'nominal_value': scn_data['flexopt']['flex_dec_pth']
                                              ['outflow']['nominal_value_total'] *
                                              scn_data['flexopt']['flex_dec_pth']
                                              ['technology']['share_GSHP'] /
                                              len(mun_buses),
-                            'variable_costs': scn_data['flexopt']['flex_dec_pth']
-                                              ['outflow']['variable_costs_GSHP']
+                            'variable_costs': region.tech_assumptions_scn.loc[
+                                'heating_gshp']['opex_var'],
+                            'emissions': region.tech_assumptions_scn.loc[
+                                'heating_gshp']['emissions'],
                         }
                         nodes.append(
                             solph.Transformer(
