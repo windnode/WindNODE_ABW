@@ -815,9 +815,12 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     #################
     # POWER-TO-HEAT #
     #################
-    flex_dec_pth_enabled = True if scn_data['flexopt']['flex_dec_pth']['enabled']['enabled'] == 1 else False
-    flex_cen_pth_enabled = True if scn_data['flexopt']['flex_cen_pth']['enabled']['enabled'] == 1 else False
-    flex_hh_dsm_enabled = True if scn_data['flexopt']['dsm']['enabled']['enabled'] == 1 else False
+    flex_dec_pth_enabled = True if scn_data['flexopt']['flex_dec_pth'][
+                                       'enabled']['enabled'] == 1 else False
+    flex_cen_pth_enabled = True if scn_data['flexopt']['flex_cen_pth'][
+                                       'enabled']['enabled'] == 1 else False
+    flex_hh_dsm_enabled = True if scn_data['flexopt']['dsm']['enabled'][
+                                      'enabled'] == 1 else False
 
     if flex_dec_pth_enabled or flex_cen_pth_enabled or flex_hh_dsm_enabled:
         for mun in region.muns.itertuples():
