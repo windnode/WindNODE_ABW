@@ -248,32 +248,28 @@ def create_el_model(region=None, datetime_index=None):
         bus = buses[idx]
 
         # SEPARATE EXCESS+SHORTAGE BUSES
-        if row['v_nom'] == 110:
-            v_level = 'hv'
-            sink_inflow_args = scn_data['grid']['extgrid']['excess_el_hv']['inflow']
-            source_outflow_args = scn_data['grid']['extgrid']['shortage_el_hv']['outflow']
-        elif row['v_nom'] == 380:
-            v_level = 'ehv'
-            sink_inflow_args = scn_data['grid']['extgrid']['excess_el_ehv']['inflow']
-            source_outflow_args = scn_data['grid']['extgrid']['shortage_el_ehv']['outflow']
         nodes.append(
             solph.Sink(
                 label='excess_el_{v_level}_b{bus_id}'.format(
                     bus_id=idx,
-                    v_level=v_level
+                    v_level='hv' if row['v_nom'] == 110 else 'ehv'
                 ),
                 inputs={bus: solph.Flow(
-                    **sink_inflow_args
+                    variable_costs=region.tech_assumptions_scn.loc[
+                        'el_energy']['capex']
                 )})
         )
         nodes.append(
             solph.Source(
                 label='shortage_el_{v_level}_b{bus_id}'.format(
                     bus_id=idx,
-                    v_level=v_level
+                    v_level='hv' if row['v_nom'] == 110 else 'ehv'
                 ),
                 outputs={bus: solph.Flow(
-                    **source_outflow_args
+                    variable_costs=region.tech_assumptions_scn.loc[
+                        'el_energy']['capex'],
+                    emissions=region.tech_assumptions_scn.loc[
+                        'el_energy']['emissions']
                 )})
         )
 
