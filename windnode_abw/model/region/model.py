@@ -463,10 +463,10 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
         # sources for decentralized heat supply (1 per technology, sector, mun)
         # Caution: existing heat pumps and other el. powered heating is not supported yet!
         for sector in th_sectors:
-            for energy_source in heating_structure.itertuples():
-                energy_source_share = heating_structure[
+            for es in heating_structure.itertuples():
+                es_share = heating_structure[
                     'tech_share_{sector}'.format(
-                        sector=sector)].loc[energy_source.Index
+                        sector=sector)].loc[es.Index
                 ]
                 bus_th = buses['b_th_dec_{ags_id}_{sector}'.format(
                                 ags_id=str(mun.Index),
@@ -477,20 +477,25 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     'actual_value': list(
                         (region.demand_ts['th_{sector}'.format(
                             sector=sector)][mun.Index] *
-                         (1 - mun.dem_th_energy_dist_heat_share) * energy_source_share
+                         (1 - mun.dem_th_energy_dist_heat_share) * es_share
                          )[datetime_index]
-                    )
+                    ),
+                    'variable_costs': region.tech_assumptions_scn.loc[
+                        'heating_' + es.Index]['opex_var'],
+                    'emissions': region.tech_assumptions_scn.loc[
+                        'heating_' + es.Index]['emissions']
                 }
 
-                if energy_source_share > 0:
+                # TODO: Move cond up
+                if es_share > 0:
                     nodes.append(
                         solph.Transformer(
                             label='gen_th_dec_{ags_id}_{sector}_{src}'.format(
                                 ags_id=str(mun.Index),
                                 sector=sector,
-                                src=str(energy_source.Index)
+                                src=str(es.Index)
                             ),
-                            inputs={commodities[energy_source.Index]: solph.Flow()},
+                            inputs={commodities[es.Index]: solph.Flow()},
                             outputs={bus_th: solph.Flow(**outflow_args)},
                             # ToDo: Replace efficiency
                             conversion_factors={bus_th: 1.}
