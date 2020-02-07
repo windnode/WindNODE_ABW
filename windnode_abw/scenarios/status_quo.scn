@@ -97,7 +97,7 @@
     # TODO: Replace with realistic params
     [[th_cen_storage]]
         [[[enabled]]]
-            enabled = 1
+            enabled = 0
         [[[inflow]]]
             nominal_value = 30
             variable_costs = 1
@@ -109,7 +109,7 @@
             inflow_conversion_factor = 0.95
             outflow_conversion_factor = 0.95
 
-# regional and external grid
+# regional and external el. grid
 [grid]
     # regional lines
     [[lines]]
@@ -134,19 +134,7 @@
                 # (rel. to nominal power)
                 max_usable_capacity = 0.1
             [[[[outflow]]]]
-                variable_costs = 1
-        [[[excess_el_hv]]]
-            [[[[inflow]]]]
-                variable_costs = -50
-        [[[excess_el_ehv]]]
-            [[[[inflow]]]]
-                variable_costs = -50
-        [[[shortage_el_hv]]]
-            [[[[outflow]]]]
-                variable_costs = 200
-        [[[shortage_el_ehv]]]
-            [[[[outflow]]]]
-                variable_costs = 200
+                variable_costs = 100
 
 # flexibility options
 [flexopt]
@@ -154,13 +142,13 @@
     [[flex_bat]]
         [[[enabled]]]
             enabled = 0
-        [[[inflow]]]
-            variable_costs = 10
         [[[params]]]
             nominal_storage_capacity = 1
-            loss_rate = 0.01
-            inflow_conversion_factor = 1
-            outflow_conversion_factor = 0.8
+            # following params according to DEA stor, S.180
+            # conversion factors AC calculated via roundtrip AC/DC
+            loss_rate = 0.0042
+            inflow_conversion_factor = 0.94
+            outflow_conversion_factor = 0.93
 
     # decentral PtH (heat pumps, per mun)
     [[flex_dec_pth]]
@@ -189,7 +177,6 @@
             enabled = 0
         [[[outflow]]]
             nominal_value = 1000
-            variable_costs = 500
         [[[params]]]
             conversion_factor = 0.95
 
