@@ -466,28 +466,27 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             for es in heating_structure.itertuples():
                 es_share = heating_structure[
                     'tech_share_{sector}'.format(
-                        sector=sector)].loc[es.Index
-                ]
-                bus_th = buses['b_th_dec_{ags_id}_{sector}'.format(
-                                ags_id=str(mun.Index),
-                                sector=sector)]
-                outflow_args = {
-                    'nominal_value': 1,
-                    'fixed': True,
-                    'actual_value': list(
-                        (region.demand_ts['th_{sector}'.format(
-                            sector=sector)][mun.Index] *
-                         (1 - mun.dem_th_energy_dist_heat_share) * es_share
-                         )[datetime_index]
-                    ),
-                    'variable_costs': region.tech_assumptions_scn.loc[
-                        'heating_' + es.Index]['opex_var'],
-                    'emissions': region.tech_assumptions_scn.loc[
-                        'heating_' + es.Index]['emissions']
-                }
+                        sector=sector)].loc[es.Index]
 
-                # TODO: Move cond up
                 if es_share > 0:
+                    bus_th = buses['b_th_dec_{ags_id}_{sector}'.format(
+                                    ags_id=str(mun.Index),
+                                    sector=sector)]
+                    outflow_args = {
+                        'nominal_value': 1,
+                        'fixed': True,
+                        'actual_value': list(
+                            (region.demand_ts['th_{sector}'.format(
+                                sector=sector)][mun.Index] *
+                             (1 - mun.dem_th_energy_dist_heat_share) * es_share
+                             )[datetime_index]
+                        ),
+                        'variable_costs': region.tech_assumptions_scn.loc[
+                            'heating_' + es.Index]['opex_var'],
+                        'emissions': region.tech_assumptions_scn.loc[
+                            'heating_' + es.Index]['emissions']
+                    }
+
                     nodes.append(
                         solph.Transformer(
                             label='gen_th_dec_{ags_id}_{sector}_{src}'.format(
