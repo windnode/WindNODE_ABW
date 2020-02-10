@@ -544,8 +544,9 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             [region.demand_ts['th_{sector}'.format(
                 sector=sector)][mun.Index]
              for sector in th_sectors]
-        ).max() * mun.dem_th_energy_dist_heat_share / scn_data['generation'][
-                    'gen_th_cen']['network']['efficiency']
+        ).max() * mun.dem_th_energy_dist_heat_share / \
+                       region.tech_assumptions_scn.loc[
+                           'district_heating']['sys_eff']
 
         # get gas boiler config
         gas_boiler_cfg = scn_data['generation']['gen_th_cen']['gas_boiler']
@@ -561,8 +562,10 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     variable_costs=1
                 )
                 },
-                conversion_factors={bus_th_net_out: scn_data['generation'][
-                    'gen_th_cen']['network']['efficiency']}
+                conversion_factors={
+                    bus_th_net_out: region.tech_assumptions_scn.loc[
+                        'district_heating']['sys_eff']
+                }
             )
         )
 
@@ -624,7 +627,8 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                         )
                     },
                     conversion_factors={
-                        bus_th_net_in: gas_boiler_cfg['efficiency']
+                        bus_th_net_in: region.tech_assumptions_scn.loc[
+                        'pp_natural_gas_boiler']['sys_eff']
                     }
                 )
             )
@@ -719,7 +723,8 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                         )
                     },
                     conversion_factors={
-                        bus_th_net_in: gas_boiler_cfg['efficiency']
+                        bus_th_net_in: region.tech_assumptions_scn.loc[
+                        'pp_natural_gas_boiler']['sys_eff']
                     }
                 )
             )
@@ -954,8 +959,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                         'heating_rod']['emissions']
                                 )},
                                 conversion_factors={
-                                    bus_out: scn_data['flexopt']['flex_cen_pth']
-                                                     ['params']['conversion_factor']
+                                    bus_out: region.tech_assumptions_scn.loc[
+                                        'heating_rod']['sys_eff']
                                 }
                             )
                         )

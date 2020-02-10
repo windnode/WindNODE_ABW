@@ -75,8 +75,6 @@
         [[[gas_boiler]]]
             # nominal th. power in relation to peak load
             nom_th_power_rel_to_pl = 1.0
-            # efficiency
-            efficiency = 0.9
 
         [[[gud]]]
             # nominal power
@@ -84,12 +82,7 @@
             # minimal th/el power in relation to nominal (currently unused)
             min_power = 0.5
             # efficiency
-            efficiency = 0.9
-            # Stromkennzahl GuD (P/Q ratio)
-            pq_coeff = 1
-
-        [[[network]]]
-            efficiency = 0.8
+            efficiency_full_cond = 0.5
 
 # storages
 [storage]
