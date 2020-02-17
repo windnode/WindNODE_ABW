@@ -77,12 +77,14 @@
             nom_th_power_rel_to_pl = 1.0
 
         [[[gud]]]
-            # nominal power
+            # nominal thermal power
             nom_th_power = 60
-            # minimal th/el power in relation to nominal (currently unused)
-            min_power = 0.5
-            # efficiency
-            efficiency_full_cond = 0.5
+            # cb-coefficient/back-pressure coefficient (Stromkennzahl/P-Q ratio)
+            cb_coeff = 1.2
+            # cv-coefficient/beta (Stromverlustkenziffer)
+            cv_coeff = 0.125
+            # el. efficiency (full condensation)
+            efficiency_full_cond = 0.47
 
 # storages
 [storage]
