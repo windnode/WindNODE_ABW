@@ -629,7 +629,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             )
 
             # gas boiler
-            chp_th_power = round(th_peak_load *
+            chp_th_power = round(th_cen_peak_load *
                                  gas_boiler_cfg['nom_th_power_rel_to_pl'])
             nodes.append(
                 solph.Transformer(
@@ -684,7 +684,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             )
             chp_eff = bhkw_cfg['efficiency']
             chp_pq_coeff = bhkw_cfg['pq_coeff']
-            chp_th_power = round(th_peak_load * bhkw_cfg['nom_th_power_rel_to_pl'])
+            chp_th_power = round(th_cen_peak_load * bhkw_cfg['nom_th_power_rel_to_pl'])
             chp_el_power = chp_th_power * chp_pq_coeff
             chp_th_conv_fac = chp_eff * 1 / (1 + chp_pq_coeff)
             chp_el_conv_fac = chp_eff * chp_pq_coeff / (1 + chp_pq_coeff) /\
@@ -725,7 +725,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             )
 
             # gas boiler
-            chp_th_power = round(th_peak_load *
+            chp_th_power = round(th_cen_peak_load *
                                  gas_boiler_cfg['nom_th_power_rel_to_pl'])
             nodes.append(
                 solph.Transformer(
