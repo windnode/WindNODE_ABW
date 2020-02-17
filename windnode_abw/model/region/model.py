@@ -591,13 +591,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             # max. th. efficiency at max. heat extraction
             th_eff_max_ex = el_eff_full_cond / (cb_coeff + cv_coeff)
             # max. el. efficiency at max. heat extraction
-            # 0.3019
             el_eff_max_ex = cb_coeff * th_eff_max_ex
-
-            # chp_el_power = chp_th_power * chp_cb_coeff
-            # chp_th_conv_fac = region.tech_assumptions_scn.loc[
-            #     'pp_natural_gas_gud']['sys_eff']
-            # chp_el_conv_fac = chp_th_conv_fac * chp_cb_coeff
             bus_el = esys_nodes['b_el_27977']
 
             # GuD
