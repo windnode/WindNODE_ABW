@@ -542,7 +542,8 @@ def rescale_heating_structure(cfg, heating_structure):
     # check sums
     if not (heating_structure.groupby(
             ['ags_id',
-             'scenario']).agg('sum', axis=0) == 1).all().all() == True:
+             'scenario']).agg('sum', axis=0).round(3) == 1).\
+                   all().all() == True:
         msg = 'Sums of heating structure shares '\
               'are not 1. Check your data!'
         logger.error(msg)
