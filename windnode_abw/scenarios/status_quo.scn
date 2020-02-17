@@ -63,8 +63,6 @@
             nom_th_power_rel_to_pl = 0.17
             # minimal th/el power in relation to nominal (currently unused)
             min_power = 0.7
-            # efficiency
-            efficiency = 0.9
             # Stromkennzahl BHKW (P/Q ratio)
             pq_coeff = 0.85
             # months of BHKW maintenance (jan=1)
