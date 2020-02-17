@@ -539,14 +539,23 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
         bus_th_net_in = buses['b_th_cen_in_{ags_id}'.format(ags_id=str(mun.Index))]
         bus_th_net_out = buses['b_th_cen_out_{ags_id}'.format(ags_id=str(mun.Index))]
 
-        # get thermal peak load (consider network losses)
-        th_peak_load = sum(
+        #
+        scaling_factor = mun.dem_th_energy_dist_heat_share / \
+                         region.tech_assumptions_scn.loc[
+                             'district_heating']['sys_eff']
+
+        # get annual thermal peak load (consider network losses)
+        th_cen_peak_load = sum(
             [region.demand_ts['th_{sector}'.format(
                 sector=sector)][mun.Index]
              for sector in th_sectors]
-        ).max() * mun.dem_th_energy_dist_heat_share / \
-                       region.tech_assumptions_scn.loc[
-                           'district_heating']['sys_eff']
+        ).max() * scaling_factor
+        # get sum of thermal demand for time period
+        th_cen_demand = sum(
+            [region.demand_ts['th_{sector}'.format(
+                sector=sector)][mun.Index][datetime_index]
+             for sector in th_sectors]
+        ).sum() * scaling_factor
 
         # get gas boiler config
         gas_boiler_cfg = scn_data['generation']['gen_th_cen']['gas_boiler']
@@ -571,30 +580,44 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
 
         # Dessau
         if mun.Index == 15001000:
+            # Extraction turbine docs:
+            # https://oemof.readthedocs.io/en/stable/oemof_solph.html#extractionturbinechp-component
 
             gud_cfg = scn_data['generation']['gen_th_cen']['gud']
-            chp_eff = gud_cfg['efficiency']
-            chp_pq_coeff = gud_cfg['pq_coeff']
-            chp_th_power = gud_cfg['nom_th_power']
-            chp_el_power = chp_th_power * chp_pq_coeff
-            chp_th_conv_fac = chp_eff * 1 / (1 + chp_pq_coeff)
-            chp_el_conv_fac = chp_eff * chp_pq_coeff / (1 + chp_pq_coeff)
+            cb_coeff = gud_cfg['cb_coeff']
+            cv_coeff = gud_cfg['cv_coeff']
+            el_eff_full_cond = gud_cfg['efficiency_full_cond']
+            nom_power = gud_cfg['nom_power']
+            # max. th. efficiency at max. heat extraction
+            th_eff_max_ex = el_eff_full_cond / (cb_coeff + cv_coeff)
+            # max. el. efficiency at max. heat extraction
+            # 0.3019
+            el_eff_max_ex = cb_coeff * th_eff_max_ex
+
+            # chp_el_power = chp_th_power * chp_cb_coeff
+            # chp_th_conv_fac = region.tech_assumptions_scn.loc[
+            #     'pp_natural_gas_gud']['sys_eff']
+            # chp_el_conv_fac = chp_th_conv_fac * chp_cb_coeff
             bus_el = esys_nodes['b_el_27977']
 
             # GuD
             nodes.append(
-                solph.Transformer(
+                solph.components.ExtractionTurbineCHP(
                     label='gen_th_cen_{ags_id}_gud'.format(
                         ags_id=str(mun.Index)
                     ),
-                    inputs={commodities['natural_gas']: solph.Flow()},
+                    inputs={commodities['natural_gas']: solph.Flow(
+                        # nom. power gas derived from nom. th. power and
+                        # max. th. efficiency
+                        nominal_value=nom_power / th_eff_max_ex
+                    )},
                     outputs={
                         bus_th_net_in: solph.Flow(
-                            nominal_value=chp_th_power,
-                            # min=gud_cfg['min_power'],
+                            nominal_value=nom_power,
+                            # provide at least 50% of the th. energy demand
+                            summed_min=th_cen_demand / nom_power / 2
                         ),
                         bus_el: solph.Flow(
-                            nominal_value=chp_el_power,
                             variable_costs=region.tech_assumptions_scn.loc[
                                 'pp_natural_gas_gud']['opex_var'],
                             emissions=region.tech_assumptions_scn.loc[
@@ -602,9 +625,12 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                         )
                     },
                     conversion_factors={
-                        bus_th_net_in: chp_th_conv_fac,
-                        bus_el: chp_el_conv_fac
+                        bus_th_net_in: th_eff_max_ex,
+                        bus_el: el_eff_max_ex
                     },
+                    conversion_factor_full_condensation={
+                        bus_el: el_eff_full_cond
+                    }
                 )
             )
 
