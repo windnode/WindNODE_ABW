@@ -587,7 +587,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             cb_coeff = gud_cfg['cb_coeff']
             cv_coeff = gud_cfg['cv_coeff']
             el_eff_full_cond = gud_cfg['efficiency_full_cond']
-            nom_power = gud_cfg['nom_power']
+            nom_th_power = gud_cfg['nom_th_power']
             # max. th. efficiency at max. heat extraction
             th_eff_max_ex = el_eff_full_cond / (cb_coeff + cv_coeff)
             # max. el. efficiency at max. heat extraction
@@ -603,13 +603,13 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     inputs={commodities['natural_gas']: solph.Flow(
                         # nom. power gas derived from nom. th. power and
                         # max. th. efficiency
-                        nominal_value=nom_power / th_eff_max_ex
+                        nominal_value=nom_th_power / th_eff_max_ex
                     )},
                     outputs={
                         bus_th_net_in: solph.Flow(
-                            nominal_value=nom_power,
+                            nominal_value=nom_th_power,
                             # provide at least 50% of the th. energy demand
-                            summed_min=th_cen_demand / nom_power / 2
+                            summed_min=th_cen_demand / nom_th_power / 2
                         ),
                         bus_el: solph.Flow(
                             variable_costs=region.tech_assumptions_scn.loc[
