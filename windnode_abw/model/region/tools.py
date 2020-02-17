@@ -537,6 +537,7 @@ def rescale_heating_structure(cfg, heating_structure):
     Based upon min. share threshold, energy sources are neglected in heat
     production. Therefore, considered sources are scaled up by weight.
     """
+    rescale = False
     sources_cfg = cfg['scn_data']['generation']['gen_th_dec']['general']
 
     # check sums
@@ -554,6 +555,7 @@ def rescale_heating_structure(cfg, heating_structure):
         heating_structure = heating_structure[
             heating_structure.index.get_level_values(
                 'energy_source').isin(sources_cfg['sources'])]
+        rescale = True
 
     # exclude sources with a share below threshold
     if sources_cfg['source_min_share'] > 0:
@@ -561,14 +563,14 @@ def rescale_heating_structure(cfg, heating_structure):
         heating_structure = heating_structure[
             heating_structure > sources_cfg['source_min_share']
         ].fillna(0)
-        # calculate scale factors
+        rescale = True
+
+    # calculate scale factors
+    if rescale:
         source_scale_factor = 1 / heating_structure.groupby(
             ['ags_id', 'scenario']).agg('sum', axis=0)
         # apply
         heating_structure = heating_structure * source_scale_factor
-        # delete sources with no share
-        heating_structure = heating_structure[
-            heating_structure.sum(axis=1) > 0]
 
     return heating_structure
 
