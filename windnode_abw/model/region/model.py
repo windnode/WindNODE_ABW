@@ -404,18 +404,17 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
 
     # buses for district heating (Fernwärme)
     # (1 per mun)
-    # TODO: Replace dist heat share by new param table
-    for mun in region.muns[region.muns.dem_th_energy_dist_heat_share > 0].\
-            itertuples():
+    for ags, _ in region.dist_heating_share_scn[region.dist_heating_share_scn > 0].\
+            iteritems():
         # heating network bus for feedin (to grid)
         bus = solph.Bus(label='b_th_cen_in_{ags_id}'.format(
-            ags_id=str(mun.Index))
+            ags_id=str(ags))
         )
         buses[bus.label] = bus
         nodes.append(bus)
         # heating network bus for output (from grid)
         bus = solph.Bus(label='b_th_cen_out_{ags_id}'.format(
-            ags_id=str(mun.Index))
+            ags_id=str(ags))
         )
         buses[bus.label] = bus
         nodes.append(bus)
@@ -427,7 +426,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     # except for el. energy and ambient_heat (el. bus is used)
 
     # make sure all sources have data in heating structure
-    if not all([_ in region.heating_structure.index.get_level_values('energy_source').unique()
+    if not all([_ in region.heating_structure_dec.index.get_level_values('energy_source').unique()
                 for _ in scn_data['commodities']['commodities']]):
         msg = 'You have invalid commodities in your config! (at ' \
               'least one is not contained in heating structure)'
@@ -442,9 +441,9 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 label='{es}'.format(es=str(es)),
                 outputs={bus: solph.Flow(
                     variable_costs=region.tech_assumptions_scn.loc[
-                        'comm_' + es]['capex'],
+                        'comm_' + es]['capex'] if es != 'solar' else 0,
                     emissions=region.tech_assumptions_scn.loc[
-                        'comm_' + es]['emissions']
+                        'comm_' + es]['emissions']  if es != 'solar' else 0
                 )
                 }
             )
@@ -454,17 +453,18 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     #############################
     # DECENTRALIZED HEAT SUPPLY #
     #############################
-    for mun in region.muns.itertuples():
 
+    for mun in region.muns.itertuples():
+        dec_sources = scn_data['generation']['gen_th_dec']['general']['sources']
         # load heating structure for current scenario
-        heating_structure = region.heating_structure_scn.xs(
-            mun.Index, level='ags_id')
+        heating_structure_dec = region.heating_structure_dec_scn.loc[
+            mun.Index].filter(items=dec_sources, axis=0)
+        mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
         # sources for decentralized heat supply (1 per technology, sector, mun)
-        # Caution: existing heat pumps and other el. powered heating is not supported yet!
         for sector in th_sectors:
-            for es in heating_structure.itertuples():
-                es_share = heating_structure[
+            for es in heating_structure_dec.itertuples():
+                es_share = heating_structure_dec[
                     'tech_share_{sector}'.format(
                         sector=sector)].loc[es.Index]
 
@@ -478,14 +478,32 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                         'actual_value': list(
                             (region.demand_ts['th_{sector}'.format(
                                 sector=sector)][mun.Index] *
-                             (1 - mun.dem_th_energy_dist_heat_share) * es_share
+                             (1 - region.dist_heating_share_scn.loc[mun.Index]) * es_share
                              )[datetime_index]
-                        ),
-                        'variable_costs': region.tech_assumptions_scn.loc[
-                            'heating_' + es.Index]['opex_var'],
-                        'emissions': region.tech_assumptions_scn.loc[
-                            'heating_' + es.Index]['emissions']
+                        )
                     }
+
+                    # TODO: Revise solar
+                    if es.Index != 'el_energy':
+                        inputs = {commodities[es.Index]: solph.Flow()}
+                        outflow_args['variable_costs'] = region.tech_assumptions_scn.loc[
+                            'heating_' + es.Index]['opex_var']
+                        outflow_args['emissions'] = region.tech_assumptions_scn.loc[
+                            'heating_' + es.Index]['emissions']
+                        conversion_factors = {
+                            bus_th: region.tech_assumptions_scn.loc[
+                                'heating_' + es.Index]['sys_eff']
+                            }
+                    else:
+                        inputs = {
+                            esys_nodes['b_el_{bus_id}'.format(
+                                bus_id=busdata.Index)]: solph.Flow()
+                            for busdata in mun_buses.itertuples()
+                        }
+                        outflow_args['variable_costs'] = 0
+                        outflow_args['emissions'] = 0
+                        # TODO: REVISE
+                        conversion_factors = {bus_th: 1}
 
                     nodes.append(
                         solph.Transformer(
@@ -494,13 +512,11 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                                 sector=sector,
                                 src=str(es.Index)
                             ),
-                            inputs={commodities[es.Index]: solph.Flow()},
+                            inputs=inputs,
                             outputs={bus_th: solph.Flow(**outflow_args)},
-                            # ToDo: Replace efficiency
-                            conversion_factors={bus_th: 1.}
+                            conversion_factors=conversion_factors
                         )
                     )
-                )
 
         # demand per sector and mun
         for sector in th_sectors:
@@ -510,7 +526,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 'actual_value': list(
                     (region.demand_ts['th_{sector}'.format(
                         sector=sector)][mun.Index] *
-                     (1 - mun.dem_th_energy_dist_heat_share)
+                     (1 - region.dist_heating_share_scn.loc[mun.Index])
                      )[datetime_index]
                 )
             }
@@ -533,27 +549,28 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     # DISTRICT HEATING #
     ####################
     # only add if there's district heating in mun
-    for mun in region.muns[region.muns.dem_th_energy_dist_heat_share > 0].itertuples():
+    for ags, dist_heating_share in region.dist_heating_share_scn[
+        region.dist_heating_share_scn > 0].iteritems():
 
-        mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
-        bus_th_net_in = buses['b_th_cen_in_{ags_id}'.format(ags_id=str(mun.Index))]
-        bus_th_net_out = buses['b_th_cen_out_{ags_id}'.format(ags_id=str(mun.Index))]
+        mun_buses = region.buses.loc[region.subst.loc[region.muns.loc[ags].subst_id].bus_id]
+        bus_th_net_in = buses['b_th_cen_in_{ags_id}'.format(ags_id=str(ags))]
+        bus_th_net_out = buses['b_th_cen_out_{ags_id}'.format(ags_id=str(ags))]
 
         #
-        scaling_factor = mun.dem_th_energy_dist_heat_share / \
+        scaling_factor = dist_heating_share / \
                          region.tech_assumptions_scn.loc[
                              'district_heating']['sys_eff']
 
         # get annual thermal peak load (consider network losses)
         th_cen_peak_load = sum(
             [region.demand_ts['th_{sector}'.format(
-                sector=sector)][mun.Index]
+                sector=sector)][ags]
              for sector in th_sectors]
         ).max() * scaling_factor
         # get sum of thermal demand for time period
         th_cen_demand = sum(
             [region.demand_ts['th_{sector}'.format(
-                sector=sector)][mun.Index][datetime_index]
+                sector=sector)][ags][datetime_index]
              for sector in th_sectors]
         ).sum() * scaling_factor
 
@@ -564,7 +581,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
         nodes.append(
             solph.Transformer(
                 label='network_th_cen_{ags_id}'.format(
-                    ags_id=str(mun.Index)
+                    ags_id=str(ags)
                 ),
                 inputs={bus_th_net_in: solph.Flow()},
                 outputs={bus_th_net_out: solph.Flow(
@@ -579,7 +596,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
         )
 
         # Dessau
-        if mun.Index == 15001000:
+        if ags == 15001000:
             # Extraction turbine docs:
             # https://oemof.readthedocs.io/en/stable/oemof_solph.html#extractionturbinechp-component
 
@@ -598,7 +615,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             nodes.append(
                 solph.components.ExtractionTurbineCHP(
                     label='gen_th_cen_{ags_id}_gud'.format(
-                        ags_id=str(mun.Index)
+                        ags_id=str(ags)
                     ),
                     inputs={commodities['natural_gas']: solph.Flow(
                         # nom. power gas derived from nom. th. power and
@@ -634,7 +651,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             nodes.append(
                 solph.Transformer(
                     label='gen_th_cen_{ags_id}_gas_boiler'.format(
-                        ags_id=str(mun.Index)
+                        ags_id=str(ags)
                     ),
                     inputs={commodities['natural_gas']: solph.Flow()},
                     outputs={
@@ -658,7 +675,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 nodes.append(
                     solph.components.GenericStorage(
                         label='stor_th_cen_{ags_id}'.format(
-                            ags_id=str(mun.Index),
+                            ags_id=str(ags),
                         ),
                         inputs={bus_th_net_in: solph.Flow(
                             **scn_data['storage']['th_cen_storage']['inflow']
@@ -672,7 +689,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
 
         # Bitterfeld-Wolfen, Köthen, Wittenberg
         # Units: CHP (BHKW) (base) + gas boiler (peak)
-        if mun.Index in [15082015, 15091375, 15082180]:
+        if ags in [15082015, 15091375, 15082180]:
 
             # CHP (BHKW)
             # TODO. Replace efficiency by data from db table?
@@ -709,7 +726,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             nodes.append(
                 solph.Transformer(
                     label='gen_th_cen_{ags_id}_bhkw'.format(
-                        ags_id=str(mun.Index)
+                        ags_id=str(ags)
                     ),
                     inputs={commodities['natural_gas']: solph.Flow()},
                     outputs={
@@ -736,7 +753,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             nodes.append(
                 solph.Transformer(
                     label='gen_th_cen_{ags_id}_gas_boiler'.format(
-                        ags_id=str(mun.Index)
+                        ags_id=str(ags)
                     ),
                     inputs={commodities['natural_gas']: solph.Flow()},
                     outputs={
@@ -763,19 +780,19 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 'fixed': True,
                 'actual_value': list(
                     (region.demand_ts['th_{sector}'.format(
-                        sector=sector)][mun.Index] *
-                     mun.dem_th_energy_dist_heat_share
+                        sector=sector)][ags] *
+                     dist_heating_share
                      )[datetime_index]
                 )
             }
 
             nodes.append(
                 solph.Sink(label='dem_th_cen_{ags_id}_{sector}'.format(
-                    ags_id=str(mun.Index),
+                    ags_id=str(ags),
                     sector=sector
                 ),
                     inputs={buses['b_th_cen_out_{ags_id}'.format(
-                        ags_id=str(mun.Index))]: solph.Flow(**inflow_args)})
+                        ags_id=str(ags))]: solph.Flow(**inflow_args)})
             )
 
     return nodes

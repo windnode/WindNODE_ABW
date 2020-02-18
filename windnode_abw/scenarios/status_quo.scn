@@ -21,7 +21,7 @@
 # commodities
 [commodities]
     # comm. to be created
-    commodities = fuel_oil,natural_gas,wood,coal
+    commodities = fuel_oil,natural_gas,wood,coal,solar
 
 [economics]
     wacc = 0.06
@@ -47,15 +47,15 @@
         technologies = pv_ground,pv_roof_small,pv_roof_large,run_of_river,wind
     [[gen_th_dec]]
         [[[general]]]
-            # filter sources for which a Source node is created
-            # district heating must not be part of this list
-            # (leave empty for all sources)
-            # Note: existing heat pumps and other el. powered
-            # heating is not supported yet
-            sources = fuel_oil,natural_gas,wood,coal
+            # decentral th. sources for which a Source node is created
+            # possible values:
+            # (coal, el_energy, fuel_oil, natural_gas, solar, wood)
+            # DO NOT MODIFY
+            sources = coal,el_energy,fuel_oil,natural_gas,solar,wood
             
             # min share of energy source to be considered
-            source_min_share = 0.01
+            # set to 0 to include all data
+            source_min_share = 0
 
     [[gen_th_cen]]
         [[[bhkw]]]

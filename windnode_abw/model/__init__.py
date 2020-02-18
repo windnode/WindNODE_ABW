@@ -8,7 +8,7 @@ from windnode_abw.tools import config
 from windnode_abw.tools.data_io import import_db_data
 from windnode_abw.model.region.tools import \
     prepare_feedin_timeseries, prepare_demand_timeseries, \
-    prepare_temp_timeseries, rescale_heating_structure, \
+    prepare_temp_timeseries, preprocess_heating_structure, \
     calc_annuity
 
 
@@ -52,9 +52,9 @@ class Region:
     _temp_ts : :obj:`dict` of :pandas:`pandas.DataFrame`
         Temperature timeseries (air and soil -> dict key) per municipality in
         degree Celsius
-    _heating_structure : :pandas:`pandas.DataFrame`
-        Heating structure of thermal loads per municpality, sector and
-        energy source
+    _heating_structure_dec : :pandas:`pandas.DataFrame`
+        Decentral heating structure of thermal loads per scenario,
+        municipality, sector and energy source
     """
     def __init__(self, **kwargs):
         self._name = 'ABW region'
@@ -77,7 +77,8 @@ class Region:
         self._temp_ts_init = kwargs.get('temp_ts_init', None)
         self._temp_ts = prepare_temp_timeseries(self)
 
-        self._heating_structure = rescale_heating_structure(
+        self._heating_structure_dec,\
+        self._dist_heating_share = preprocess_heating_structure(
             cfg=self._cfg,
             heating_structure=kwargs.get('heating_structure', None)
         )
@@ -182,13 +183,27 @@ class Region:
         return self._temp_ts
 
     @property
-    def heating_structure(self):
-        return self._heating_structure
+    def heating_structure_dec(self):
+        """Return heating structure (relative shares) for all scenarios"""
+        return self._heating_structure_dec
 
     @property
-    def heating_structure_scn(self):
-        """Return heating structure for current scenario set in cfg"""
-        return self._heating_structure.xs(
+    def heating_structure_dec_scn(self):
+        """Return heating structure (relative shares) for current scenario set
+        in cfg INCLUDING district heating
+
+        The shares of energy sources sum up to 1 per municipality
+        """
+        return self._heating_structure_dec.xs(
+            self._cfg['scn_data']['general']['name'],
+            level='scenario'
+        )
+
+    @property
+    def dist_heating_share_scn(self):
+        """Return district heating share per municipality for current scenario
+        set in cfg"""
+        return self._dist_heating_share.xs(
             self._cfg['scn_data']['general']['name'],
             level='scenario'
         )

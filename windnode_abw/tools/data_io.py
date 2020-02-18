@@ -237,8 +237,7 @@ def import_db_data(cfg):
         WnAbwMundata.dem_el_energy_ind,
 
         WnAbwMundata.dem_th_energy_hh,
-        WnAbwMundata.dem_th_energy_rca,
-        WnAbwMundata.dem_th_energy_dist_heat_share
+        WnAbwMundata.dem_th_energy_rca
     ).join(WnAbwMundata).join(WnAbwRelSubstIdAgsId).order_by(WnAbwMun.ags)
 
     muns = pd.read_sql_query(muns_query.statement,

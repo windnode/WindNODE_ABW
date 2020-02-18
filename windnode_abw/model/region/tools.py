@@ -531,7 +531,7 @@ def calc_dsm_cap_down(data, ags, mode=None):
     return capacity_down
 
 
-def rescale_heating_structure(cfg, heating_structure):
+def preprocess_heating_structure(cfg, heating_structure):
     """Recalculate the sources' share in the heating
 
     Based upon min. share threshold, energy sources are neglected in heat
@@ -550,12 +550,12 @@ def rescale_heating_structure(cfg, heating_structure):
         logger.error(msg)
         raise ValueError(msg)
 
-    # filter for requested sources in config
-    if sources_cfg['sources'] != '':
-        heating_structure = heating_structure[
-            heating_structure.index.get_level_values(
-                'energy_source').isin(sources_cfg['sources'])]
-        rescale = True
+    # # filter for requested sources in config
+    # if sources_cfg['sources'] != '':
+    #     heating_structure = heating_structure[
+    #         heating_structure.index.get_level_values(
+    #             'energy_source').isin(sources_cfg['sources'])]
+    #     rescale = True
 
     # exclude sources with a share below threshold
     if sources_cfg['source_min_share'] > 0:
@@ -572,7 +572,21 @@ def rescale_heating_structure(cfg, heating_structure):
         # apply
         heating_structure = heating_structure * source_scale_factor
 
-    return heating_structure
+    # rescale to relative values exluding distrinct heating
+    heating_structure_wo_dist_heating = heating_structure.loc[
+        heating_structure.index.get_level_values(1) != 'dist_heating']
+    source_scale_factor = 1 / heating_structure_wo_dist_heating.groupby(
+        ['ags_id', 'scenario']).agg('sum', axis=0)
+    heating_structure_dec = heating_structure_wo_dist_heating *\
+                            source_scale_factor
+
+    # extract district heating share (use RCA value only as
+    dist_heating_share = heating_structure.xs(
+            'dist_heating',
+            level='energy_source'
+    )['tech_share_rca']
+
+    return heating_structure_dec, dist_heating_share
 
 
 def create_maintenance_timeseries(datetime_index, months, duration):
