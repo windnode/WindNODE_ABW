@@ -623,8 +623,9 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     outputs={
                         bus_th_net_in: solph.Flow(
                             nominal_value=nom_th_power,
-                            # provide at least 50% of the th. energy demand
-                            summed_min=th_cen_demand / nom_th_power / 2
+                            # provide at least X% of the th. energy demand
+                            summed_min=th_cen_demand / nom_th_power *
+                                       gud_cfg['min_th_energy_share']
                         ),
                         bus_el: solph.Flow(
                             variable_costs=region.tech_assumptions_scn.loc[
