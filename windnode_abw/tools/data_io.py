@@ -456,7 +456,7 @@ def import_db_data(cfg):
         (WnAbwTechAssumptions.opex_var * 1000).label('opex_var'),
         WnAbwTechAssumptions.lifespan,
         WnAbwTechAssumptions.emissions,
-        WnAbwTechAssumptions.sys_eff
+        (WnAbwTechAssumptions.sys_eff / 100).label('sys_eff')
     )
     data['tech_assumptions'] = pd.read_sql_query(
         tech_assumptions_query.statement,
