@@ -584,7 +584,7 @@ def preprocess_heating_structure(cfg, heating_structure):
     dist_heating_share = heating_structure.xs(
             'dist_heating',
             level='energy_source'
-    )['tech_share_rca']
+    )['rca']
 
     return heating_structure_dec, dist_heating_share
 

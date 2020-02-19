@@ -464,9 +464,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
         # sources for decentralized heat supply (1 per technology, sector, mun)
         for sector in th_sectors:
             for es in heating_structure_dec.itertuples():
-                es_share = heating_structure_dec[
-                    'tech_share_{sector}'.format(
-                        sector=sector)].loc[es.Index]
+                es_share = heating_structure_dec[sector].loc[es.Index]
 
                 if es_share > 0:
                     bus_th = buses['b_th_dec_{ags_id}_{sector}'.format(
