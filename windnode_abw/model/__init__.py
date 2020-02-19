@@ -55,6 +55,10 @@ class Region:
     _heating_structure_dec : :pandas:`pandas.DataFrame`
         Decentral heating structure of thermal loads per scenario,
         municipality, sector and energy source
+        Unlike the heating structure in DB table
+        :class:`WnAbwHeatingStructure <windnode.config.db_models.WnAbwHeatingStructure>`
+        which includes district heating,
+        the shares of energy sources sum up to 1 per municipality.
     _tech_assumptions : :pandas:`pandas.DataFrame`
         Technical assumptions (costs, lifespan, emissions, system efficiency)
         per technbology and scenario
@@ -188,18 +192,24 @@ class Region:
     @property
     def heating_structure_dec(self):
         """Return heating structure (relative shares) for all scenarios
-        WITHOUT district heating
+        WITHOUT district heating.
 
-        The shares of energy sources sum up to 1 per municipality and scenario
+        Unlike the heating structure in DB table
+        :class:`WnAbwHeatingStructure <windnode.config.db_models.WnAbwHeatingStructure>`
+        which includes district heating,
+        the shares of energy sources sum up to 1 per municipality.
         """
         return self._heating_structure_dec
 
     @property
     def heating_structure_dec_scn(self):
         """Return decentral heating structure (relative shares) for current
-        scenario set in cfg WITHOUT district heating
+        scenario set in cfg WITHOUT district heating.
 
-        The shares of energy sources sum up to 1 per municipality
+        Unlike the heating structure in DB table
+        :class:`WnAbwHeatingStructure <windnode.config.db_models.WnAbwHeatingStructure>`
+        which includes district heating,
+        the shares of energy sources sum up to 1 per municipality.
         """
         return self._heating_structure_dec.xs(
             self._cfg['scn_data']['general']['name'],
