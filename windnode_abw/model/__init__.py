@@ -187,13 +187,17 @@ class Region:
 
     @property
     def heating_structure_dec(self):
-        """Return heating structure (relative shares) for all scenarios"""
+        """Return heating structure (relative shares) for all scenarios
+        WITHOUT district heating
+
+        The shares of energy sources sum up to 1 per municipality and scenario
+        """
         return self._heating_structure_dec
 
     @property
     def heating_structure_dec_scn(self):
-        """Return heating structure (relative shares) for current scenario set
-        in cfg INCLUDING district heating
+        """Return decentral heating structure (relative shares) for current
+        scenario set in cfg WITHOUT district heating
 
         The shares of energy sources sum up to 1 per municipality
         """
