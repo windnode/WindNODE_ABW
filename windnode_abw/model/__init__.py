@@ -55,6 +55,9 @@ class Region:
     _heating_structure_dec : :pandas:`pandas.DataFrame`
         Decentral heating structure of thermal loads per scenario,
         municipality, sector and energy source
+    _tech_assumptions : :pandas:`pandas.DataFrame`
+        Technical assumptions (costs, lifespan, emissions, system efficiency)
+        per technbology and scenario
     """
     def __init__(self, **kwargs):
         self._name = 'ABW region'
