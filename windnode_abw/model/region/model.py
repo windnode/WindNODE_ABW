@@ -856,65 +856,56 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     )
                 )
 
-    #################
-    # POWER-TO-HEAT #
-    #################
-    flex_dec_pth_enabled = True if scn_data['flexopt']['flex_dec_pth'][
-                                       'enabled']['enabled'] == 1 else False
-    flex_cen_pth_enabled = True if scn_data['flexopt']['flex_cen_pth'][
-                                       'enabled']['enabled'] == 1 else False
-    flex_hh_dsm_enabled = True if scn_data['flexopt']['dsm']['enabled'][
-                                      'enabled'] == 1 else False
-
-    if flex_dec_pth_enabled or flex_cen_pth_enabled or flex_hh_dsm_enabled:
+    ##################################################
+    # PTH for decentralized heat supply (heat pumps) #
+    ##################################################
+    if scn_data['flexopt']['flex_dec_pth']['enabled']['enabled'] == 1:
         for mun in region.muns.itertuples():
             mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
+
+            # calc temperature-dependent coefficient of performance (COP)
+            params = scn_data['flexopt']['flex_dec_pth']['params']
+            cops_ASHP = calc_heat_pump_cops(
+                t_high=[params['heating_temp']],
+                t_low=list(
+                    (region.temp_ts['air_temp'][mun.Index]
+                    )[datetime_index]
+                ),
+                quality_grade=params['quality_grade_ASHP']
+            )
+            cops_GSHP = calc_heat_pump_cops(
+                t_high=[params['heating_temp']],
+                t_low=list(
+                    (region.temp_ts['soil_temp'][mun.Index]
+                    )[datetime_index]
+                ),
+                quality_grade=params['quality_grade_GSHP']
+            )
+
+            # calc dec th. demand to be met by pth
+            # (share of 'ambient_heat' in heating structure)
+            # and use it as min. feedin
+            th_dec_demand_pth_mun = pd.Series(
+                {sector:
+                     region.demand_ts['th_{sector}'.format(
+                         sector=sector)][mun.Index][datetime_index].sum() *
+                     (1 - region.dist_heating_share_scn.loc[mun.Index])
+                 for sector in th_sectors}
+            ) * region.heating_structure_dec_scn.loc[mun.Index,
+                                                     'ambient_heat']
 
             for busdata in mun_buses.itertuples():
                 bus_in = esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]
 
-                ##################################################
-                # PTH for decentralized heat supply (heat pumps) #
-                ##################################################
-                if flex_dec_pth_enabled:
-
-                    #########################
-                    # Air Source Heat Pumps #
-                    #########################
-                    # calc temperature-dependent coefficient of performance (COP)
-                    params = scn_data['flexopt']['flex_dec_pth']['params']
-                    cops_ASHP = calc_heat_pump_cops(
-                        t_high=[params['heating_temp']],
-                        t_low=list(
-                            (region.temp_ts['air_temp'][mun.Index]
-                            )[datetime_index]
-                        ),
-                        quality_grade=params['quality_grade_ASHP']
-                    )
-                    # DEBUG ONLY:
-                    # print('COP: ', max(cops_hp), min(cops_hp))
-                    # xxx = {'heat_demand_mfh': region.demand_ts['th_hh_mfh'][mun.Index],
-                    #        'temp': list(region.temp_ts[mun.Index]),
-                    #        'cop': cops_hp}
-                    # x = pd.DataFrame.from_dict(xxx)
-                    # x.plot()
-                    for sector in th_sectors:
+                #########################
+                # Air Source Heat Pumps #
+                #########################
+                for sector in th_sectors:
+                    if th_dec_demand_pth_mun[sector] > 0:
                         bus_out = esys_nodes['b_th_dec_{ags_id}_{sector}'.format(
                             ags_id=mun.Index,
                             sector=sector
                         )]
-                        outflow_args = {
-                            # TODO: get from DB table?
-                            'nominal_value': scn_data['flexopt']['flex_dec_pth']
-                                             ['outflow']['nominal_value_total'] *
-                                             scn_data['flexopt']['flex_dec_pth']
-                                             ['technology']['share_ASHP'] /
-                                             len(mun_buses),
-                            'variable_costs': region.tech_assumptions_scn.loc[
-                                'heating_ashp']['opex_var'],
-                            'emissions': region.tech_assumptions_scn.loc[
-                                'heating_ashp']['emissions'],
-                        }
                         nodes.append(
                             solph.Transformer(
                                 label='flex_dec_pth_ASHP_{ags_id}_b{bus_id}_{sector}'.format(
@@ -924,41 +915,29 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 ),
                                 inputs={bus_in: solph.Flow()},
                                 outputs={bus_out: solph.Flow(
-                                    **outflow_args
+                                    nominal_value=1,
+                                    summed_min=th_dec_demand_pth_mun[sector] *
+                                               scn_data['flexopt']['flex_dec_pth']
+                                               ['technology']['share_ASHP'] /
+                                               len(mun_buses),
+                                    variable_costs=region.tech_assumptions_scn.loc[
+                                        'heating_ashp']['opex_var'],
+                                    emissions=region.tech_assumptions_scn.loc[
+                                        'heating_ashp']['emissions'],
                                 )},
                                 conversion_factors={bus_out: cops_ASHP}
                             )
                         )
 
-                    ############################
-                    # Ground Source Heat Pumps #
-                    ############################
-                    cops_GSHP = calc_heat_pump_cops(
-                        t_high=[params['heating_temp']],
-                        t_low=list(
-                            (region.temp_ts['soil_temp'][mun.Index]
-                            )[datetime_index]
-                        ),
-                        quality_grade=params['quality_grade_GSHP']
-                    )
-
-                    for sector in th_sectors:
+                ############################
+                # Ground Source Heat Pumps #
+                ############################
+                for sector in th_sectors:
+                    if th_dec_demand_pth_mun[sector] > 0:
                         bus_out = esys_nodes['b_th_dec_{ags_id}_{sector}'.format(
                             ags_id=mun.Index,
                             sector=sector
                         )]
-                        outflow_args = {
-                            # TODO: get from DB table?
-                            'nominal_value': scn_data['flexopt']['flex_dec_pth']
-                                             ['outflow']['nominal_value_total'] *
-                                             scn_data['flexopt']['flex_dec_pth']
-                                             ['technology']['share_GSHP'] /
-                                             len(mun_buses),
-                            'variable_costs': region.tech_assumptions_scn.loc[
-                                'heating_gshp']['opex_var'],
-                            'emissions': region.tech_assumptions_scn.loc[
-                                'heating_gshp']['emissions'],
-                        }
                         nodes.append(
                             solph.Transformer(
                                 label='flex_dec_pth_GSHP_{ags_id}_b{bus_id}_{sector}'.format(
@@ -968,82 +947,100 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 ),
                                 inputs={bus_in: solph.Flow()},
                                 outputs={bus_out: solph.Flow(
-                                    **outflow_args
+                                    nominal_value=1,
+                                    summed_min=th_dec_demand_pth_mun[sector] *
+                                               scn_data['flexopt']['flex_dec_pth']
+                                               ['technology']['share_GSHP'] /
+                                               len(mun_buses),
+                                    variable_costs=region.tech_assumptions_scn.loc[
+                                        'heating_gshp']['opex_var'],
+                                    emissions=region.tech_assumptions_scn.loc[
+                                        'heating_gshp']['emissions'],
                                 )},
                                 conversion_factors={bus_out: cops_GSHP}
                             )
                         )
 
-                #####################################
-                # PTH for district heating (boiler) #
-                #####################################
-                if flex_cen_pth_enabled:
-                    if 'b_th_cen_in_{ags_id}'.format(ags_id=mun.Index) in esys_nodes.keys():
-                        bus_out = esys_nodes['b_th_cen_in_{ags_id}'.format(
-                            ags_id=mun.Index
-                        )]
+    #################################################
+    # PTH for district heating (boiler/heating rod) #
+    #################################################
+    if scn_data['flexopt']['flex_cen_pth']['enabled']['enabled'] == 1:
+        for mun in region.muns.itertuples():
+            mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
-                        nodes.append(
-                            solph.Transformer(
-                                label='flex_cen_pth_{ags_id}_b{bus_id}'.format(
-                                    ags_id=str(mun.Index),
-                                    bus_id=busdata.Index
-                                ),
-                                inputs={bus_in: solph.Flow()},
-                                outputs={bus_out: solph.Flow(
-                                    # TODO: get from DB table?
-                                    nominal_value=scn_data['flexopt'][
-                                        'flex_cen_pth']['outflow']['nominal_value'],
-                                    variable_costs=region.tech_assumptions_scn.loc[
-                                        'heating_rod']['opex_var'],
-                                    emissions = region.tech_assumptions_scn.loc[
-                                        'heating_rod']['emissions']
-                                )},
-                                conversion_factors={
-                                    bus_out: region.tech_assumptions_scn.loc[
-                                        'heating_rod']['sys_eff']
-                                }
-                            )
-                        )
+            for busdata in mun_buses.itertuples():
+                bus_in = esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]
 
-                ####################
-                # DSM (households) #
-                ####################
-                if flex_hh_dsm_enabled:
-                    # if DSM is enabled hh Sinks in l.170 ff. will be deactivated
-
-                    dsm_mode = scn_data['flexopt']['dsm']['params']['mode']
+                if 'b_th_cen_in_{ags_id}'.format(ags_id=mun.Index) in esys_nodes.keys():
+                    bus_out = esys_nodes['b_th_cen_in_{ags_id}'.format(
+                        ags_id=mun.Index
+                    )]
 
                     nodes.append(
-                        solph.custom.SinkDSM(
-                            label='flex_dsm_{ags_id}_b{bus_id}'.format(
+                        solph.Transformer(
+                            label='flex_cen_pth_{ags_id}_b{bus_id}'.format(
                                 ags_id=str(mun.Index),
                                 bus_id=busdata.Index
                             ),
                             inputs={bus_in: solph.Flow()},
-                            demand=list(
-                                (region.dsm_ts['Lastprofil']
-                                 [mun.Index] / len(mun_buses)
-                                 )[datetime_index]
-                            ),
-                            capacity_up=list(
-                                (calc_dsm_cap_up(
-                                    region.dsm_ts,
-                                    mun.Index,
-                                    mode=dsm_mode) / len(mun_buses)
-                                 )[datetime_index]
-                            ),
-                            capacity_down=list(
-                                (calc_dsm_cap_down(
-                                    region.dsm_ts,
-                                    mun.Index,
-                                    mode=dsm_mode) / len(mun_buses)
-                                 )[datetime_index]
-                            ),
-                            method=scn_data['flexopt']['dsm']['params']['method'],
-                            shift_interval=int(scn_data['flexopt']['dsm']['params']['shift_interval']),
-                            delay_time=int(scn_data['flexopt']['dsm']['params']['delay_time'])
+                            outputs={bus_out: solph.Flow(
+                                # TODO: get from DB table?
+                                nominal_value=scn_data['flexopt'][
+                                    'flex_cen_pth']['outflow']['nominal_value'],
+                                variable_costs=region.tech_assumptions_scn.loc[
+                                    'heating_rod']['opex_var'],
+                                emissions = region.tech_assumptions_scn.loc[
+                                    'heating_rod']['emissions']
+                            )},
+                            conversion_factors={
+                                bus_out: region.tech_assumptions_scn.loc[
+                                    'heating_rod']['sys_eff']
+                            }
                         )
                     )
+
+    ####################
+    # DSM (households) #
+    ####################
+    # if DSM is enabled hh Sinks in l.170 ff. will be deactivated
+    if scn_data['flexopt']['dsm']['enabled']['enabled'] == 1:
+        for mun in region.muns.itertuples():
+            mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
+
+            for busdata in mun_buses.itertuples():
+                bus_in = esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]
+                dsm_mode = scn_data['flexopt']['dsm']['params']['mode']
+
+                nodes.append(
+                    solph.custom.SinkDSM(
+                        label='flex_dsm_{ags_id}_b{bus_id}'.format(
+                            ags_id=str(mun.Index),
+                            bus_id=busdata.Index
+                        ),
+                        inputs={bus_in: solph.Flow()},
+                        demand=list(
+                            (region.dsm_ts['Lastprofil']
+                             [mun.Index] / len(mun_buses)
+                             )[datetime_index]
+                        ),
+                        capacity_up=list(
+                            (calc_dsm_cap_up(
+                                region.dsm_ts,
+                                mun.Index,
+                                mode=dsm_mode) / len(mun_buses)
+                             )[datetime_index]
+                        ),
+                        capacity_down=list(
+                            (calc_dsm_cap_down(
+                                region.dsm_ts,
+                                mun.Index,
+                                mode=dsm_mode) / len(mun_buses)
+                             )[datetime_index]
+                        ),
+                        method=scn_data['flexopt']['dsm']['params']['method'],
+                        shift_interval=int(scn_data['flexopt']['dsm']['params']['shift_interval']),
+                        delay_time=int(scn_data['flexopt']['dsm']['params']['delay_time'])
+                    )
+                )
 
     return nodes

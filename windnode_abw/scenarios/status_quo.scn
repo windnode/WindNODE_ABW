@@ -146,17 +146,13 @@
     # decentral PtH (heat pumps, per mun)
     [[flex_dec_pth]]
         [[[enabled]]]
-            enabled = 0
+            # CAUTION: thermal demand cannot be covered if pth is disabled
+            enabled = 1
         [[[technology]]]
             # share of air-source heat pumps
             share_ASHP = 0.5
             # share of ground-source heat pumps
             share_GSHP = 0.5
-        # outflow values per mun!
-        [[[outflow]]]
-            nominal_value_total = 1000    # (thermal output)
-            variable_costs_ASHP = 500
-            variable_costs_GSHP = 600
         [[[params]]]
             # output temp
             heating_temp = 35
