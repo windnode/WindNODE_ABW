@@ -92,7 +92,7 @@
     # TODO: Replace with realistic params
     [[th_dec_storage]]
         [[[enabled]]]
-            enabled = 1
+            enabled = 0
         [[[inflow]]]
             nominal_value = 30
             variable_costs = 1
