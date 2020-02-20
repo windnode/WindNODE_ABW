@@ -88,7 +88,23 @@
 
 # storages
 [storage]
-    # Storage for Dessau
+    # decentral heat storages
+    # TODO: Replace with realistic params
+    [[th_dec_storage]]
+        [[[enabled]]]
+            enabled = 1
+        [[[inflow]]]
+            nominal_value = 30
+            variable_costs = 1
+        [[[outflow]]]
+            nominal_value = 30
+        [[[params]]]
+            nominal_storage_capacity = 100
+            loss_rate = 0.01
+            inflow_conversion_factor = 0.95
+            outflow_conversion_factor = 0.95
+
+    # heat storage for Dessau
     # TODO: Replace with realistic params
     [[th_cen_storage]]
         [[[enabled]]]
