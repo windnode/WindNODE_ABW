@@ -454,8 +454,8 @@ def prepare_temp_timeseries(region):
     return temp_ts
 
 
-def calc_heat_pump_cops(t_high, t_low, quality_grade,
-                        consider_icing=False, factor_icing=None):
+def calc_heat_pump_cops(t_high, t_low, quality_grade, consider_icing=False,
+                        temp_icing=None, factor_icing=None):
     """Calculate temperature-dependent COP of heat pumps
 
     Code was taken from oemof-thermal:
@@ -486,10 +486,9 @@ def calc_heat_pump_cops(t_high, t_low, quality_grade,
     elif consider_icing:
         cops = []
         for t_h, t_l in zip(list_t_high_K, list_t_low_K):
-            if t_l < 2+273.15:
-                f_icing = factor_icing
-                cops = cops + [f_icing*quality_grade * t_h/(t_h-t_l)]
-            if t_l >= 2+273.15:
+            if t_l < temp_icing + 273.15:
+                cops = cops + [factor_icing*quality_grade * t_h/(t_h-t_l)]
+            if t_l >= temp_icing + 273.15:
                 cops = cops + [quality_grade * t_h / (t_h - t_l)]
 
     return cops

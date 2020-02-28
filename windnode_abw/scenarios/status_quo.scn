@@ -174,9 +174,13 @@
         [[[params]]]
             # output temp
             heating_temp = 35
-            # general efficiency
+            # quality grade (general efficiency)
             quality_grade_ASHP = 0.4
-            quality_grade_GSHP = 0.5
+            quality_grade_GSHP = 0.4
+            # efficiency due to icing
+            icing_factor = 0.8
+            # temperature threshold for icing
+            icing_temp = 2
 
     # central PtH (boilers)
     [[flex_cen_pth]]

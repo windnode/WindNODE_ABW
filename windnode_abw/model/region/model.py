@@ -535,7 +535,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     )
                 )
 
-
         # demand per sector and mun
         for sector in th_sectors:
             inflow_args = {
@@ -892,7 +891,10 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     (region.temp_ts['air_temp'][mun.Index]
                     )[datetime_index]
                 ),
-                quality_grade=params['quality_grade_ASHP']
+                quality_grade=params['quality_grade_ASHP'],
+                consider_icing=True,
+                temp_icing=params['icing_temp'],
+                factor_icing=params['icing_factor']
             )
             cops_GSHP = calc_heat_pump_cops(
                 t_high=[params['heating_temp']],
