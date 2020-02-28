@@ -920,15 +920,16 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
             for busdata in mun_buses.itertuples():
                 bus_in = esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]
 
-                #########################
-                # Air Source Heat Pumps #
-                #########################
                 for sector in th_sectors:
                     if th_dec_demand_pth_mun[sector] > 0:
                         bus_out = esys_nodes['b_th_dec_{ags_id}_{sector}'.format(
                             ags_id=mun.Index,
                             sector=sector
                         )]
+
+                        #########################
+                        # Air Source Heat Pumps #
+                        #########################
                         nodes.append(
                             solph.Transformer(
                                 label='flex_dec_pth_ASHP_{ags_id}_b{bus_id}_{sector}'.format(
@@ -952,15 +953,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                             )
                         )
 
-                ############################
-                # Ground Source Heat Pumps #
-                ############################
-                for sector in th_sectors:
-                    if th_dec_demand_pth_mun[sector] > 0:
-                        bus_out = esys_nodes['b_th_dec_{ags_id}_{sector}'.format(
-                            ags_id=mun.Index,
-                            sector=sector
-                        )]
+                        ############################
+                        # Ground Source Heat Pumps #
+                        ############################
                         nodes.append(
                             solph.Transformer(
                                 label='flex_dec_pth_GSHP_{ags_id}_b{bus_id}_{sector}'.format(
