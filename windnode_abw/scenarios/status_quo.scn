@@ -173,7 +173,7 @@
             share_GSHP = 0.5
         [[[params]]]
             # output temp
-            heating_temp = 35
+            heating_temp = 40
             # quality grade (general efficiency)
             quality_grade_ASHP = 0.4
             quality_grade_GSHP = 0.4
