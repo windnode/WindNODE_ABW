@@ -927,6 +927,43 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                             sector=sector
                         )]
 
+                        #####################
+                        # Heat pump storage #
+                        #####################
+                        if scn_data['storage']['th_dec_pth_storage']['enabled']['enabled'] == 1:
+                            # create additional PTH heat bus
+                            bus_th_dec_pth = solph.Bus(
+                                label=f'b_th_dec_pth_{mun.Index}_b{busdata.Index}_{sector}'
+                            )
+                            nodes.append(bus_th_dec_pth)
+
+                            # create storage
+                            nodes.append(
+                                solph.components.GenericStorage(
+                                    label=f'stor_th_dec_pth_{mun.Index}_b{busdata.Index}_{sector}',
+                                    inputs={bus_th_dec_pth: solph.Flow(
+                                        **scn_data['storage']['th_dec_pth_storage']['inflow']
+                                    )},
+                                    outputs={bus_th_dec_pth: solph.Flow(
+                                        **scn_data['storage']['th_dec_pth_storage']['outflow']
+                                    )},
+                                    **scn_data['storage']['th_dec_pth_storage']['params']
+                                )
+                            )
+
+                            # create transformer to dec heat bus
+                            nodes.append(
+                                solph.Transformer(
+                                    label=f'trans_dummy_th_dec_pth_{mun.Index}_b{busdata.Index}_{sector}',
+                                    inputs={bus_th_dec_pth: solph.Flow()},
+                                    outputs={bus_out: solph.Flow()},
+                                    conversion_factors={bus_out: 1}
+                                )
+                            )
+
+                            # use PTH hat bus as output for HP
+                            bus_out = bus_th_dec_pth
+
                         #########################
                         # Air Source Heat Pumps #
                         #########################
