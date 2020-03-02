@@ -594,7 +594,7 @@ def create_maintenance_timeseries(datetime_index, months, duration):
 
     Parameters
     ----------
-    months : :obj:`list` of :obj:`int`
+    months : :obj:`int` or :obj:`list` of :obj:`int`
         Months where service takes place, e.g. [1]
     duration : :obj:`int`
         Duration of maintenance in days
@@ -606,14 +606,19 @@ def create_maintenance_timeseries(datetime_index, months, duration):
     :obj:`list` of :obj:`int` (1 or 0)
         List of (de)activation times
     """
-    if not isinstance(months, list):
-        months = [months]
-    mask = [True] * len(datetime_index)
-    for month in months:
-        start = pd.to_datetime(f'{datetime_index[0].year}-'
-                               f'{int(month)}-01 00:00:00')
-        end = start + pd.to_timedelta(f'{duration} days')
-        mask = mask & ~((datetime_index >= start) & (datetime_index < end))
+    if months == '':
+        mask = [True] * len(datetime_index)
+    else:
+        if not isinstance(months, list):
+            months = [months]
+        if any([not isinstance(_, int) for _ in months]):
+            raise ValueError('Supplied BHKW maintenance months are invalid!')
+        mask = [True] * len(datetime_index)
+        for month in months:
+            start = pd.to_datetime(f'{datetime_index[0].year}-'
+                                   f'{int(month)}-01 00:00:00')
+            end = start + pd.to_timedelta(f'{duration} days')
+            mask = mask & ~((datetime_index >= start) & (datetime_index < end))
 
     return list(map(int, mask))
 
