@@ -106,14 +106,17 @@
             outflow_conversion_factor = 1
 
     # decentral heat storages for heat pumps only
+    # TODO: Replace costs, capacity
     [[th_dec_pth_storage]]
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]
-            nominal_value = 30
+            # prevent charging restrictions
+            nominal_value = 1000
             variable_costs = 1
         [[[outflow]]]
-            nominal_value = 30
+            # prevent discharging restrictions
+            nominal_value = 1000
         [[[params]]]
             nominal_storage_capacity = 100
             loss_rate = 0.021
