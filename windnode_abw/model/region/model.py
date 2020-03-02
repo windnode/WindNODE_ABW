@@ -979,6 +979,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 summed_min=th_dec_demand_pth_mun[sector] *
                                            scn_data['flexopt']['flex_dec_pth']
                                            ['technology']['share_ASHP'],
+                                summed_max=th_dec_demand_pth_mun[sector] *
+                                           scn_data['flexopt']['flex_dec_pth']
+                                           ['technology']['share_ASHP'],
                                 variable_costs=region.tech_assumptions_scn.loc[
                                     'heating_ashp']['opex_var'],
                                 emissions=region.tech_assumptions_scn.loc[
@@ -1008,6 +1011,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                             outputs={bus_out: solph.Flow(
                                 nominal_value=1,
                                 summed_min=th_dec_demand_pth_mun[sector] *
+                                           scn_data['flexopt']['flex_dec_pth']
+                                           ['technology']['share_GSHP'],
+                                summed_max=th_dec_demand_pth_mun[sector] *
                                            scn_data['flexopt']['flex_dec_pth']
                                            ['technology']['share_GSHP'],
                                 variable_costs=region.tech_assumptions_scn.loc[
