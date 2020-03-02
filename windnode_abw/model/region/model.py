@@ -79,10 +79,11 @@ def create_oemof_model(cfg, region):
     )
     esys.add(*flex_nodes)
 
-    print('The following objects have been created:')
-    for n in esys.nodes:
-        oobj = str(type(n)).replace("<class 'oemof.solph.", "").replace("'>", "")
-        print(oobj + ':', n.label)
+    print('Number of nodes created:', len(el_nodes) + len(th_nodes) + len(flex_nodes))
+    # print('The following objects have been created:')
+    # for n in esys.nodes:
+    #     oobj = str(type(n)).replace("<class 'oemof.solph.", "").replace("'>", "")
+    #     print(oobj + ':', n.label)
 
     return esys
 
@@ -226,6 +227,7 @@ def create_el_model(region=None, datetime_index=None):
                         bus1: solph.Flow()},
                 outputs={bus0: solph.Flow(nominal_value=row['s_nom']),
                          bus1: solph.Flow(nominal_value=row['s_nom'])},
+                # TODO: Revise efficiencies
                 conversion_factors={
                     (bus0, bus1): scn_data['grid']['trafos']['params']['conversion_factor'],
                     (bus1, bus0): scn_data['grid']['trafos']['params']['conversion_factor']})
@@ -308,6 +310,7 @@ def create_el_model(region=None, datetime_index=None):
                         **scn_data['grid']['extgrid']['imex_lines']['outflow']
                     )
                 },
+                # TODO: Revise efficiencies
                 conversion_factors={
                     (bus, imex_bus): scn_data['grid']['extgrid']['imex_lines']['params']['conversion_factor'],
                     (imex_bus, bus): scn_data['grid']['extgrid']['imex_lines']['params']['conversion_factor']
@@ -342,6 +345,7 @@ def create_el_model(region=None, datetime_index=None):
                         **scn_data['grid']['lines']['outflow']
                     )
                 },
+                # TODO: Revise efficiencies
                 conversion_factors={
                     (bus0, bus1): scn_data['grid']['lines']['params']['conversion_factor'],
                     (bus1, bus0): scn_data['grid']['lines']['params']['conversion_factor']
