@@ -100,7 +100,7 @@
         [[[outflow]]]
             nominal_value = 30
         [[[params]]]
-            nominal_storage_capacity =
+            nominal_storage_capacity = 100
             loss_rate = 0.021
             inflow_conversion_factor = 1
             outflow_conversion_factor = 1
