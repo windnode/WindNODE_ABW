@@ -917,104 +917,111 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
             ) * region.heating_structure_dec_scn.loc[mun.Index,
                                                      'ambient_heat']
 
-            for busdata in mun_buses.itertuples():
-                bus_in = esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]
+            for sector in th_sectors:
+                if th_dec_demand_pth_mun[sector] > 0:
+                    bus_out = esys_nodes['b_th_dec_{ags_id}_{sector}'.format(
+                        ags_id=mun.Index,
+                        sector=sector
+                    )]
 
-                for sector in th_sectors:
-                    if th_dec_demand_pth_mun[sector] > 0:
-                        bus_out = esys_nodes['b_th_dec_{ags_id}_{sector}'.format(
-                            ags_id=mun.Index,
-                            sector=sector
-                        )]
+                    #####################
+                    # Heat pump storage #
+                    #####################
+                    if scn_data['storage']['th_dec_pth_storage']['enabled']['enabled'] == 1:
+                        # create additional PTH heat bus
+                        bus_th_dec_pth = solph.Bus(
+                            label=f'b_th_dec_pth_{mun.Index}_{sector}'
+                        )
+                        nodes.append(bus_th_dec_pth)
 
-                        #####################
-                        # Heat pump storage #
-                        #####################
-                        if scn_data['storage']['th_dec_pth_storage']['enabled']['enabled'] == 1:
-                            # create additional PTH heat bus
-                            bus_th_dec_pth = solph.Bus(
-                                label=f'b_th_dec_pth_{mun.Index}_b{busdata.Index}_{sector}'
-                            )
-                            nodes.append(bus_th_dec_pth)
-
-                            # create storage
-                            nodes.append(
-                                solph.components.GenericStorage(
-                                    label=f'stor_th_dec_pth_{mun.Index}_b{busdata.Index}_{sector}',
-                                    inputs={bus_th_dec_pth: solph.Flow(
-                                        **scn_data['storage']['th_dec_pth_storage']['inflow']
-                                    )},
-                                    outputs={bus_th_dec_pth: solph.Flow(
-                                        **scn_data['storage']['th_dec_pth_storage']['outflow']
-                                    )},
-                                    **scn_data['storage']['th_dec_pth_storage']['params']
-                                )
-                            )
-
-                            # create transformer to dec heat bus
-                            nodes.append(
-                                solph.Transformer(
-                                    label=f'trans_dummy_th_dec_pth_{mun.Index}_b{busdata.Index}_{sector}',
-                                    inputs={bus_th_dec_pth: solph.Flow()},
-                                    outputs={bus_out: solph.Flow()},
-                                    conversion_factors={bus_out: 1}
-                                )
-                            )
-
-                            # use PTH hat bus as output for HP
-                            bus_out = bus_th_dec_pth
-
-                        #########################
-                        # Air Source Heat Pumps #
-                        #########################
+                        # create storage
                         nodes.append(
-                            solph.Transformer(
-                                label='flex_dec_pth_ASHP_{ags_id}_b{bus_id}_{sector}'.format(
-                                    ags_id=str(mun.Index),
-                                    bus_id=busdata.Index,
-                                    sector=sector
-                                ),
-                                inputs={bus_in: solph.Flow()},
-                                outputs={bus_out: solph.Flow(
-                                    nominal_value=1,
-                                    summed_min=th_dec_demand_pth_mun[sector] *
-                                               scn_data['flexopt']['flex_dec_pth']
-                                               ['technology']['share_ASHP'] /
-                                               len(mun_buses),
-                                    variable_costs=region.tech_assumptions_scn.loc[
-                                        'heating_ashp']['opex_var'],
-                                    emissions=region.tech_assumptions_scn.loc[
-                                        'heating_ashp']['emissions'],
+                            solph.components.GenericStorage(
+                                label=f'stor_th_dec_pth_{mun.Index}_{sector}',
+                                inputs={bus_th_dec_pth: solph.Flow(
+                                    **scn_data['storage']['th_dec_pth_storage']['inflow']
                                 )},
-                                conversion_factors={bus_out: cops_ASHP}
+                                outputs={bus_th_dec_pth: solph.Flow(
+                                    **scn_data['storage']['th_dec_pth_storage']['outflow']
+                                )},
+                                **scn_data['storage']['th_dec_pth_storage']['params']
                             )
                         )
 
-                        ############################
-                        # Ground Source Heat Pumps #
-                        ############################
+                        # create transformer to dec heat bus
                         nodes.append(
                             solph.Transformer(
-                                label='flex_dec_pth_GSHP_{ags_id}_b{bus_id}_{sector}'.format(
-                                    ags_id=str(mun.Index),
-                                    bus_id=busdata.Index,
-                                    sector=sector
-                                ),
-                                inputs={bus_in: solph.Flow()},
-                                outputs={bus_out: solph.Flow(
-                                    nominal_value=1,
-                                    summed_min=th_dec_demand_pth_mun[sector] *
-                                               scn_data['flexopt']['flex_dec_pth']
-                                               ['technology']['share_GSHP'] /
-                                               len(mun_buses),
-                                    variable_costs=region.tech_assumptions_scn.loc[
-                                        'heating_gshp']['opex_var'],
-                                    emissions=region.tech_assumptions_scn.loc[
-                                        'heating_gshp']['emissions'],
-                                )},
-                                conversion_factors={bus_out: cops_GSHP}
+                                label=f'trans_dummy_th_dec_pth_{mun.Index}_{sector}',
+                                inputs={bus_th_dec_pth: solph.Flow()},
+                                outputs={bus_out: solph.Flow()},
+                                conversion_factors={bus_out: 1}
                             )
                         )
+
+                        # use PTH hat bus as output for HP
+                        bus_out = bus_th_dec_pth
+
+                    #########################
+                    # Air Source Heat Pumps #
+                    #########################
+                    nodes.append(
+                        solph.Transformer(
+                            label='flex_dec_pth_ASHP_{ags_id}_{sector}'.format(
+                                ags_id=str(mun.Index),
+                                sector=sector
+                            ),
+                            inputs={
+                                esys_nodes[f'b_el_{busdata.Index}']: solph.Flow()
+                                for busdata in mun_buses.itertuples()
+                            },
+                            outputs={bus_out: solph.Flow(
+                                nominal_value=1,
+                                summed_min=th_dec_demand_pth_mun[sector] *
+                                           scn_data['flexopt']['flex_dec_pth']
+                                           ['technology']['share_ASHP'],
+                                variable_costs=region.tech_assumptions_scn.loc[
+                                    'heating_ashp']['opex_var'],
+                                emissions=region.tech_assumptions_scn.loc[
+                                    'heating_ashp']['emissions'],
+                            )},
+                            conversion_factors={
+                                esys_nodes[f'b_el_{busdata.Index}']:
+                                    [1/len(mun_buses)/cop for cop in cops_ASHP]
+                                for busdata in mun_buses.itertuples()
+                            }
+                        )
+                    )
+
+                    ############################
+                    # Ground Source Heat Pumps #
+                    ############################
+                    nodes.append(
+                        solph.Transformer(
+                            label='flex_dec_pth_GSHP_{ags_id}_{sector}'.format(
+                                ags_id=str(mun.Index),
+                                sector=sector
+                            ),
+                            inputs={
+                                esys_nodes[f'b_el_{busdata.Index}']: solph.Flow()
+                                for busdata in mun_buses.itertuples()
+                            },
+                            outputs={bus_out: solph.Flow(
+                                nominal_value=1,
+                                summed_min=th_dec_demand_pth_mun[sector] *
+                                           scn_data['flexopt']['flex_dec_pth']
+                                           ['technology']['share_GSHP'],
+                                variable_costs=region.tech_assumptions_scn.loc[
+                                    'heating_gshp']['opex_var'],
+                                emissions=region.tech_assumptions_scn.loc[
+                                    'heating_gshp']['emissions'],
+                            )},
+                            conversion_factors={
+                                esys_nodes[f'b_el_{busdata.Index}']:
+                                    [1/len(mun_buses)/cop for cop in cops_GSHP]
+                                for busdata in mun_buses.itertuples()
+                            }
+                        )
+                    )
 
     #################################################
     # PTH for district heating (boiler/heating rod) #
