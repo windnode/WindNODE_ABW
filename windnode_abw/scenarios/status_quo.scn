@@ -126,7 +126,7 @@
     # heat storage for Dessau
     [[th_cen_storage]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[inflow]]]
             nominal_value = 60
             variable_costs = 1
