@@ -306,7 +306,6 @@ class WnAbwMundata(Base):
     gen_count_conventional_large = Column(Float(53))
     gen_count_conventional_small = Column(Float(53))
     scenario = Column(String, primary_key=True, nullable=False)
-    dem_th_energy_dist_heat_share = Column(Float(53))
 
     mun = relationship('WnAbwMun', back_populates='mundata')
 
@@ -349,3 +348,31 @@ class WnAbwRelSubstIdAgsId(Base):
 
     ags = relationship('WnAbwMun')
     subst = relationship('WnAbwGridHvmvSubstation')
+
+
+class WnAbwHeatingStructure(Base):
+    __tablename__ = 'wn_abw_heating_structure'
+    __table_args__ = {'schema': 'windnode'}
+
+    ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), primary_key=True, nullable=False, index=True)
+    energy_source = Column(Text, primary_key=True, nullable=False, index=True)
+    scenario = Column(String, primary_key=True, nullable=False, index=True)
+    tech_share_rca = Column(Float(53))
+    tech_share_hh_efh = Column(Float(53))
+    tech_share_hh_mfh = Column(Float(53))
+
+    ags = relationship('WnAbwMun', back_populates='heating_structure')
+
+
+class WnAbwTechAssumptions(Base):
+    __tablename__ = 'wn_abw_tech_assumptions'
+    __table_args__ = {'schema': 'windnode'}
+
+    technology = Column(Text, primary_key=True, nullable=False, index=True)
+    scenario = Column(Text, primary_key=True, nullable=False, index=True)
+    capex = Column(Float(53))
+    opex_fix = Column(Float(53))
+    opex_var = Column(Float(53))
+    lifespan = Column(BigInteger)
+    emissions = Column(Float(53))
+    sys_eff = Column(Float(53))

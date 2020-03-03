@@ -62,7 +62,7 @@ def run_scenario(cfg):
 
         return esys, region
 
-    region = Region.import_data()
+    region = Region.import_data(cfg)
 
     # Vergleich el load IÖW+SLP
     # import pandas as pd

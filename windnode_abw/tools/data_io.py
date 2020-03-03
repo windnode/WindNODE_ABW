@@ -18,7 +18,7 @@ from windnode_abw.config.db_models import \
     WnAbwDemandTs, WnAbwFeedinTs, WnAbwGridHvBus, WnAbwGridHvLine,\
     WnAbwGridHvmvSubstation, WnAbwGridMvGriddistrict, WnAbwGridHvTransformer,\
     WnAbwMun, WnAbwMundata, WnAbwPowerplant, WnAbwRelSubstIdAgsId, WnAbwDsmTs,\
-    WnAbwTempTs
+    WnAbwTempTs, WnAbwHeatingStructure, WnAbwTechAssumptions
 
 
 def db_session(db_section):
@@ -174,13 +174,29 @@ def oep_api_write_data(schema, table, data):
     return pd.DataFrame(result.json())
 
 
-def import_db_data():
-    """Import data from DB using SQLA DB models"""
+def import_db_data(cfg):
+    """Import data from DB using SQLA DB models
+
+    Parameters
+    ----------
+    cfg : :obj:`dict`
+        Config to be used to create model
+
+    Returns
+    -------
+    :obj:`dict`
+        Imported data
+    """
 
     data = {}
 
     srid = int(config.get('geo', 'srid'))
     session = db_session('windnode_abw')
+
+    year = pd.to_datetime(cfg['date_from']).year
+    datetime_index_full_year = pd.date_range(start=f'{year}-01-01 00:00:00',
+                                             end=f'{year}-12-31 23:00:00',
+                                             freq=cfg['freq'])
 
     ########################################################
     # import municipalities including stats and substation #
@@ -221,8 +237,7 @@ def import_db_data():
         WnAbwMundata.dem_el_energy_ind,
 
         WnAbwMundata.dem_th_energy_hh,
-        WnAbwMundata.dem_th_energy_rca,
-        WnAbwMundata.dem_th_energy_dist_heat_share
+        WnAbwMundata.dem_th_energy_rca
     ).join(WnAbwMundata).join(WnAbwRelSubstIdAgsId).order_by(WnAbwMun.ags)
 
     muns = pd.read_sql_query(muns_query.statement,
@@ -253,6 +268,7 @@ def import_db_data():
         pd.read_sql_query(demandts_query.statement,
                           session.bind)
     )
+    data['demand_ts_init'].index = datetime_index_full_year
 
     ############################
     # import feedin timeseries #
@@ -261,6 +277,7 @@ def import_db_data():
     feedints_query = session.query(
         WnAbwFeedinTs.ags_id.label('ags'),
         WnAbwFeedinTs.wind_sq,
+        WnAbwFeedinTs.wind_fs,
         WnAbwFeedinTs.pv_ground,
         WnAbwFeedinTs.pv_roof,
         WnAbwFeedinTs.hydro,
@@ -271,6 +288,7 @@ def import_db_data():
         pd.read_sql_query(feedints_query.statement,
                           session.bind)
     )
+    data['feedin_ts_init'].index = datetime_index_full_year
 
     #########################
     # import DSM timeseries #
@@ -288,6 +306,7 @@ def import_db_data():
         pd.read_sql_query(dsmts_query.statement,
                           session.bind)
     )
+    data['dsm_ts'].index = datetime_index_full_year
 
     #################################
     # import temperature timeseries #
@@ -302,6 +321,7 @@ def import_db_data():
         pd.read_sql_query(tempts_query.statement,
                           session.bind)
     )
+    data['temp_ts_init'].index = datetime_index_full_year
 
     #####################################################################
     # import HV grid (buses, lines, trafos, substations+grid districts) #
@@ -405,6 +425,43 @@ def import_db_data():
                                            index_col='id')
     data['generators'] = convert_df_wkt_to_shapely(df=data['generators'],
                                                    cols=['geom'])
+
+    #####################################
+    # import heating structure (hh+rca) #
+    #####################################
+    logger.info('Importing heating structure...')
+    heating_structure_query = session.query(
+        WnAbwHeatingStructure.ags_id,
+        WnAbwHeatingStructure.energy_source,
+        WnAbwHeatingStructure.scenario,
+        WnAbwHeatingStructure.tech_share_hh_efh.label('hh_efh'),
+        WnAbwHeatingStructure.tech_share_hh_mfh.label('hh_mfh'),
+        WnAbwHeatingStructure.tech_share_rca.label('rca')
+    )
+    data['heating_structure'] = pd.read_sql_query(
+        heating_structure_query.statement,
+        session.bind,
+        index_col=['ags_id', 'energy_source', 'scenario'])
+
+    #######################################################
+    # import technical assumptions (costs, eff, emissions #
+    #######################################################
+    # convert units to MW/MWh (cf. table "Kosten_Emissionen_Wirkungsgrade")
+    logger.info('Importing technical assumptions...')
+    tech_assumptions_query = session.query(
+        WnAbwTechAssumptions.technology,
+        WnAbwTechAssumptions.scenario,
+        (WnAbwTechAssumptions.capex * 1000).label('capex'),
+        (WnAbwTechAssumptions.opex_fix * 1000).label('opex_fix'),
+        (WnAbwTechAssumptions.opex_var * 1000).label('opex_var'),
+        WnAbwTechAssumptions.lifespan,
+        WnAbwTechAssumptions.emissions,
+        (WnAbwTechAssumptions.sys_eff / 100).label('sys_eff')
+    )
+    data['tech_assumptions'] = pd.read_sql_query(
+        tech_assumptions_query.statement,
+        session.bind,
+        index_col=['technology', 'scenario'])
 
     return data
 

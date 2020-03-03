@@ -7,8 +7,9 @@ logger = logging.getLogger('windnode_abw')
 from windnode_abw.tools import config
 from windnode_abw.tools.data_io import import_db_data
 from windnode_abw.model.region.tools import \
-    prepare_feedin_timeseries, prepare_demand_timeseries,\
-    prepare_temp_timeseries
+    prepare_feedin_timeseries, prepare_demand_timeseries, \
+    prepare_temp_timeseries, preprocess_heating_structure, \
+    calc_annuity
 
 
 class Region:
@@ -18,6 +19,8 @@ class Region:
     ----------
     _name : :obj:`str`
         Name of network
+    _cfg : :obj:`dict`
+        Run configuration such as timerange, solver, scenario, ...
     _buses : :pandas:`pandas.DataFrame`
         Region's buses
     _lines : :pandas:`pandas.DataFrame`
@@ -45,13 +48,24 @@ class Region:
         Absolute feedin timeseries per technology/type (dict key) and
         municipality (DF column)
     _dsm_ts : :pandas:`pandas.DataFrame`
-        DSM timeseries per load band municipality (MultiIndex columns)
+        DSM timeseries per load band and municipality (MultiIndex columns)
     _temp_ts : :obj:`dict` of :pandas:`pandas.DataFrame`
         Temperature timeseries (air and soil -> dict key) per municipality in
         degree Celsius
+    _heating_structure_dec : :pandas:`pandas.DataFrame`
+        Decentral heating structure of thermal loads per scenario,
+        municipality, sector and energy source
+        Unlike the heating structure in DB table
+        :class:`WnAbwHeatingStructure <windnode.config.db_models.WnAbwHeatingStructure>`
+        which includes district heating,
+        the shares of energy sources sum up to 1 per municipality.
+    _tech_assumptions : :pandas:`pandas.DataFrame`
+        Technical assumptions (costs, lifespan, emissions, system efficiency)
+        per technbology and scenario
     """
     def __init__(self, **kwargs):
         self._name = 'ABW region'
+        self._cfg = kwargs.get('cfg', None)
 
         self._muns = kwargs.get('muns', None)
         self._buses = kwargs.get('buses', None)
@@ -70,10 +84,26 @@ class Region:
         self._temp_ts_init = kwargs.get('temp_ts_init', None)
         self._temp_ts = prepare_temp_timeseries(self)
 
+        self._heating_structure_dec,\
+        self._dist_heating_share = preprocess_heating_structure(
+            cfg=self._cfg,
+            heating_structure=kwargs.get('heating_structure', None)
+        )
+
+        self._tech_assumptions = calc_annuity(
+            cfg=self._cfg,
+            tech_assumptions=kwargs.get('tech_assumptions', None)
+        )
+
     @property
     def muns(self):
         """Returns region's municipalities"""
         return self._muns
+
+    @property
+    def cfg(self):
+        """Returns run config"""
+        return self._cfg
 
     @property
     def buses(self):
@@ -139,6 +169,10 @@ class Region:
     def feedin_ts_init(self):
         return self._feedin_ts_init
 
+    @feedin_ts_init.setter
+    def feedin_ts_init(self, feedin_ts_init):
+        self._feedin_ts_init = feedin_ts_init
+
     @property
     def feedin_ts(self):
         return self._feedin_ts
@@ -155,12 +189,65 @@ class Region:
     def temp_ts(self):
         return self._temp_ts
 
+    @property
+    def heating_structure_dec(self):
+        """Return heating structure (relative shares) for all scenarios
+        WITHOUT district heating.
+
+        Unlike the heating structure in DB table
+        :class:`WnAbwHeatingStructure <windnode.config.db_models.WnAbwHeatingStructure>`
+        which includes district heating,
+        the shares of energy sources sum up to 1 per municipality.
+        """
+        return self._heating_structure_dec
+
+    @property
+    def heating_structure_dec_scn(self):
+        """Return decentral heating structure (relative shares) for current
+        scenario set in cfg WITHOUT district heating.
+
+        Unlike the heating structure in DB table
+        :class:`WnAbwHeatingStructure <windnode.config.db_models.WnAbwHeatingStructure>`
+        which includes district heating,
+        the shares of energy sources sum up to 1 per municipality.
+        """
+        return self._heating_structure_dec.xs(
+            self._cfg['scn_data']['general']['name'],
+            level='scenario'
+        )
+
+    @property
+    def dist_heating_share_scn(self):
+        """Return district heating share per municipality for current scenario
+        set in cfg"""
+        return self._dist_heating_share.xs(
+            self._cfg['scn_data']['general']['name'],
+            level='scenario'
+        )
+
+    @property
+    def tech_assumptions(self):
+        return self._tech_assumptions
+
+    @property
+    def tech_assumptions_scn(self):
+        """Return technical assumptions for current scenario set in cfg"""
+        return self._tech_assumptions.xs(
+            self._cfg['scn_data']['general']['name'],
+            level='scenario'
+        )
+
     @classmethod
-    def import_data(cls):
+    def import_data(cls, cfg=None):
         """Import data to Region object"""
 
+        if cfg is None:
+            msg = 'Please provide config'
+            logger.error(msg)
+            raise ValueError(msg)
+
         # create the region instance
-        region = cls(**import_db_data())
+        region = cls(**{**import_db_data(cfg), 'cfg': cfg})
 
         return region
 

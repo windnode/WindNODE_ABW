@@ -5,8 +5,10 @@ import pandas as pd
 from pandas import compat
 import networkx as nx
 import matplotlib.pyplot as plt
+from numpy import nan
 
 import oemof.solph as solph
+from oemof.tools.economics import annuity
 
 
 def remove_isolates():
@@ -324,8 +326,8 @@ def prepare_feedin_timeseries(region):
         Absolute feedin timeseries per technology (dict key) and municipality
         (DF column)
 
-    ToDo: Allow for different scenarios
     """
+    scenario = region.cfg['scn_data']['general']['name']
 
     # needed columns from scenario's mun data for feedin
     cols = ['gen_capacity_wind',
@@ -341,32 +343,46 @@ def prepare_feedin_timeseries(region):
     # mapping for capacity columns to timeseries columns
     # if repowering scenario present, use wind_fs time series
     tech_mapping = {
-        'gen_capacity_wind': 'wind_sq',
-            # ToDo: Include future scenario by using wind_fs
-            #  as soon as they are defined and implemented:
-            #'wind_sq' if reg_params['repowering_scn'] == 0 else 'wind_fs',
+        'gen_capacity_wind':
+            'wind_sq' if scenario == 'sq'
+                      else 'wind_fs',
         'gen_capacity_pv_ground': 'pv_ground',
-        'gen_capacity_hydro': 'hydro',
+        'gen_capacity_pv_roof_small': 'pv_roof_small',
+        'gen_capacity_pv_roof_large': 'pv_roof_large',
+        'gen_capacity_hydro': 'run_of_river',
     }
 
     # prepare capacities (for relative timeseries only)
     cap_per_mun = region.muns[cols].rename(columns=tech_mapping)
-    cap_per_mun['pv_roof'] = \
-        cap_per_mun['gen_capacity_pv_roof_small'] + \
-        cap_per_mun['gen_capacity_pv_roof_large']
     cap_per_mun['bio'] = \
         cap_per_mun['gen_capacity_bio'] + \
         cap_per_mun['gen_capacity_sewage_landfill_gas']
     cap_per_mun['conventional'] = \
         cap_per_mun['gen_capacity_conventional_large'] + \
         cap_per_mun['gen_capacity_conventional_small']
-    cap_per_mun.drop(columns=['gen_capacity_pv_roof_small',
-                                 'gen_capacity_pv_roof_large',
-                                 'gen_capacity_bio',
-                                 'gen_capacity_sewage_landfill_gas',
-                                 'gen_capacity_conventional_large',
-                                 'gen_capacity_conventional_small'],
-                        inplace=True)
+    cap_per_mun.drop(columns=['gen_capacity_bio',
+                              'gen_capacity_sewage_landfill_gas',
+                              'gen_capacity_conventional_large',
+                              'gen_capacity_conventional_small'],
+                     inplace=True)
+
+    # adjust feedin ts columns
+    region.feedin_ts_init = pd.concat(
+        [region.feedin_ts_init,
+         region.feedin_ts_init[['pv_roof']].rename(
+             columns={'pv_roof': 'pv_roof_small'})],
+        axis=1)
+    region.feedin_ts_init.rename(columns={'pv_roof': 'pv_roof_large',
+                                          'hydro': 'run_of_river'},
+                                 inplace=True)
+
+    region.feedin_ts_init.drop(
+        columns=['wind_fs' if scenario == 'sq'
+                 else 'wind_sq'
+                 ],
+        level=0,
+        inplace=True
+    )
 
     # calculate capacity(mun)-weighted aggregated feedin timeseries for entire region:
     # 1) process relative TS
@@ -384,15 +400,11 @@ def prepare_feedin_timeseries(region):
                   'gen_capacity_conventional_small']].sum(axis=1)
     feedin_agg['conventional'] = region.feedin_ts_init['conventional'] * conv_cap_per_mun
 
-    # if repowering scenario present, rename wind_fs time series to wind
-    feedin_agg['wind'] = feedin_agg.pop('wind_sq')
-
-    # ToDo: Include future scenario by using wind_fs
-    #  as soon as they are defined and implemented:
-    # if reg_params['repowering_scn'] == 0:
-    #     feedin_agg['wind'] = feedin_agg.pop('wind_sq')
-    # else:
-    #     feedin_agg['wind'] = feedin_agg.pop('wind_fs')
+    # rename wind column depending on scenario
+    if scenario == 'sq':
+        feedin_agg['wind'] = feedin_agg.pop('wind_sq')
+    else:
+        feedin_agg['wind'] = feedin_agg.pop('wind_fs')
 
     return feedin_agg
 
@@ -442,8 +454,8 @@ def prepare_temp_timeseries(region):
     return temp_ts
 
 
-def calc_heat_pump_cops(t_high, t_low, quality_grade,
-                        consider_icing=False, factor_icing=None):
+def calc_heat_pump_cops(t_high, t_low, quality_grade, consider_icing=False,
+                        temp_icing=None, factor_icing=None):
     """Calculate temperature-dependent COP of heat pumps
 
     Code was taken from oemof-thermal:
@@ -474,17 +486,16 @@ def calc_heat_pump_cops(t_high, t_low, quality_grade,
     elif consider_icing:
         cops = []
         for t_h, t_l in zip(list_t_high_K, list_t_low_K):
-            if t_l < 2+273.15:
-                f_icing = factor_icing
-                cops = cops + [f_icing*quality_grade * t_h/(t_h-t_l)]
-            if t_l >= 2+273.15:
+            if t_l < temp_icing + 273.15:
+                cops = cops + [factor_icing*quality_grade * t_h/(t_h-t_l)]
+            if t_l >= temp_icing + 273.15:
                 cops = cops + [quality_grade * t_h / (t_h - t_l)]
 
     return cops
 
 
-def calc_dsm_cap_up(data, ags, mode='flex_min'):
-    """calculates the correct format of dsm input"""
+def calc_dsm_cap_up(data, ags, mode=None):
+    """Calculate the max. positive DSM capacity"""
     demand = data['Lastprofil', ags]
 
     if mode == 'flex_min':
@@ -494,13 +505,15 @@ def calc_dsm_cap_up(data, ags, mode='flex_min'):
         flex_plus_max = data['Flex_Plus_Max', ags]
         capacity_up = flex_plus_max - demand
     else:
-        raise ValueError('False SinkDSM method')
+        msg = 'Invalid SinkDSM mode'
+        logger.error(msg)
+        raise ValueError(msg)
 
     return capacity_up
 
 
-def calc_dsm_cap_down(data, ags, mode='flex_min'):
-    """calculates the correct format of dsm input"""
+def calc_dsm_cap_down(data, ags, mode=None):
+    """Calculate the max. negative DSM capacity"""
     demand = data['Lastprofil', ags]
 
     if mode == 'flex_min':
@@ -510,7 +523,113 @@ def calc_dsm_cap_down(data, ags, mode='flex_min'):
         flex_minus_max = data['Flex_Minus_Max', ags]
         capacity_down = demand - flex_minus_max
     else:
-        raise ValueError('False SinkDSM method')
+        msg = 'Invalid SinkDSM mode'
+        logger.error(msg)
+        raise ValueError(msg)
 
     return capacity_down
 
+
+def preprocess_heating_structure(cfg, heating_structure):
+    """Recalculate the sources' share in the heating
+
+    Based upon min. share threshold, energy sources are neglected in heat
+    production. Therefore, considered sources are scaled up by weight.
+    """
+    rescale = False
+    sources_cfg = cfg['scn_data']['generation']['gen_th_dec']['general']
+
+    # check sums
+    if not (heating_structure.groupby(
+            ['ags_id',
+             'scenario']).agg('sum', axis=0).round(3) == 1).\
+                   all().all() == True:
+        msg = 'Sums of heating structure shares '\
+              'are not 1. Check your data!'
+        logger.error(msg)
+        raise ValueError(msg)
+
+    # # filter for requested sources in config
+    # if sources_cfg['sources'] != '':
+    #     heating_structure = heating_structure[
+    #         heating_structure.index.get_level_values(
+    #             'energy_source').isin(sources_cfg['sources'])]
+    #     rescale = True
+
+    # exclude sources with a share below threshold
+    if sources_cfg['source_min_share'] > 0:
+        # set values below threshold to zero
+        heating_structure = heating_structure[
+            heating_structure > sources_cfg['source_min_share']
+        ].fillna(0)
+        rescale = True
+
+    # calculate scale factors
+    if rescale:
+        source_scale_factor = 1 / heating_structure.groupby(
+            ['ags_id', 'scenario']).agg('sum', axis=0)
+        # apply
+        heating_structure = heating_structure * source_scale_factor
+
+    # rescale to relative values exluding distrinct heating
+    heating_structure_wo_dist_heating = heating_structure.loc[
+        heating_structure.index.get_level_values(1) != 'dist_heating']
+    source_scale_factor = 1 / heating_structure_wo_dist_heating.groupby(
+        ['ags_id', 'scenario']).agg('sum', axis=0)
+    heating_structure_dec = heating_structure_wo_dist_heating *\
+                            source_scale_factor
+
+    # extract district heating share (use RCA value only as
+    dist_heating_share = heating_structure.xs(
+            'dist_heating',
+            level='energy_source'
+    )['rca']
+
+    return heating_structure_dec, dist_heating_share
+
+
+def create_maintenance_timeseries(datetime_index, months, duration):
+    """Create a list of activation (1) / deactivation (0) times due to
+    maintenance
+
+    Parameters
+    ----------
+    months : :obj:`int` or :obj:`list` of :obj:`int`
+        Months where service takes place, e.g. [1]
+    duration : :obj:`int`
+        Duration of maintenance in days
+    datetime_index : :pandas:`pandas.DatetimeIndex`
+        Datetime index
+
+    Returns
+    -------
+    :obj:`list` of :obj:`int` (1 or 0)
+        List of (de)activation times
+    """
+    if months == '':
+        mask = [True] * len(datetime_index)
+    else:
+        if not isinstance(months, list):
+            months = [months]
+        if any([not isinstance(_, int) for _ in months]):
+            raise ValueError('Supplied BHKW maintenance months are invalid!')
+        mask = [True] * len(datetime_index)
+        for month in months:
+            start = pd.to_datetime(f'{datetime_index[0].year}-'
+                                   f'{int(month)}-01 00:00:00')
+            end = start + pd.to_timedelta(f'{duration} days')
+            mask = mask & ~((datetime_index >= start) & (datetime_index < end))
+
+    return list(map(int, mask))
+
+
+def calc_annuity(cfg, tech_assumptions):
+    """Calculate equivalent annual cost"""
+
+    tech_assumptions['annuity'] = tech_assumptions.replace(0, nan).apply(
+        lambda row: annuity(row['capex'],
+                            row['lifespan'],
+                            cfg['scn_data']['economics']['wacc']),
+        axis=1)
+
+    return tech_assumptions

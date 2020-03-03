@@ -16,27 +16,132 @@
 
 # general options
 [general]
-    scn_name = sq
+    name = sq
+    
+# commodities
+[commodities]
+    # comm. to be created
+    commodities = fuel_oil,natural_gas,wood,coal,solar
+
+[economics]
+    wacc = 0.06
 
 # electrical and heat demand
 # (parametrized via DB table)
 [demand]
+    [[dem_el_general]]
+        sectors = hh,rca,ind
     # households
     [[dem_el_hh]]
         # profile_type: slp or ioew
         profile_type = ioew
+    [[dem_th_general]]
+        # heat demand sectors
+        sectors = hh_efh,hh_mfh,rca
 
 # electrical and heat production
 [generation]
+    [[gen_el]]
+        # technologies to be included, possible values:
+        # (pv_ground, pv_roof_small, pv_roof_large, run_of_river, bio, conventional, wind)
+        technologies = pv_ground,pv_roof_small,pv_roof_large,run_of_river,wind
     [[gen_th_dec]]
-        [[[outflow]]]
-            variable_costs = 100
+        [[[general]]]
+            # decentral th. sources for which a Source node is created
+            # possible values:
+            # (coal, el_energy, fuel_oil, natural_gas, solar, wood)
+            # DO NOT MODIFY
+            sources = coal,el_energy,fuel_oil,natural_gas,solar,wood
+            
+            # min share of energy source to be considered
+            # set to 0 to include all data
+            source_min_share = 0
 
     [[gen_th_cen]]
-        [[[outflow]]]
-            variable_costs = 100
+        [[[bhkw]]]
+            # nominal th. power in relation to peak load
+            nom_th_power_rel_to_pl = 0.17
+            # minimal th/el power in relation to nominal (currently unused)
+            min_power = 0.7
+            # Stromkennzahl BHKW (P/Q ratio)
+            pq_coeff = 0.85
+            # months of BHKW maintenance (jan=1), leave empty for no maintenance
+            #maint_months = 3,9
+            maint_months =
+            # duration of BHKW maintenance in days
+            maint_duration = 7
 
-# regional and external grid
+        [[[gas_boiler]]]
+            # nominal th. power in relation to peak load
+            nom_th_power_rel_to_pl = 1.0
+
+        [[[gud]]]
+            # nominal thermal power
+            nom_th_power = 60
+            # minimal th. energy share provided by GuD in relation to demand
+            # TODO: Set back to 0.8 for annual optimization
+            #min_th_energy_share = 0.8
+            min_th_energy_share = 0.1
+            # cb-coefficient/back-pressure coefficient (Stromkennzahl/P-Q ratio)
+            cb_coeff = 1.2
+            # cv-coefficient/beta (Stromverlustkenziffer)
+            cv_coeff = 0.125
+            # el. efficiency (full condensation)
+            efficiency_full_cond = 0.47
+
+# storages
+[storage]
+    # decentral heat storages
+    # (used by all dec heat sources except heat pumps)
+    # TODO: Replace costs, capacity
+    [[th_dec_storage]]
+        [[[enabled]]]
+            enabled = 0
+        [[[inflow]]]
+            nominal_value = 30
+            variable_costs = 1
+        [[[outflow]]]
+            nominal_value = 30
+        [[[params]]]
+            nominal_storage_capacity = 100
+            loss_rate = 0.021
+            inflow_conversion_factor = 1
+            outflow_conversion_factor = 1
+
+    # decentral heat storages for heat pumps only
+    # TODO: Replace costs, capacity
+    [[th_dec_pth_storage]]
+        [[[enabled]]]
+            enabled = 1
+        [[[inflow]]]
+            # prevent charging restrictions
+            nominal_value = 1000
+            variable_costs = 1
+        [[[outflow]]]
+            # prevent discharging restrictions
+            nominal_value = 1000
+        [[[params]]]
+            nominal_storage_capacity = 100
+            loss_rate = 0.021
+            inflow_conversion_factor = 1
+            outflow_conversion_factor = 1
+
+    # heat storage for Dessau
+    [[th_cen_storage]]
+        [[[enabled]]]
+            enabled = 1
+        [[[inflow]]]
+            nominal_value = 60
+            variable_costs = 1
+        [[[outflow]]]
+            nominal_value = 60
+        [[[params]]]
+            nominal_storage_capacity = 600
+            loss_rate = 0.001
+            inflow_conversion_factor = 1
+            outflow_conversion_factor = 1
+
+# regional and external el. grid
 [grid]
     # regional lines
     [[lines]]
@@ -61,19 +166,7 @@
                 # (rel. to nominal power)
                 max_usable_capacity = 0.1
             [[[[outflow]]]]
-                variable_costs = 1
-        [[[excess_el_hv]]]
-            [[[[inflow]]]]
-                variable_costs = -50
-        [[[excess_el_ehv]]]
-            [[[[inflow]]]]
-                variable_costs = -50
-        [[[shortage_el_hv]]]
-            [[[[outflow]]]]
-                variable_costs = 200
-        [[[shortage_el_ehv]]]
-            [[[[outflow]]]]
-                variable_costs = 200
+                variable_costs = 100
 
 # flexibility options
 [flexopt]
@@ -81,36 +174,34 @@
     [[flex_bat]]
         [[[enabled]]]
             enabled = 0
-        [[[inflow]]]
-            variable_costs = 10
         [[[params]]]
             nominal_storage_capacity = 1
-            loss_rate = 0.01
-            initial_storage_level = 0
-            inflow_conversion_factor = 1
-            outflow_conversion_factor = 0.8
+            # following params according to DEA stor, S.180
+            # conversion factors AC calculated via roundtrip AC/DC
+            loss_rate = 0.0042
+            inflow_conversion_factor = 0.94
+            outflow_conversion_factor = 0.93
 
     # decentral PtH (heat pumps, per mun)
     [[flex_dec_pth]]
         [[[enabled]]]
+            # CAUTION: thermal demand cannot be covered if pth is disabled
             enabled = 1
         [[[technology]]]
             # share of air-source heat pumps
             share_ASHP = 0.5
             # share of ground-source heat pumps
             share_GSHP = 0.5
-        # outflow values per mun!
-        [[[outflow]]]
-            nominal_value_total = 1000    # (thermal output)
-            variable_costs_ASHP = 500
-            variable_costs_GSHP = 600
         [[[params]]]
             # output temp
-            heating_temp = 35
-            # general efficiency
-            quality_grade = 0.4
-            # efficiency of air-source heat pumps due to icing
-            ASHP_factor_icing = 0.8
+            heating_temp = 40
+            # quality grade (general efficiency)
+            quality_grade_ASHP = 0.4
+            quality_grade_GSHP = 0.4
+            # efficiency due to icing
+            icing_factor = 0.8
+            # temperature threshold for icing
+            icing_temp = 2
 
     # central PtH (boilers)
     [[flex_cen_pth]]
@@ -118,7 +209,6 @@
             enabled = 0
         [[[outflow]]]
             nominal_value = 1000
-            variable_costs = 500
         [[[params]]]
             conversion_factor = 0.95
 
@@ -126,7 +216,7 @@
     [[dsm]]
         [[[enabled]]]
             # enabling DSM will disable residential loads
-            enabled = 1
+            enabled = 0
         [[[params]]]
             # share of HH with DSM
             hh_share = 0.1
