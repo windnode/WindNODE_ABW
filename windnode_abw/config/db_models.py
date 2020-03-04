@@ -45,6 +45,7 @@ class WnAbwFeedinTs(Base):
     ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), nullable=False, index=True)
     conventional = Column(Float(53))
     bio = Column(Float(53))
+    solar_heat = Column(Float(53))
 
     mun = relationship('WnAbwMun', back_populates='feedin_ts')
 

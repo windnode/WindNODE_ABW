@@ -282,7 +282,8 @@ def import_db_data(cfg):
         WnAbwFeedinTs.pv_roof,
         WnAbwFeedinTs.hydro,
         WnAbwFeedinTs.bio,
-        WnAbwFeedinTs.conventional
+        WnAbwFeedinTs.conventional,
+        WnAbwFeedinTs.solar_heat
     ).order_by(WnAbwFeedinTs.timestamp)
     data['feedin_ts_init'] = reformat_timeseries(
         pd.read_sql_query(feedints_query.statement,
