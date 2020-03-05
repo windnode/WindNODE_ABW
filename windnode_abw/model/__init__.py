@@ -217,6 +217,23 @@ class Region:
         )
 
     @property
+    def heating_structure_dec_scn_wo_solar(self):
+        """Return decentral heating structure (relative shares) for current
+        scenario set in cfg WITHOUT district heating and solar.
+
+        The shares of energy sources sum up to 1 per municipality.
+        This is needed at creation of decentral sources which cover the
+        residual load (load - solar_heat_feedin).
+        """
+
+        heating_structure_dec_scn_wo_solar = self.heating_structure_dec_scn.loc[
+            self.heating_structure_dec_scn.index.get_level_values(1) != 'solar']
+
+        source_scale_factor = 1 / heating_structure_dec_scn_wo_solar.groupby(
+            ['ags_id']).agg('sum', axis=0)
+        return heating_structure_dec_scn_wo_solar * source_scale_factor
+
+    @property
     def dist_heating_share_scn(self):
         """Return district heating share per municipality for current scenario
         set in cfg"""
