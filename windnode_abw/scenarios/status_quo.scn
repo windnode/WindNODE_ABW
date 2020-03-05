@@ -75,7 +75,7 @@
             # minimal th. energy share provided by GuD in relation to demand
             # TODO: Set back to 0.8 for annual optimization
             #min_th_energy_share = 0.8
-            min_th_energy_share = 0
+            min_th_energy_share = 0.1
             # cb-coefficient/back-pressure coefficient (Stromkennzahl/P-Q ratio)
             cb_coeff = 1.2
             # cv-coefficient/beta (Stromverlustkenziffer)
@@ -106,7 +106,7 @@
     # TODO: Replace costs, capacity
     [[th_dec_pth_storage]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[inflow]]]
             # prevent charging restrictions
             nominal_value = 1000
@@ -123,7 +123,7 @@
     # heat storage for Dessau
     [[th_cen_storage]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[inflow]]]
             nominal_value = 60
             variable_costs = 1
