@@ -459,10 +459,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     #############################
 
     for mun in region.muns.itertuples():
-        dec_sources = scn_data['generation']['gen_th_dec']['general']['sources']
-        # load heating structure for current scenario
-        heating_structure_dec = region.heating_structure_dec_scn.loc[
-            mun.Index].filter(items=dec_sources, axis=0)
         mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
         # sources for decentralized heat supply (1 per technology, sector, mun)
@@ -471,22 +467,34 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 ags_id=str(mun.Index),
                 sector=sector)]
 
-            for es in heating_structure_dec.itertuples():
-                es_share = heating_structure_dec[sector].loc[es.Index]
+            th_load = region.demand_ts[f'th_{sector}'][mun.Index] *\
+                            (1 - region.dist_heating_share_scn.loc[mun.Index])
+            solar_feedin = region.feedin_ts['solar_heat'][mun.Index] *\
+                           th_load.sum(axis=0) *\
+                           region.heating_structure_dec_scn.loc[mun.Index][sector].loc['solar']
+            th_residual_load = th_load - solar_feedin
+            x=th_load.copy()
 
-                if es_share > 0:
+            for es in region.heating_structure_dec_scn.loc[mun.Index].itertuples():
+                if es.Index == 'solar':
+                    es_share = 1
+                else:
+                    es_share = region.heating_structure_dec_scn_wo_solar.loc[
+                        mun.Index, es.Index][sector]
+
+                if es_share > 0 and es.Index != 'ambient_heat':
+                    if es.Index == 'solar':
+                        actual_value = solar_feedin
+                    else:
+                        actual_value = th_residual_load * es_share
+                    x -= actual_value
+
                     outflow_args = {
                         'nominal_value': 1,
                         'fixed': True,
-                        'actual_value': list(
-                            (region.demand_ts['th_{sector}'.format(
-                                sector=sector)][mun.Index] *
-                             (1 - region.dist_heating_share_scn.loc[mun.Index]) * es_share
-                             )[datetime_index]
-                        )
+                        'actual_value': list(actual_value)
                     }
 
-                    # TODO: Revise solar
                     if es.Index != 'el_energy':
                         inputs = {commodities[es.Index]: solph.Flow()}
                         outflow_args['variable_costs'] = region.tech_assumptions_scn.loc[
@@ -520,6 +528,8 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                             conversion_factors=conversion_factors
                         )
                     )
+
+            print(mun.Index, sector, ' DIFF: ', x[datetime_index].sum())
 
             # general common heat storage
             if scn_data['storage']['th_dec_storage']['enabled']['enabled'] == 1:
@@ -917,17 +927,35 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
             # calc dec th. demand to be met by pth
             # (share of 'ambient_heat' in heating structure)
             # and use it as min. feedin
+            # th_load = region.demand_ts[f'th_{sector}'][mun.Index] *\
+            #                 (1 - region.dist_heating_share_scn.loc[mun.Index])
+            # solar_feedin = region.feedin_ts['solar_heat'][mun.Index] *\
+            #                th_load.sum(axis=0) *\
+            #                region.heating_structure_dec_scn.loc[mun.Index][sector].loc['solar']
+            # th_residual_load = th_load - solar_feedin
+
             th_dec_demand_pth_mun = pd.DataFrame(
                 {sector:
                      region.demand_ts['th_{sector}'.format(
                          sector=sector)][mun.Index][datetime_index] *
                      (1 - region.dist_heating_share_scn.loc[mun.Index])
                  for sector in th_sectors}
-            ) * region.heating_structure_dec_scn.loc[mun.Index,
-                                                     'ambient_heat']
+            ) * region.heating_structure_dec_scn_wo_solar.loc[mun.Index,
+                                                              'ambient_heat']
 
             for sector in th_sectors:
-                if th_dec_demand_pth_mun.sum()[sector] > 0:
+                th_load = region.demand_ts[f'th_{sector}'][mun.Index] * \
+                          (1 - region.dist_heating_share_scn.loc[mun.Index])
+                solar_feedin = region.feedin_ts['solar_heat'][mun.Index] * \
+                               th_load.sum(axis=0) * \
+                               region.heating_structure_dec_scn.loc[mun.Index][sector].loc['solar']
+                th_residual_load = (th_load - solar_feedin)[datetime_index] *\
+                                   region.heating_structure_dec_scn_wo_solar.loc[mun.Index,
+                                                                                 'ambient_heat'][sector]
+                print(mun.Index, sector, ' HP LOAD: ', th_residual_load.sum())
+
+                if th_residual_load.sum() > 0:
+
                     bus_out = esys_nodes['b_th_dec_{ags_id}_{sector}'.format(
                         ags_id=mun.Index,
                         sector=sector
@@ -973,10 +1001,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     #########################
                     # Air Source Heat Pumps #
                     #########################
-                    th_dec_demand_pth_mun_sec = th_dec_demand_pth_mun.sum()\
-                                                    [sector] * share_ashp
-                    th_dec_peak_pth_mun_sec = th_dec_demand_pth_mun.max()\
-                                                  [sector] * share_ashp
+                    th_dec_demand_pth_mun_sec = th_residual_load.sum() * share_ashp
+                    th_dec_peak_pth_mun_sec = th_residual_load.max() * share_ashp
                     nodes.append(
                         solph.Transformer(
                             label='flex_dec_pth_ASHP_{ags_id}_{sector}'.format(
@@ -1007,10 +1033,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     ############################
                     # Ground Source Heat Pumps #
                     ############################
-                    th_dec_demand_pth_mun_sec = th_dec_demand_pth_mun.sum()\
-                                                    [sector] * share_gshp
-                    th_dec_peak_pth_mun_sec = th_dec_demand_pth_mun.max()\
-                                                  [sector] * share_gshp
+                    th_dec_demand_pth_mun_sec = th_residual_load.sum() * share_gshp
+                    th_dec_peak_pth_mun_sec = th_residual_load.max() * share_gshp
                     nodes.append(
                         solph.Transformer(
                             label='flex_dec_pth_GSHP_{ags_id}_{sector}'.format(
