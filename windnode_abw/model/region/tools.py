@@ -328,6 +328,8 @@ def prepare_feedin_timeseries(region):
 
     """
     scenario = region.cfg['scn_data']['general']['name']
+    region.muns['gen_capacity_solar_heat'] = 1
+
 
     # needed columns from scenario's mun data for feedin
     cols = ['gen_capacity_wind',
@@ -338,7 +340,8 @@ def prepare_feedin_timeseries(region):
             'gen_capacity_bio',
             'gen_capacity_sewage_landfill_gas',
             'gen_capacity_conventional_large',
-            'gen_capacity_conventional_small']
+            'gen_capacity_conventional_small',
+            'gen_capacity_solar_heat']
 
     # mapping for capacity columns to timeseries columns
     # if repowering scenario present, use wind_fs time series
@@ -350,6 +353,7 @@ def prepare_feedin_timeseries(region):
         'gen_capacity_pv_roof_small': 'pv_roof_small',
         'gen_capacity_pv_roof_large': 'pv_roof_large',
         'gen_capacity_hydro': 'run_of_river',
+        'gen_capacity_solar_heat': 'solar_heat',
     }
 
     # prepare capacities (for relative timeseries only)
