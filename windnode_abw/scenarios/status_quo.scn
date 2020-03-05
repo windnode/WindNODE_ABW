@@ -47,12 +47,6 @@
         technologies = pv_ground,pv_roof_small,pv_roof_large,run_of_river,wind
     [[gen_th_dec]]
         [[[general]]]
-            # decentral th. sources for which a Source node is created
-            # possible values:
-            # (coal, el_energy, fuel_oil, natural_gas, solar, wood)
-            # DO NOT MODIFY
-            sources = coal,el_energy,fuel_oil,natural_gas,solar,wood
-            
             # min share of energy source to be considered
             # set to 0 to include all data
             source_min_share = 0
