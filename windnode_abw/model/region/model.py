@@ -920,25 +920,6 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                 quality_grade=params['quality_grade_GSHP']
             )
 
-            # calc dec th. demand to be met by pth
-            # (share of 'ambient_heat' in heating structure)
-            # and use it as min. feedin
-            # th_load = region.demand_ts[f'th_{sector}'][mun.Index] *\
-            #                 (1 - region.dist_heating_share_scn.loc[mun.Index])
-            # solar_feedin = region.feedin_ts['solar_heat'][mun.Index] *\
-            #                th_load.sum(axis=0) *\
-            #                region.heating_structure_dec_scn.loc[mun.Index][sector].loc['solar']
-            # th_residual_load = th_load - solar_feedin
-
-            # th_dec_demand_pth_mun = pd.DataFrame(
-            #     {sector:
-            #          region.demand_ts['th_{sector}'.format(
-            #              sector=sector)][mun.Index][datetime_index] *
-            #          (1 - region.dist_heating_share_scn.loc[mun.Index])
-            #      for sector in th_sectors}
-            # ) * region.heating_structure_dec_scn_wo_solar.loc[mun.Index,
-            #                                                   'ambient_heat']
-
             for sector in th_sectors:
                 th_load = region.demand_ts[f'th_{sector}'][mun.Index] * \
                           (1 - region.dist_heating_share_scn.loc[mun.Index])
