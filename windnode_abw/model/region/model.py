@@ -490,7 +490,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     outflow_args = {
                         'nominal_value': 1,
                         'fixed': True,
-                        'actual_value': list(actual_value)
+                        'actual_value': list(actual_value[datetime_index])
                     }
 
                     if es.Index != 'el_energy':
