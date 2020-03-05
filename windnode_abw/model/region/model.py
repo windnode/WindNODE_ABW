@@ -467,65 +467,66 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 ags_id=str(mun.Index),
                 sector=sector)]
 
-            th_load = region.demand_ts[f'th_{sector}'][mun.Index] *\
+            th_load = region.demand_ts[f'th_{sector}'][mun.Index][datetime_index] *\
                             (1 - region.dist_heating_share_scn.loc[mun.Index])
-            solar_feedin = region.feedin_ts['solar_heat'][mun.Index] *\
+            solar_feedin = region.feedin_ts['solar_heat'][mun.Index][datetime_index] *\
                            th_load.sum(axis=0) *\
                            region.heating_structure_dec_scn.loc[mun.Index][sector].loc['solar']
             th_residual_load = th_load - solar_feedin
 
             for es in region.heating_structure_dec_scn.loc[mun.Index].itertuples():
-                if es.Index == 'solar':
-                    es_share = 1
-                else:
-                    es_share = region.heating_structure_dec_scn_wo_solar.loc[
-                        mun.Index, es.Index][sector]
-
-                if es_share > 0 and es.Index != 'ambient_heat':
+                if es.Index != 'ambient_heat':
                     if es.Index == 'solar':
-                        actual_value = solar_feedin
+                        es_share = 1
                     else:
-                        actual_value = th_residual_load * es_share
+                        es_share = region.heating_structure_dec_scn_wo_solar.loc[
+                            mun.Index, es.Index][sector]
 
-                    outflow_args = {
-                        'nominal_value': 1,
-                        'fixed': True,
-                        'actual_value': list(actual_value[datetime_index])
-                    }
+                    if es_share > 0:
+                        if es.Index == 'solar':
+                            actual_value = solar_feedin
+                        else:
+                            actual_value = th_residual_load * es_share
 
-                    if es.Index != 'el_energy':
-                        inputs = {commodities[es.Index]: solph.Flow()}
-                        outflow_args['variable_costs'] = region.tech_assumptions_scn.loc[
-                            'heating_' + es.Index]['opex_var']
-                        outflow_args['emissions'] = region.tech_assumptions_scn.loc[
-                            'heating_' + es.Index]['emissions']
-                        conversion_factors = {
-                            bus_th: region.tech_assumptions_scn.loc[
-                                'heating_' + es.Index]['sys_eff']
-                            }
-                    else:
-                        inputs = {
-                            esys_nodes['b_el_{bus_id}'.format(
-                                bus_id=busdata.Index)]: solph.Flow()
-                            for busdata in mun_buses.itertuples()
+                        outflow_args = {
+                            'nominal_value': 1,
+                            'fixed': True,
+                            'actual_value': list(actual_value)
                         }
-                        outflow_args['variable_costs'] = 0
-                        outflow_args['emissions'] = 0
-                        # TODO: REVISE
-                        conversion_factors = {bus_th: 1}
 
-                    nodes.append(
-                        solph.Transformer(
-                            label='gen_th_dec_{ags_id}_{sector}_{src}'.format(
-                                ags_id=str(mun.Index),
-                                sector=sector,
-                                src=str(es.Index)
-                            ),
-                            inputs=inputs,
-                            outputs={bus_th: solph.Flow(**outflow_args)},
-                            conversion_factors=conversion_factors
+                        if es.Index != 'el_energy':
+                            inputs = {commodities[es.Index]: solph.Flow()}
+                            outflow_args['variable_costs'] = region.tech_assumptions_scn.loc[
+                                'heating_' + es.Index]['opex_var']
+                            outflow_args['emissions'] = region.tech_assumptions_scn.loc[
+                                'heating_' + es.Index]['emissions']
+                            conversion_factors = {
+                                bus_th: region.tech_assumptions_scn.loc[
+                                    'heating_' + es.Index]['sys_eff']
+                                }
+                        else:
+                            inputs = {
+                                esys_nodes['b_el_{bus_id}'.format(
+                                    bus_id=busdata.Index)]: solph.Flow()
+                                for busdata in mun_buses.itertuples()
+                            }
+                            outflow_args['variable_costs'] = 0
+                            outflow_args['emissions'] = 0
+                            # TODO: REVISE
+                            conversion_factors = {bus_th: 1}
+
+                        nodes.append(
+                            solph.Transformer(
+                                label='gen_th_dec_{ags_id}_{sector}_{src}'.format(
+                                    ags_id=str(mun.Index),
+                                    sector=sector,
+                                    src=str(es.Index)
+                                ),
+                                inputs=inputs,
+                                outputs={bus_th: solph.Flow(**outflow_args)},
+                                conversion_factors=conversion_factors
+                            )
                         )
-                    )
 
             # general common heat storage
             if scn_data['storage']['th_dec_storage']['enabled']['enabled'] == 1:
@@ -921,12 +922,12 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
             )
 
             for sector in th_sectors:
-                th_load = region.demand_ts[f'th_{sector}'][mun.Index] * \
+                th_load = region.demand_ts[f'th_{sector}'][mun.Index][datetime_index] * \
                           (1 - region.dist_heating_share_scn.loc[mun.Index])
-                solar_feedin = region.feedin_ts['solar_heat'][mun.Index] * \
+                solar_feedin = region.feedin_ts['solar_heat'][mun.Index][datetime_index] * \
                                th_load.sum(axis=0) * \
                                region.heating_structure_dec_scn.loc[mun.Index][sector].loc['solar']
-                th_residual_load = (th_load - solar_feedin)[datetime_index] *\
+                th_residual_load = (th_load - solar_feedin) *\
                                    region.heating_structure_dec_scn_wo_solar.loc[mun.Index,
                                                                                  'ambient_heat'][sector]
 
