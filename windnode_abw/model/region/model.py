@@ -473,7 +473,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                            th_load.sum(axis=0) *\
                            region.heating_structure_dec_scn.loc[mun.Index][sector].loc['solar']
             th_residual_load = th_load - solar_feedin
-            x=th_load.copy()
 
             for es in region.heating_structure_dec_scn.loc[mun.Index].itertuples():
                 if es.Index == 'solar':
@@ -487,7 +486,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                         actual_value = solar_feedin
                     else:
                         actual_value = th_residual_load * es_share
-                    x -= actual_value
 
                     outflow_args = {
                         'nominal_value': 1,
@@ -528,8 +526,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                             conversion_factors=conversion_factors
                         )
                     )
-
-            print(mun.Index, sector, ' DIFF: ', x[datetime_index].sum())
 
             # general common heat storage
             if scn_data['storage']['th_dec_storage']['enabled']['enabled'] == 1:
@@ -934,14 +930,14 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
             #                region.heating_structure_dec_scn.loc[mun.Index][sector].loc['solar']
             # th_residual_load = th_load - solar_feedin
 
-            th_dec_demand_pth_mun = pd.DataFrame(
-                {sector:
-                     region.demand_ts['th_{sector}'.format(
-                         sector=sector)][mun.Index][datetime_index] *
-                     (1 - region.dist_heating_share_scn.loc[mun.Index])
-                 for sector in th_sectors}
-            ) * region.heating_structure_dec_scn_wo_solar.loc[mun.Index,
-                                                              'ambient_heat']
+            # th_dec_demand_pth_mun = pd.DataFrame(
+            #     {sector:
+            #          region.demand_ts['th_{sector}'.format(
+            #              sector=sector)][mun.Index][datetime_index] *
+            #          (1 - region.dist_heating_share_scn.loc[mun.Index])
+            #      for sector in th_sectors}
+            # ) * region.heating_structure_dec_scn_wo_solar.loc[mun.Index,
+            #                                                   'ambient_heat']
 
             for sector in th_sectors:
                 th_load = region.demand_ts[f'th_{sector}'][mun.Index] * \
@@ -952,7 +948,6 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                 th_residual_load = (th_load - solar_feedin)[datetime_index] *\
                                    region.heating_structure_dec_scn_wo_solar.loc[mun.Index,
                                                                                  'ambient_heat'][sector]
-                print(mun.Index, sector, ' HP LOAD: ', th_residual_load.sum())
 
                 if th_residual_load.sum() > 0:
 
