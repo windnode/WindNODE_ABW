@@ -146,23 +146,23 @@ def create_el_model(region=None, datetime_index=None):
         # note: timeseries are distributed equally to all buses of mun
         for bus_id, busdata in mun_buses.iterrows():
             # generators
-            for tech, ts_df in {t: ts for t, ts
+            for tech, feedin_ts in {t: ts[ags] for t, ts
                                 in region.feedin_ts.items()
                                 if t in scn_data[
                     'generation']['gen_el']['technologies']}.items():
                 outflow_args = {
                     'nominal_value': 1,
                     'fixed':  True,
-                    'actual_value': list((ts_df[ags] /
+                    'actual_value': list((feedin_ts /
                                           len(mun_buses))[datetime_index]),
                     'variable_costs': region.tech_assumptions_scn.loc[
                         tech]['opex_var'],
                     'emissions': region.tech_assumptions_scn.loc[
                         tech]['emissions']
-                }
+                    }
 
                 # create node only if feedin sum is >0
-                if ts_df[ags].sum(axis=0) > 0:
+                if feedin_ts.sum(axis=0) > 0:
                     nodes.append(
                         solph.Source(
                             label='gen_el_{ags_id}_b{bus_id}_{tech}'.format(
