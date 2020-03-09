@@ -17,6 +17,7 @@
 # general options
 [general]
     name = sq
+    year = 2017
     
 # commodities
 [commodities]

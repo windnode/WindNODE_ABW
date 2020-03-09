@@ -212,8 +212,8 @@ class Region:
         the shares of energy sources sum up to 1 per municipality.
         """
         return self._heating_structure_dec.xs(
-            self._cfg['scn_data']['general']['name'],
-            level='scenario'
+            self._cfg['scn_data']['general']['year'],
+            level='year'
         )
 
     @property
@@ -238,8 +238,8 @@ class Region:
         """Return district heating share per municipality for current scenario
         set in cfg"""
         return self._dist_heating_share.xs(
-            self._cfg['scn_data']['general']['name'],
-            level='scenario'
+            self._cfg['scn_data']['general']['year'],
+            level='year'
         )
 
     @property
@@ -250,8 +250,8 @@ class Region:
     def tech_assumptions_scn(self):
         """Return technical assumptions for current scenario set in cfg"""
         return self._tech_assumptions.xs(
-            self._cfg['scn_data']['general']['name'],
-            level='scenario'
+            self._cfg['scn_data']['general']['year'],
+            level='year'
         )
 
     @classmethod

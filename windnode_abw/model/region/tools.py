@@ -546,7 +546,7 @@ def preprocess_heating_structure(cfg, heating_structure):
     # check sums
     if not (heating_structure.groupby(
             ['ags_id',
-             'scenario']).agg('sum', axis=0).round(3) == 1).\
+             'year']).agg('sum', axis=0).round(3) == 1).\
                    all().all() == True:
         msg = 'Sums of heating structure shares '\
               'are not 1. Check your data!'
@@ -571,7 +571,7 @@ def preprocess_heating_structure(cfg, heating_structure):
     # calculate scale factors
     if rescale:
         source_scale_factor = 1 / heating_structure.groupby(
-            ['ags_id', 'scenario']).agg('sum', axis=0)
+            ['ags_id', 'year']).agg('sum', axis=0)
         # apply
         heating_structure = heating_structure * source_scale_factor
 
@@ -579,7 +579,7 @@ def preprocess_heating_structure(cfg, heating_structure):
     heating_structure_wo_dist_heating = heating_structure.loc[
         heating_structure.index.get_level_values(1) != 'dist_heating']
     source_scale_factor = 1 / heating_structure_wo_dist_heating.groupby(
-        ['ags_id', 'scenario']).agg('sum', axis=0)
+        ['ags_id', 'year']).agg('sum', axis=0)
     heating_structure_dec = heating_structure_wo_dist_heating *\
                             source_scale_factor
 
