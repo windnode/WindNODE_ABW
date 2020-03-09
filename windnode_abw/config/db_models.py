@@ -366,6 +366,33 @@ class WnAbwHeatingStructure(Base):
 
 
 class WnAbwTechAssumptions(Base):
+    """Technical assumptions: costs, emissions, efficiency
+
+    Units see column type below.
+
+    Attributes
+    ----------
+    technology : :class:`sqlalchemy.sql.schema.Column`
+        Id of technology
+    technology_name : :class:`sqlalchemy.sql.schema.Column`
+        Full German name of technology
+    scenario : :class:`sqlalchemy.sql.schema.Column`
+        Scenario
+    capex : :class:`sqlalchemy.sql.schema.Column`
+        CAPEX in EUR/kw
+    opex_fix : :class:`sqlalchemy.sql.schema.Column`
+        Fixed OPEX in EUR/(kWh*a), apples to systems only
+    opex_var : :class:`sqlalchemy.sql.schema.Column`
+        Variable OPEX in EUR/kWh, apples to systems only
+    lifespan : :class:`sqlalchemy.sql.schema.Column`
+        Expected lifespan in years, apples to systems only
+    emissions_var : :class:`sqlalchemy.sql.schema.Column`
+        Variable (energy-specific) supply chain emissions in kg/MWh
+    emissions_fix : :class:`sqlalchemy.sql.schema.Column`
+        Fixed (power-specific) supply chain emissions in kg/MW
+    sys_eff : :class:`sqlalchemy.sql.schema.Column`
+        Annual system efficiency, apples to systems only
+    """
     __tablename__ = 'wn_abw_tech_assumptions'
     __table_args__ = {'schema': 'windnode'}
 
