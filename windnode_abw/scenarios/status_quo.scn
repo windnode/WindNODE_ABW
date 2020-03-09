@@ -21,6 +21,7 @@
 # commodities
 [commodities]
     # comm. to be created
+    # Note: The names must match name "comm_<NAME>" in tech. assumptions DB table
     commodities = fuel_oil,natural_gas,wood,coal,solar
 
 [economics]
