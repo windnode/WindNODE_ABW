@@ -158,7 +158,7 @@ def create_el_model(region=None, datetime_index=None):
                     'variable_costs': region.tech_assumptions_scn.loc[
                         tech]['opex_var'],
                     'emissions': region.tech_assumptions_scn.loc[
-                        tech]['emissions']
+                        tech]['emissions_var']
                     }
 
                 # create node only if feedin sum is >0
@@ -271,7 +271,7 @@ def create_el_model(region=None, datetime_index=None):
                     variable_costs=region.tech_assumptions_scn.loc[
                         'el_energy']['capex'],
                     emissions=region.tech_assumptions_scn.loc[
-                        'el_energy']['emissions']
+                        'el_energy']['emissions_var']
                 )})
         )
 
@@ -447,7 +447,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     variable_costs=region.tech_assumptions_scn.loc[
                         'comm_' + es]['capex'] if es != 'solar' else 0,
                     emissions=region.tech_assumptions_scn.loc[
-                        'comm_' + es]['emissions']  if es != 'solar' else 0
+                        'comm_' + es]['emissions_var']  if es != 'solar' else 0
                 )
                 }
             )
@@ -500,7 +500,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                             outflow_args['variable_costs'] = region.tech_assumptions_scn.loc[
                                 'heating_' + es.Index]['opex_var']
                             outflow_args['emissions'] = region.tech_assumptions_scn.loc[
-                                'heating_' + es.Index]['emissions']
+                                'heating_' + es.Index]['emissions_var']
                             conversion_factors = {
                                 bus_th: region.tech_assumptions_scn.loc[
                                     'heating_' + es.Index]['sys_eff']
@@ -662,7 +662,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                             variable_costs=region.tech_assumptions_scn.loc[
                                 'pp_natural_gas_gud']['opex_var'],
                             emissions=region.tech_assumptions_scn.loc[
-                                'pp_natural_gas_gud']['emissions']
+                                'pp_natural_gas_gud']['emissions_var']
                         )
                     },
                     conversion_factors={
@@ -690,7 +690,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                             variable_costs=region.tech_assumptions_scn.loc[
                                 'pp_natural_gas_boiler']['opex_var'],
                             emissions=region.tech_assumptions_scn.loc[
-                                'pp_natural_gas_boiler']['emissions']
+                                'pp_natural_gas_boiler']['emissions_var']
                         )
                     },
                     conversion_factors={
@@ -741,7 +741,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     variable_costs=region.tech_assumptions_scn.loc[
                         'pp_bhkw']['opex_var'] / len(mun_buses),
                     emissions=region.tech_assumptions_scn.loc[
-                        'pp_bhkw']['emissions'] / len(mun_buses)
+                        'pp_bhkw']['emissions_var'] / len(mun_buses)
                 )
                 for busdata in mun_buses.itertuples()
             }
@@ -785,7 +785,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                             variable_costs=region.tech_assumptions_scn.loc[
                                 'pp_natural_gas_boiler']['opex_var'],
                             emissions=region.tech_assumptions_scn.loc[
-                                'pp_natural_gas_boiler']['emissions']
+                                'pp_natural_gas_boiler']['emissions_var']
                         )
                     },
                     conversion_factors={
@@ -994,7 +994,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 variable_costs=region.tech_assumptions_scn.loc[
                                     'heating_ashp']['opex_var'],
                                 emissions=region.tech_assumptions_scn.loc[
-                                    'heating_ashp']['emissions'],
+                                    'heating_ashp']['emissions_var'],
                             )},
                             conversion_factors={
                                 esys_nodes[f'b_el_{busdata.Index}']:
@@ -1026,7 +1026,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 variable_costs=region.tech_assumptions_scn.loc[
                                     'heating_gshp']['opex_var'],
                                 emissions=region.tech_assumptions_scn.loc[
-                                    'heating_gshp']['emissions'],
+                                    'heating_gshp']['emissions_var'],
                             )},
                             conversion_factors={
                                 esys_nodes[f'b_el_{busdata.Index}']:
@@ -1065,7 +1065,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 variable_costs=region.tech_assumptions_scn.loc[
                                     'heating_rod']['opex_var'],
                                 emissions = region.tech_assumptions_scn.loc[
-                                    'heating_rod']['emissions']
+                                    'heating_rod']['emissions_var']
                             )},
                             conversion_factors={
                                 bus_out: region.tech_assumptions_scn.loc[
