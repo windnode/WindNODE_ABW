@@ -451,7 +451,7 @@ def import_db_data(cfg):
     logger.info('Importing technical assumptions...')
     tech_assumptions_query = session.query(
         WnAbwTechAssumptions.technology,
-        WnAbwTechAssumptions.scenario,
+        WnAbwTechAssumptions.year,
         (WnAbwTechAssumptions.capex * 1000).label('capex'),
         (WnAbwTechAssumptions.opex_fix * 1000).label('opex_fix'),
         (WnAbwTechAssumptions.opex_var * 1000).label('opex_var'),

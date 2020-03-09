@@ -376,8 +376,8 @@ class WnAbwTechAssumptions(Base):
         Id of technology
     technology_name : :class:`sqlalchemy.sql.schema.Column`
         Full German name of technology
-    scenario : :class:`sqlalchemy.sql.schema.Column`
-        Scenario
+    year : :class:`sqlalchemy.sql.schema.Column`
+        Year
     capex : :class:`sqlalchemy.sql.schema.Column`
         CAPEX in EUR/kw
     opex_fix : :class:`sqlalchemy.sql.schema.Column`
@@ -397,7 +397,7 @@ class WnAbwTechAssumptions(Base):
     __table_args__ = {'schema': 'windnode'}
 
     technology = Column(Text, primary_key=True, nullable=False, index=True)
-    scenario = Column(Text, primary_key=True, nullable=False, index=True)
+    year = Column(BigInteger, primary_key=True, nullable=False, index=True)
     technology_name = Column(Text)
     capex = Column(Float(53))
     opex_fix = Column(Float(53))
