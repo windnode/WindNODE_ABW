@@ -371,9 +371,11 @@ class WnAbwTechAssumptions(Base):
 
     technology = Column(Text, primary_key=True, nullable=False, index=True)
     scenario = Column(Text, primary_key=True, nullable=False, index=True)
+    technology_name = Column(Text)
     capex = Column(Float(53))
     opex_fix = Column(Float(53))
     opex_var = Column(Float(53))
     lifespan = Column(BigInteger)
-    emissions = Column(Float(53))
+    emissions_var = Column(Float(53))
+    emissions_fix = Column(Float(53))
     sys_eff = Column(Float(53))
