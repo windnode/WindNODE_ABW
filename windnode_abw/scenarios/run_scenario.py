@@ -120,7 +120,7 @@ if __name__ == "__main__":
         'results_path': os.path.join(config.get_data_root_dir(),
                                      config.get('user_dirs',
                                                 'results_dir')),
-        'solver': 'cbc',
+        'solver': 'gurobi',
         'verbose': True,
         'dump_esys': False,
         'load_esys': False
