@@ -355,12 +355,12 @@ class WnAbwHeatingStructure(Base):
     __tablename__ = 'wn_abw_heating_structure'
     __table_args__ = {'schema': 'windnode'}
 
+    year = Column(BigInteger, primary_key=True, nullable=False, index=True)
     ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), primary_key=True, nullable=False, index=True)
     energy_source = Column(Text, primary_key=True, nullable=False, index=True)
-    scenario = Column(String, primary_key=True, nullable=False, index=True)
-    tech_share_rca = Column(Float(53))
     tech_share_hh_efh = Column(Float(53))
     tech_share_hh_mfh = Column(Float(53))
+    tech_share_rca = Column(Float(53))
 
     ags = relationship('WnAbwMun', back_populates='heating_structure')
 

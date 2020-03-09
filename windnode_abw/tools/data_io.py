@@ -433,8 +433,8 @@ def import_db_data(cfg):
     logger.info('Importing heating structure...')
     heating_structure_query = session.query(
         WnAbwHeatingStructure.ags_id,
+        WnAbwHeatingStructure.year,
         WnAbwHeatingStructure.energy_source,
-        WnAbwHeatingStructure.scenario,
         WnAbwHeatingStructure.tech_share_hh_efh.label('hh_efh'),
         WnAbwHeatingStructure.tech_share_hh_mfh.label('hh_mfh'),
         WnAbwHeatingStructure.tech_share_rca.label('rca')
@@ -442,7 +442,7 @@ def import_db_data(cfg):
     data['heating_structure'] = pd.read_sql_query(
         heating_structure_query.statement,
         session.bind,
-        index_col=['ags_id', 'energy_source', 'scenario'])
+        index_col=['ags_id', 'energy_source', 'year'])
 
     #######################################################
     # import technical assumptions (costs, eff, emissions #
