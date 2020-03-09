@@ -463,7 +463,7 @@ def import_db_data(cfg):
     data['tech_assumptions'] = pd.read_sql_query(
         tech_assumptions_query.statement,
         session.bind,
-        index_col=['technology', 'scenario'])
+        index_col=['technology', 'year'])
 
     return data
 
