@@ -6,6 +6,7 @@ from windnode_abw.model import Region
 from windnode_abw.model.region.model import simulate, create_oemof_model
 from windnode_abw.model.region.tools import calc_line_loading
 from windnode_abw.model.region.tools import grid_graph
+from windnode_abw.analysis.tools import aggregate_flows
 
 # load configs
 from windnode_abw.tools import config
@@ -130,8 +131,10 @@ if __name__ == "__main__":
 
     esys, region = run_scenario(cfg=cfg)
 
-    calc_line_loading(esys=esys,
-                      region=region)
+    # calc_line_loading(esys=esys,
+    #                   region=region)
+
+    aggregate_flows(region=region, esys=esys)
 
     plot_results(esys=esys,
                  region=region)
