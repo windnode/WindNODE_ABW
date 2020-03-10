@@ -258,7 +258,7 @@ def create_el_model(region=None, datetime_index=None):
                 ),
                 inputs={bus: solph.Flow(
                     variable_costs=region.tech_assumptions_scn.loc[
-                        'el_energy']['capex']
+                        'elenergy']['capex']
                 )})
         )
         nodes.append(
@@ -269,9 +269,9 @@ def create_el_model(region=None, datetime_index=None):
                 ),
                 outputs={bus: solph.Flow(
                     variable_costs=region.tech_assumptions_scn.loc[
-                        'el_energy']['capex'],
+                        'elenergy']['capex'],
                     emissions=region.tech_assumptions_scn.loc[
-                        'el_energy']['emissions_var']
+                        'elenergy']['emissions_var']
                 )})
         )
 
@@ -439,7 +439,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
 
     commodities = {}
     for es in scn_data['commodities']['commodities']:
-        if es not in ['el_energy', 'dist_heating']:
+        if es not in ['elenergy', 'dist_heating']:
             bus = solph.Bus(label='b_{es}'.format(es=es))
             com = solph.Source(
                 label='{es}'.format(es=str(es)),
@@ -495,7 +495,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                             'actual_value': list(actual_value[datetime_index])
                         }
 
-                        if es.Index != 'el_energy':
+                        if es.Index != 'elenergy':
                             inputs = {commodities[es.Index]: solph.Flow()}
                             outflow_args['variable_costs'] = region.tech_assumptions_scn.loc[
                                 'heating_' + es.Index]['opex_var']
