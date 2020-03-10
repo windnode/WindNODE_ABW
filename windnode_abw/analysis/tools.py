@@ -31,8 +31,12 @@ def result_seqs_to_dataframe(esys):
 
 
 def aggregate_flows(esys):
-    """Calculate total emissions of energy system"""
+    """Aggregate result flows and create result dictionary"""
 
+    # aggregations, format:
+    # {<TITLE>: {'pattern': <REGEX PATTERN OF NODE NAME>,
+    #            'level': 0 for flow input, 1 for flow output}
+    # }
     aggregations = {
         'Stromerzeugung nach Technologie': {
             'pattern': 'gen_el_\d+_b\d+_(\w+)',
@@ -58,7 +62,7 @@ def aggregate_flows(esys):
             'pattern': 'flex_dec_pth_((?:A|G)SHP)_\d+_\w+',
             'level': 0
         },
-        'DSM Haushalte nach Gemeinde': {
+        'Strombedarf Haushalte mit DSM nach Gemeinde': {
             'pattern': 'flex_dsm_(\d+)_b\d+',
             'level': 1
         },
@@ -66,16 +70,20 @@ def aggregate_flows(esys):
             'pattern': 'flex_bat_(\d+)_b\d+',
             'level': 1
         },
+        'Stromexport nach Spannungsebene': {
+            'pattern': 'excess_el_(\w+)_b\d+',
+            'level': 1
+        },
+        'Stromimport nach Spannungsebene': {
+            'pattern': 'shortage_el_(\w+)_b\d+',
+            'level': 0
+        },
     }
-
-    # datetime_index = pd.date_range(start=region.cfg['date_from'],
-    #                                end=region.cfg['date_to'],
-    #                                freq=region.cfg['freq'])
-    # df = pd.DataFrame(columns=nodes.keys(), index=datetime_index)
 
     flows_uni, flows_bi = result_seqs_to_dataframe(esys)
 
     results = {}
+
     # aggregation of unidirectional flows
     for name, params in aggregations.items():
         results[name] = flows_uni.groupby(
