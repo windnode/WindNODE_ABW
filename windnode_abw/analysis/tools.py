@@ -30,10 +30,10 @@ def result_seqs_to_dataframe(esys):
     )
 
 
-def aggregate_flows(region, esys):
+def aggregate_flows(esys):
     """Calculate total emissions of energy system"""
 
-    nodes = {
+    aggregations = {
         'Stromerzeugung nach Technologie': {
             'pattern': 'gen_el_\d+_b\d+_(\w+)',
             'level': 0
@@ -68,21 +68,22 @@ def aggregate_flows(region, esys):
         },
     }
 
-    datetime_index = pd.date_range(start=region.cfg['date_from'],
-                                   end=region.cfg['date_to'],
-                                   freq=region.cfg['freq'])
-    df = pd.DataFrame(columns=nodes.keys(), index=datetime_index)
+    # datetime_index = pd.date_range(start=region.cfg['date_from'],
+    #                                end=region.cfg['date_to'],
+    #                                freq=region.cfg['freq'])
+    # df = pd.DataFrame(columns=nodes.keys(), index=datetime_index)
 
     flows_uni, flows_bi = result_seqs_to_dataframe(esys)
 
-    # aggragation of unidirectional flows
-    for name, node in nodes.items():
-        df[name] = flows_uni.groupby(
-            flows_uni.columns.get_level_values(level=node['level']).str.extract(
-                node['pattern'],
+    results = {}
+    # aggregation of unidirectional flows
+    for name, params in aggregations.items():
+        results[name] = flows_uni.groupby(
+            flows_uni.columns.get_level_values(level=params['level']).str.extract(
+                params['pattern'],
                 expand=False),
             axis=1).agg('sum')
 
     # TODO: Insert aggregation of bidirectional flows here
 
-    pass
+    print('xxx')

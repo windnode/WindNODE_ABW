@@ -134,7 +134,7 @@ if __name__ == "__main__":
     # calc_line_loading(esys=esys,
     #                   region=region)
 
-    aggregate_flows(region=region, esys=esys)
+    aggregate_flows(esys=esys)
 
     plot_results(esys=esys,
                  region=region)
