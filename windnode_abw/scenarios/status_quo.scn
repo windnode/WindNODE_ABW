@@ -86,6 +86,21 @@
             # el. efficiency (full condensation)
             efficiency_full_cond = 0.47
 
+        # GuD Bitterfeld-Wolfen
+        [[[gud_bw]]]
+            # nominal thermal power
+            nom_th_power = 110
+            # cb-coefficient/back-pressure coefficient (Stromkennzahl/P-Q ratio)
+            cb_coeff = 1.2
+            # cv-coefficient/beta (Stromverlustkenziffer)
+            cv_coeff = 0.125
+            # el. efficiency (full condensation)
+            efficiency_full_cond = 0.47
+            # annual heat production in MWh
+            annual_heat_prod = 330000
+            # annual power production in MWh
+            annual_el_prod = 310000
+
 # storages
 [storage]
     # decentral heat storages
