@@ -720,7 +720,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 )
 
         # GuD Bitterfeld-Wolfen
-        # Heat is not used but fed into dummy excess bus
+        # Heat is fed into industrial heat demand bus
         if ags == 15082015:
             # load GuD params
             gud_cfg = scn_data['generation']['gen_th_cen']['gud_bw']
