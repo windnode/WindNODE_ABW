@@ -228,7 +228,7 @@
     [[dsm]]
         [[[enabled]]]
             # enabling DSM will disable residential loads
-            enabled = 0
+            enabled = 1
         [[[params]]]
             # share of HH with DSM
             hh_share = 0.1
