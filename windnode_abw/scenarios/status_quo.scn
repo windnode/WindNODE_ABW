@@ -71,7 +71,8 @@
             # nominal th. power in relation to peak load
             nom_th_power_rel_to_pl = 1.0
 
-        [[[gud]]]
+        # GuD Dessau
+        [[[gud_dessau]]]
             # nominal thermal power
             nom_th_power = 60
             # minimal th. energy share provided by GuD in relation to demand

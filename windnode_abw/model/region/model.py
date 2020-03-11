@@ -629,7 +629,8 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             # Extraction turbine docs:
             # https://oemof.readthedocs.io/en/stable/oemof_solph.html#extractionturbinechp-component
 
-            gud_cfg = scn_data['generation']['gen_th_cen']['gud']
+            # load GuD params
+            gud_cfg = scn_data['generation']['gen_th_cen']['gud_dessau']
             cb_coeff = gud_cfg['cb_coeff']
             cv_coeff = gud_cfg['cv_coeff']
             el_eff_full_cond = gud_cfg['efficiency_full_cond']
@@ -638,9 +639,10 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             th_eff_max_ex = el_eff_full_cond / (cb_coeff + cv_coeff)
             # max. el. efficiency at max. heat extraction
             el_eff_max_ex = cb_coeff * th_eff_max_ex
+
             bus_el = esys_nodes['b_el_27977']
 
-            # GuD
+            # GuD Dessau
             nodes.append(
                 solph.components.ExtractionTurbineCHP(
                     label='gen_th_cen_{ags_id}_gud'.format(
