@@ -1089,14 +1089,14 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
         for mun in region.muns.itertuples():
             mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
-            for busdata in mun_buses.itertuples():
-                bus_in = esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]
+            if region.dist_heating_share_scn[mun.Index] > 0:
+                for busdata in mun_buses.itertuples():
 
-                if 'b_th_cen_in_{ags_id}'.format(ags_id=mun.Index) in esys_nodes.keys():
+                    bus_in = esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]
                     bus_out = esys_nodes['b_th_cen_in_{ags_id}'.format(
                         ags_id=mun.Index
                     )]
-
+                    
                     nodes.append(
                         solph.Transformer(
                             label='flex_cen_pth_{ags_id}_b{bus_id}'.format(
