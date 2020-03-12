@@ -62,6 +62,10 @@ def aggregate_flows(esys):
             'pattern': 'flex_dec_pth_((?:A|G)SHP)_\d+_\w+',
             'level': 0
         },
+        'Wärmeerzeugung Heizstäbe nach Gemeinde': {
+            'pattern': 'flex_cen_pth_(\d+)',
+            'level': 0
+        },
         'Strombedarf Haushalte mit DSM nach Gemeinde': {
             'pattern': 'flex_dsm_(\d+)_b\d+',
             'level': 1
