@@ -1124,12 +1124,14 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     ####################
     # if DSM is enabled hh Sinks in l.170 ff. will be deactivated
     if scn_data['flexopt']['dsm']['enabled']['enabled'] == 1:
+        dsm_cfg = scn_data['flexopt']['dsm']
+
         for mun in region.muns.itertuples():
             mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
             for busdata in mun_buses.itertuples():
                 bus_in = esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]
-                dsm_mode = scn_data['flexopt']['dsm']['params']['mode']
+                dsm_mode = dsm_cfg['params']['mode']
 
                 nodes.append(
                     solph.custom.SinkDSM(
@@ -1157,9 +1159,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 mode=dsm_mode) / len(mun_buses)
                              )[datetime_index]
                         ),
-                        method=scn_data['flexopt']['dsm']['params']['method'],
-                        shift_interval=int(scn_data['flexopt']['dsm']['params']['shift_interval']),
-                        delay_time=int(scn_data['flexopt']['dsm']['params']['delay_time'])
+                        method=dsm_cfg['params']['method'],
+                        shift_interval=int(dsm_cfg['params']['shift_interval']),
+                        delay_time=int(dsm_cfg['params']['delay_time'])
                     )
                 )
 
