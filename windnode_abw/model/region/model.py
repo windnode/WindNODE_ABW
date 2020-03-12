@@ -720,74 +720,45 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 )
 
         # GuD Bitterfeld-Wolfen
-        # Heat is fed into industrial heat demand bus
+        # Only el. power output is considered
         if ags == 15082015:
             # load GuD params
             gud_cfg = scn_data['generation']['gen_th_cen']['gud_bw']
-            cb_coeff = gud_cfg['cb_coeff']
-            cv_coeff = gud_cfg['cv_coeff']
-            el_eff_full_cond = gud_cfg['efficiency_full_cond']
-            nom_th_power = gud_cfg['nom_th_power']
             # max. th. efficiency at max. heat extraction
-            th_eff_max_ex = el_eff_full_cond / (cb_coeff + cv_coeff)
+            th_eff_max_ex = gud_cfg['efficiency_full_cond'] /\
+                            (gud_cfg['cb_coeff'] + gud_cfg['cv_coeff'])
             # max. el. efficiency at max. heat extraction
-            el_eff_max_ex = cb_coeff * th_eff_max_ex
+            el_eff_max_ex = gud_cfg['cb_coeff'] * th_eff_max_ex
 
             bus_el = esys_nodes['b_el_26081']
 
-            # heat demand is determined using normalized el. load (step)
-            # profile and given heat production of GuD
-            th_ind_demand = region.demand_ts['el_ind'][ags] / \
+            # el. demand is determined using normalized el. load (step)
+            # profile and given el. production of GuD
+            el_ind_demand = region.demand_ts['el_ind'][ags] / \
                             region.demand_ts['el_ind'][ags].sum() * \
-                            gud_cfg['annual_heat_prod']
-
-            # heat bus+sink for excess heat
-            bus_th_ind_excess = solph.Bus(
-                label=f'b_th_ind_{str(ags)}_excess'
-            )
-            nodes.append(bus_th_ind_excess)
-            nodes.append(
-                solph.Sink(label=f'dem_th_ind_{str(ags)}_excess',
-                           inputs={bus_th_ind_excess: solph.Flow(
-                               nominal_value=1,
-                               fixed=True,
-                               actual_value=list(th_ind_demand[datetime_index])
-                           )})
-            )
+                            gud_cfg['annual_el_prod']
 
             # GuD
+            # (as linear relationship between el. and th. is assumed, a simple
+            # Transformer with constant eff. (at max. heat extraction) is
+            # sufficient)
             nodes.append(
-                solph.components.ExtractionTurbineCHP(
-                    label='gen_th_cen_{ags_id}_gud'.format(
-                        ags_id=str(ags)
-                    ),
-                    inputs={commodities['natural_gas']: solph.Flow(
-                        # nom. power gas derived from nom. th. power and
-                        # max. th. efficiency
-                        nominal_value=nom_th_power / th_eff_max_ex
-                    )},
-                    outputs={
-                        bus_th_ind_excess: solph.Flow(
-                            nominal_value=nom_th_power),
-                        bus_el: solph.Flow(
-                            summed_min=gud_cfg['annual_el_prod'] /
-                                       nom_th_power *
-                                       len(datetime_index) / 8760,
-                            summed_max=gud_cfg['annual_el_prod'] /
-                                       nom_th_power *
-                                       len(datetime_index) / 8760,
-                            variable_costs=region.tech_assumptions_scn.loc[
-                                'pp_natural_gas_gud']['opex_var'],
-                            emissions=region.tech_assumptions_scn.loc[
-                                'pp_natural_gas_gud']['emissions_var']
-                        )
+                solph.Transformer(
+                    label=f'gen_th_cen_{str(ags)}_gud',
+                    inputs={commodities['natural_gas']: solph.Flow()},
+                    outputs={bus_el: solph.Flow(
+                        nominal_value=gud_cfg['nom_el_power'],
+                        fixed=True,
+                        actual_value=list(el_ind_demand[datetime_index] /
+                                          gud_cfg['nom_el_power']),
+                        variable_costs=region.tech_assumptions_scn.loc[
+                            'pp_natural_gas_gud']['opex_var'],
+                        emissions=region.tech_assumptions_scn.loc[
+                            'pp_natural_gas_gud']['emissions_var']
+                    )
                     },
                     conversion_factors={
-                        bus_th_ind_excess: th_eff_max_ex,
                         bus_el: el_eff_max_ex
-                    },
-                    conversion_factor_full_condensation={
-                        bus_el: el_eff_full_cond
                     }
                 )
             )
