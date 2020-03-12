@@ -408,8 +408,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
 
     # buses for district heating (Fernwärme)
     # (1 per mun)
-    for ags, _ in region.dist_heating_share_scn[region.dist_heating_share_scn > 0].\
-            iteritems():
+    for ags in region.dist_heating_share_scn[region.dist_heating_share_scn > 0].index:
         # heating network bus for feedin (to grid)
         bus = solph.Bus(label='b_th_cen_in_{ags_id}'.format(
             ags_id=str(ags))
