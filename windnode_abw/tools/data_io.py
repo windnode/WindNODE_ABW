@@ -504,8 +504,7 @@ def oemof_nodes_from_excel(filename, header_lines=0):
     """
     # excel file does not exist
     if not filename or not os.path.isfile(filename):
-        logger.exception('Excel data file {} not found.'
-                         .format(filename))
+        logger.exception(f'Excel data file {filename} not found.')
 
     xls = pd.ExcelFile(filename)
 
@@ -520,8 +519,7 @@ def oemof_nodes_from_excel(filename, header_lines=0):
                   'timeseries': xls.parse('time_series', header=header_lines)
                   }
 
-    logger.info('Data from Excel file {} imported.'
-                .format(filename))
+    logger.info(f'Data from Excel file {filename} imported.')
 
     return nodes_data
 
@@ -551,8 +549,7 @@ def load_scenario(scn_name=None):
                             scn_name + '.scn')
 
         if not os.path.isfile(path):
-            msg = 'Scenario file {path} does not exist, aborting'.format(
-                path=path)
+            msg = f'Scenario file {path} does not exist, aborting'
             logger.info(msg)
             raise ValueError(msg)
         return convert2numeric(dict(ConfigObj(path)))

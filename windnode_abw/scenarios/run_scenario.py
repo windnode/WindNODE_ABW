@@ -55,8 +55,7 @@ def run_scenario(cfg):
         esys = solph.EnergySystem()
         esys.restore(dpath=path,
                      filename=file_esys)
-        logger.info('The energy system was loaded from {}.'
-                    .format(path + '/' + file_esys))
+        logger.info(f'The energy system was loaded from {path}/{file_esys}.')
 
         # load region
         region = Region.load_from_pkl(filename=file_region)
@@ -100,8 +99,7 @@ def run_scenario(cfg):
         # dump esys
         esys.dump(dpath=path,
                   filename=file_esys)
-        logger.info('The energy system was dumped to {}.'
-                    .format(path + '/' + file_esys))
+        logger.info(f'The energy system was dumped to {path}/{file_esys}.')
 
         # dump region
         region.dump_to_pkl(filename=file_region)

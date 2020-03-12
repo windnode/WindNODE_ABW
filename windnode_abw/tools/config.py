@@ -50,15 +50,14 @@ internal_config_file = os.path.join(package_path, 'config', 'config_system')
 try:
     cfg.read(internal_config_file)
 except:
-    logger.exception('Internal config {} file not found.'.format(internal_config_file))
+    logger.exception(f'Internal config {internal_config_file} file not found.')
 
 def load_config(filename):
     config_file = os.path.join(get_data_root_dir(), get('user_dirs', 'config_dir'), filename)
 
     # config file does not exist -> copy default
     if not os.path.isfile(config_file):
-        logger.info('Config file {} not found, I will create a default version'
-                    .format(config_file))
+        logger.info(f'Config file {config_file} not found, I will create a default version')
         shutil.copy(os.path.join(os.path.join(package_path, 'config'),
                                  filename.replace('.cfg', '_default.cfg')),
                     config_file)
@@ -108,8 +107,8 @@ def create_data_dirtree():
     # root dir does not exist
     if not os.path.isdir(root_path):
         # create it
-        logger.warning('WindNODE_ABW data root path {} not found, I will create it including subdirectories.'
-                       .format(root_path))
+        logger.warning(f'WindNODE_ABW data root path {root_path} not found, '
+                       f'I will create it including subdirectories.')
         os.mkdir(root_path)
 
         # create subdirs
@@ -120,8 +119,7 @@ def create_data_dirtree():
 
         # copy default config files
         config_path = os.path.join(root_path, get('user_dirs', 'config_dir'))
-        logger.info('I will create a default set of config files in {}'
-                    .format(config_path))
+        logger.info(f'I will create a default set of config files in {config_path}')
         internal_config_dir = os.path.join(package_path, 'config')
         for file in glob(os.path.join(internal_config_dir, '*.cfg')):
             shutil.copy(file,

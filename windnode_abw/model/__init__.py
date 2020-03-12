@@ -274,16 +274,14 @@ class Region:
                                 config.get('user_dirs', 'results_dir'))
         pickle.dump(self, open(os.path.join(filepath,
                                             filename), 'wb'))
-        logger.info('The region was dumped to {}.'
-                    .format(filepath + '/' + filename))
+        logger.info(f'The region was dumped to {filepath}/{filename}.')
 
     @classmethod
     def load_from_pkl(self, filename):
         """Load Region from pickle"""
         filepath = os.path.join(config.get_data_root_dir(),
                                 config.get('user_dirs', 'results_dir'))
-        logger.info('The region was loaded from {}.'
-                    .format(filepath + '/' + filename))
+        logger.info(f'The region was loaded from {filepath}/{filename}.')
 
         return pickle.load(open(os.path.join(filepath,
                                              filename), 'rb'))

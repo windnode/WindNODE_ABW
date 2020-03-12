@@ -20,9 +20,8 @@ def proj2equidistant():
     srid = int(config.get('geo', 'srid'))
 
     return partial(pyproj.transform,
-                   pyproj.Proj(init='epsg:{}'
-                               .format(str(srid))),  # source coordinate system
-                   pyproj.Proj(init='epsg:3035')  # destination coordinate system
+                   pyproj.Proj(init=f'epsg:{srid}'), # source coordinate system
+                   pyproj.Proj(init='epsg:3035')     # destination coordinate system
                    )
 
 
@@ -37,9 +36,8 @@ def proj2conformal():
     srid = int(config.get('geo', 'srid'))
 
     return partial(pyproj.transform,
-                   pyproj.Proj(init='epsg:3035'),  # source coordinate system
-                   pyproj.Proj(init='epsg:{}'
-                               .format(str(srid)))  # destination coordinate system
+                   pyproj.Proj(init='epsg:3035'),   # source coordinate system
+                   pyproj.Proj(init=f'epsg:{srid}') # destination coordinate system
                    )
 
 

@@ -121,12 +121,10 @@ def region_graph(subst_data,
         subgraphs = {len(sg.nodes()): sg for sg in nx.connected_component_subgraphs(graph)}
 
         if len(subgraphs) > 1:
-            logger.warning('Region consists of {g_cnt} separate (unconnected) grids with node counts '
-                           '{n_cnt}. The grid with max. node count is used, the others are dropped.'
-                           .format(g_cnt=str(len(subgraphs)),
-                                   n_cnt=str(list(subgraphs.keys()))
-                                   )
-                           )
+            logger.warning(f'Region consists of {len(subgraphs)} separate '
+                           f'(unconnected) grids with node counts '
+                           f'{list(subgraphs.keys())}. The grid with max. '
+                           f'node count is used, the others are dropped.')
 
             # use subgraph with max. count of nodes
             subgraph_used = subgraphs[max(list(subgraphs.keys()))]
