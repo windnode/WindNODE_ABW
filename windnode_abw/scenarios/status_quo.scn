@@ -90,6 +90,8 @@
         [[[gud_bw]]]
             # nominal thermal power
             nom_th_power = 110
+            # nominal electric power
+            nom_el_power = 110
             # cb-coefficient/back-pressure coefficient (Stromkennzahl/P-Q ratio)
             cb_coeff = 1.2
             # cv-coefficient/beta (Stromverlustkenziffer)
