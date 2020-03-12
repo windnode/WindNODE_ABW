@@ -1090,35 +1090,34 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
 
             if region.dist_heating_share_scn[mun.Index] > 0:
                 mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
-                for busdata in mun_buses.itertuples():
+                bus_out = esys_nodes['b_th_cen_in_{ags_id}'.format(
+                    ags_id=mun.Index
+                )]
 
-                    bus_in = esys_nodes['b_el_{bus_id}'.format(bus_id=busdata.Index)]
-                    bus_out = esys_nodes['b_th_cen_in_{ags_id}'.format(
-                        ags_id=mun.Index
-                    )]
-
-                    nodes.append(
-                        solph.Transformer(
-                            label='flex_cen_pth_{ags_id}_b{bus_id}'.format(
-                                ags_id=str(mun.Index),
-                                bus_id=busdata.Index
-                            ),
-                            inputs={bus_in: solph.Flow()},
-                            outputs={bus_out: solph.Flow(
-                                # TODO: get from DB table?
-                                nominal_value=scn_data['flexopt'][
-                                    'flex_cen_pth']['outflow']['nominal_value'],
-                                variable_costs=region.tech_assumptions_scn.loc[
-                                    'heating_rod']['opex_var'],
-                                emissions = region.tech_assumptions_scn.loc[
-                                    'heating_rod']['emissions_var']
-                            )},
-                            conversion_factors={
-                                bus_out: region.tech_assumptions_scn.loc[
-                                    'heating_rod']['sys_eff']
-                            }
-                        )
+                nodes.append(
+                    solph.Transformer(
+                        label=f'flex_cen_pth_{str(mun.Index)}',
+                        inputs={
+                            esys_nodes[f'b_el_{busdata.Index}']: solph.Flow()
+                            for busdata in mun_buses.itertuples()
+                        },
+                        outputs={bus_out: solph.Flow(
+                            # TODO: get from DB table?
+                            nominal_value=scn_data['flexopt'][
+                                'flex_cen_pth']['outflow']['nominal_value'],
+                            variable_costs=region.tech_assumptions_scn.loc[
+                                'heating_rod']['opex_var'],
+                            emissions = region.tech_assumptions_scn.loc[
+                                'heating_rod']['emissions_var']
+                        )},
+                        conversion_factors={
+                            esys_nodes[f'b_el_{busdata.Index}']:
+                                1 / len(mun_buses) *
+                                region.tech_assumptions_scn.loc['heating_rod']['sys_eff']
+                            for busdata in mun_buses.itertuples()
+                        }
                     )
+                )
 
     ####################
     # DSM (households) #
