@@ -99,7 +99,7 @@
             # el. efficiency (full condensation)
             efficiency_full_cond = 0.47
             # annual heat production in MWh
-            annual_heat_prod = 330000
+            annual_th_prod = 330000
             # annual power production in MWh
             annual_el_prod = 310000
 
