@@ -23,11 +23,14 @@ def result_seqs_to_dataframe(esys):
          for (from_n, to_n), flow in esys.results['main'].items()
          if not match(bidirectional_nodes_pattern, str(from_n))}
     ), pd.DataFrame(
-        {(str(from_n), col): flow['sequences'][col]
+        {(str(from_n), col) if match(bidirectional_nodes_pattern, str(from_n))
+                            else (col, str(to_n)): flow['sequences'][col]
         for (from_n, to_n), flow in esys.results['main'].items()
-        if match(bidirectional_nodes_pattern, str(from_n))
+        if match(bidirectional_nodes_pattern, str(from_n)) or
+           match(bidirectional_nodes_pattern, str(to_n))
         for col in flow['sequences'].columns}
     )
+
 
 
 def aggregate_flows(esys):
