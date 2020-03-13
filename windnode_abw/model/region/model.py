@@ -846,11 +846,15 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     # BATTERIES #
     #############
     if scn_data['flexopt']['flex_bat']['enabled']['enabled'] == 1:
+        batt_params = scn_data['flexopt']['flex_bat']['params']
         for mun in region.muns.itertuples():
             mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
             for busdata in mun_buses.itertuples():
                 bus = esys_nodes[f'b_el_{busdata.Index}']
+
+                batt_params['nominal_storage_capacity'] =\
+                    region.batteries_large[mun.Index] / len(mun_buses)
 
                 nodes.append(
                     solph.components.GenericStorage(
@@ -860,7 +864,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 'stor_battery_large']['opex_var']
                         )},
                         outputs={bus: solph.Flow()},
-                        **scn_data['flexopt']['flex_bat']['params']
+                        **batt_params
                         # Note: efficiencies are read from cfg, not tech table
                     )
                 )
