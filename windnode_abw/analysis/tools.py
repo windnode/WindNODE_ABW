@@ -14,7 +14,7 @@ def result_seqs_to_dataframe(esys):
         DataFrame with bidirectional flows, (node, param) as columns.
         E.g. DSM measures dsm_up and dsm_do of DSM sink nodes.
     """
-    bidirectional_nodes_prefixes = ['flex_dsm']
+    bidirectional_nodes_prefixes = ['flex_dsm', 'flex_bat']
     bidirectional_nodes_pattern = '(?:' + '|'.join(
         p for p in bidirectional_nodes_prefixes) + r')_\w+'
 
