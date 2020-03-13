@@ -111,6 +111,26 @@ def aggregate_flows(esys):
             'pattern': 'flex_bat_(\d+)_b\d+',
             'variable': 'capacity'
         },
+        'Speicherfüllstand dezentrale Wärmespeicher nach Sektor': {
+            'pattern': 'stor_th_dec_\d+_((?:hh_efh|hh_mfh|rca))',
+            'variable': 'capacity'
+        },
+        'Speicherfüllstand dezentrale Wärmespeicher nach Gemeinde': {
+            'pattern': 'stor_th_dec_(\d+)_(?:hh_efh|hh_mfh|rca)',
+            'variable': 'capacity'
+        },
+        'Speicherfüllstand dezentrale Wärmespeicher (Wärmepumpen) nach Sektor': {
+            'pattern': 'stor_th_dec_pth_\d+_((?:hh_efh|hh_mfh|rca))',
+            'variable': 'capacity'
+        },
+        'Speicherfüllstand dezentrale Wärmespeicher (Wärmepumpen) nach Gemeinde': {
+            'pattern': 'stor_th_dec_pth_(\d+)_(?:hh_efh|hh_mfh|rca)',
+            'variable': 'capacity'
+        },
+        'Speicherfüllstand zentrale Wärmespeicher nach Gemeinde': {
+            'pattern': 'stor_th_cen_(\d+)',
+            'variable': 'capacity'
+        },
     }
 
     flows_df, vars_df = result_seqs_to_dataframe(esys)
