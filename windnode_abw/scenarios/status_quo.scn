@@ -221,7 +221,7 @@
     # central PtH (boilers)
     [[flex_cen_pth]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[outflow]]]
             nominal_value = 1000
         [[[params]]]
