@@ -187,9 +187,10 @@
     # batteries
     [[flex_bat]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[params]]]
-            nominal_storage_capacity = 1
+            # cumulative capacity
+            nominal_storage_capacity = 30
             # following params according to DEA stor, S.180
             # conversion factors AC calculated via roundtrip AC/DC
             loss_rate = 0.0042
