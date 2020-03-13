@@ -634,3 +634,37 @@ def calc_annuity(cfg, tech_assumptions):
         axis=1)
 
     return tech_assumptions
+
+
+def distribute_large_battery_capacity(region):
+    """Distribute cumulative capacity of large-scale batteries to
+    municipalities proportional to installed RE capacity.
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+
+    Returns
+    -------
+    :pandas:`pandas.DataFrame`
+        Battery capacity per municipality, rounded to one decimal (=0.1 MWh)
+    """
+    # get batt. capacity and RE technologies
+    batt_cap = region.cfg['scn_data']['flexopt']['flex_bat'][
+        'params']['nominal_storage_capacity']
+    ee_techs = region.cfg['scn_data']['generation']['gen_el']['technologies']
+
+    # get cumulated installed cap. per mun
+    ee_cum_cap_per_mun = region.muns[[f'gen_capacity_{tech}'
+                                      for tech in ee_techs]].sum(axis=1)
+
+    # distribute prop. to installed cap., rounding to 100 kW
+    batt_cap_per_mun = (ee_cum_cap_per_mun / ee_cum_cap_per_mun.sum() *
+                        batt_cap).round(1)
+
+    # if cap. was "lost" due to rounding, add it to the mun with largest batt.
+    error = batt_cap - batt_cap_per_mun.sum()
+    if round(error, 1) >= 1e-1:
+        batt_cap_per_mun[batt_cap_per_mun == batt_cap_per_mun.max()] += error
+
+    return batt_cap_per_mun

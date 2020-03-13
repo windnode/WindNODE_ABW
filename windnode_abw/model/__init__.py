@@ -9,7 +9,7 @@ from windnode_abw.tools.data_io import import_db_data
 from windnode_abw.model.region.tools import \
     prepare_feedin_timeseries, prepare_demand_timeseries, \
     prepare_temp_timeseries, preprocess_heating_structure, \
-    calc_annuity
+    calc_annuity, distribute_large_battery_capacity
 
 
 class Region:
@@ -94,6 +94,8 @@ class Region:
             cfg=self._cfg,
             tech_assumptions=kwargs.get('tech_assumptions', None)
         )
+
+        self._batteries_large = distribute_large_battery_capacity(self)
 
     @property
     def muns(self):
@@ -253,6 +255,9 @@ class Region:
             self._cfg['scn_data']['general']['year'],
             level='year'
         )
+    @property
+    def batteries_large(self):
+        return self._batteries_large
 
     @classmethod
     def import_data(cls, cfg=None):
