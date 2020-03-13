@@ -110,7 +110,7 @@
     # TODO: Replace costs, capacity
     [[th_dec_storage]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[inflow]]]
             nominal_value = 30
             variable_costs = 1
@@ -126,7 +126,7 @@
     # TODO: Replace costs, capacity
     [[th_dec_pth_storage]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[inflow]]]
             # prevent charging restrictions
             nominal_value = 1000
@@ -143,7 +143,7 @@
     # heat storage for Dessau
     [[th_cen_storage]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[inflow]]]
             nominal_value = 60
             variable_costs = 1
