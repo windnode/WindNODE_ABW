@@ -350,7 +350,7 @@ def prepare_feedin_timeseries(region):
         'gen_capacity_pv_ground': 'pv_ground',
         'gen_capacity_pv_roof_small': 'pv_roof_small',
         'gen_capacity_pv_roof_large': 'pv_roof_large',
-        'gen_capacity_hydro': 'run_of_river',
+        'gen_capacity_hydro': 'hydro',
         'gen_capacity_solar_heat': 'solar_heat',
     }
 
@@ -374,8 +374,7 @@ def prepare_feedin_timeseries(region):
          region.feedin_ts_init[['pv_roof']].rename(
              columns={'pv_roof': 'pv_roof_small'})],
         axis=1)
-    region.feedin_ts_init.rename(columns={'pv_roof': 'pv_roof_large',
-                                          'hydro': 'run_of_river'},
+    region.feedin_ts_init.rename(columns={'pv_roof': 'pv_roof_large'},
                                  inplace=True)
 
     region.feedin_ts_init.drop(

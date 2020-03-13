@@ -45,8 +45,8 @@
 [generation]
     [[gen_el]]
         # technologies to be included, possible values:
-        # (pv_ground, pv_roof_small, pv_roof_large, run_of_river, bio, conventional, wind)
-        technologies = pv_ground,pv_roof_small,pv_roof_large,run_of_river,wind,bio
+        # (pv_ground, pv_roof_small, pv_roof_large, hydro, bio, conventional, wind)
+        technologies = pv_ground,pv_roof_small,pv_roof_large,hydro,wind,bio
     [[gen_th_dec]]
         [[[general]]]
             # min share of energy source to be considered
