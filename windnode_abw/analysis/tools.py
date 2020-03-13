@@ -47,7 +47,7 @@ def result_seqs_to_dataframe(esys):
 def aggregate_flows(esys):
     """Aggregate result flows and create result dictionary"""
 
-    # aggregations, format:
+    # aggregations for flows, format:
     # {<TITLE>: {'pattern': <REGEX PATTERN OF NODE NAME>,
     #            'level': 0 for flow input, 1 for flow output}
     # }
@@ -98,6 +98,10 @@ def aggregate_flows(esys):
         },
     }
 
+    # aggregations for node variables, format:
+    # {<TITLE>: {'pattern': <REGEX PATTERN OF NODE NAME>,
+    #            'variable': <VARIABLE NAME>}
+    # }
     aggregations_vars = {
         'Lasterhöhung DSM Haushalte nach Gemeinde': {
             'pattern': 'flex_dsm_(\d+)_b\d+',
