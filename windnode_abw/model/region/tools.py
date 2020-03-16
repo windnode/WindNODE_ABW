@@ -646,18 +646,22 @@ def distribute_large_battery_capacity(region):
 
     Returns
     -------
-    :pandas:`pandas.DataFrame`
-        Battery capacity per municipality
+    :pandas:`pandas.DataFrame` or None
+        Battery capacity per municipality, None if capacity is zero
     """
     # get batt. capacity and RE technologies
     batt_cap = region.cfg['scn_data']['flexopt']['flex_bat_large'][
         'params']['nominal_storage_capacity']
-    ee_techs = region.cfg['scn_data']['generation']['gen_el']['technologies']
 
-    # get cumulated installed cap. per mun
-    ee_cum_cap_per_mun = region.muns[[f'gen_capacity_{tech}'
-                                      for tech in ee_techs]].sum(axis=1)
+    if batt_cap > 0:
+        ee_techs = region.cfg['scn_data']['generation']['gen_el']['technologies']
 
-    # distribute prop. to installed cap.
-    return (ee_cum_cap_per_mun / ee_cum_cap_per_mun.sum() *
-            batt_cap)
+        # get cumulated installed cap. per mun
+        ee_cum_cap_per_mun = region.muns[[f'gen_capacity_{tech}'
+                                          for tech in ee_techs]].sum(axis=1)
+
+        # distribute prop. to installed cap.
+        return (ee_cum_cap_per_mun / ee_cum_cap_per_mun.sum() *
+                batt_cap)
+
+    return None
