@@ -615,9 +615,9 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                         ),
                         bus_el: solph.Flow(
                             variable_costs=region.tech_assumptions_scn.loc[
-                                'pp_natural_gas_gud']['opex_var'],
+                                'pp_natural_gas_cc']['opex_var'],
                             emissions=region.tech_assumptions_scn.loc[
-                                'pp_natural_gas_gud']['emissions_var']
+                                'pp_natural_gas_cc']['emissions_var']
                         )
                     },
                     conversion_factors={
@@ -679,21 +679,20 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             # max. el. efficiency at max. heat extraction
             el_eff_max_ex = gud_cfg['cb_coeff'] * th_eff_max_ex
 
-            bus_el = esys_nodes['b_el_26081']
-
             # el. demand is determined using normalized el. load (step)
             # profile and given el. production of GuD
             el_ind_demand = region.demand_ts['el_ind'][ags] / \
                             region.demand_ts['el_ind'][ags].sum() * \
                             gud_cfg['annual_el_prod']
 
-            # GuD
+            # GuD Bitterfeld-Wolfen
             # (as linear relationship between el. and th. is assumed, a simple
             # Transformer with constant eff. (at max. heat extraction) is
             # sufficient)
+            bus_el = esys_nodes['b_el_26081']
             nodes.append(
                 solph.Transformer(
-                    label=f'gen_th_cen_{str(ags)}_gud',
+                    label=f'gen_th_cen_{ags}_gud',
                     inputs={commodities['natural_gas']: solph.Flow()},
                     outputs={bus_el: solph.Flow(
                         nominal_value=gud_cfg['nom_el_power'],
@@ -701,9 +700,9 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                         actual_value=list(el_ind_demand[datetime_index] /
                                           gud_cfg['nom_el_power']),
                         variable_costs=region.tech_assumptions_scn.loc[
-                            'pp_natural_gas_gud']['opex_var'],
+                            'pp_natural_gas_cc']['opex_var'],
                         emissions=region.tech_assumptions_scn.loc[
-                            'pp_natural_gas_gud']['emissions_var']
+                            'pp_natural_gas_cc']['emissions_var']
                     )
                     },
                     conversion_factors={
