@@ -650,7 +650,7 @@ def distribute_large_battery_capacity(region):
         Battery capacity per municipality
     """
     # get batt. capacity and RE technologies
-    batt_cap = region.cfg['scn_data']['flexopt']['flex_bat'][
+    batt_cap = region.cfg['scn_data']['flexopt']['flex_bat_large'][
         'params']['nominal_storage_capacity']
     ee_techs = region.cfg['scn_data']['generation']['gen_el']['technologies']
 

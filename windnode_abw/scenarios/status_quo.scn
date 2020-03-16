@@ -192,7 +192,7 @@
 # flexibility options
 [flexopt]
     # batteries
-    [[flex_bat]]
+    [[flex_bat_large]]
         [[[enabled]]]
             enabled = 1
         [[[params]]]

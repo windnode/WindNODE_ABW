@@ -868,8 +868,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     #############
     # BATTERIES #
     #############
-    if scn_data['flexopt']['flex_bat']['enabled']['enabled'] == 1:
-        batt_params = scn_data['flexopt']['flex_bat']['params']
+    if scn_data['flexopt']['flex_bat_large']['enabled']['enabled'] == 1:
+        batt_params = scn_data['flexopt']['flex_bat_large']['params']
         for mun in region.muns.itertuples():
             mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
 
