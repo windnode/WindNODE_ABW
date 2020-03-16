@@ -43,7 +43,6 @@ def result_seqs_to_dataframe(esys):
     # )
 
 
-
 def aggregate_flows(esys):
     """Aggregate result flows and create result dictionary"""
 
