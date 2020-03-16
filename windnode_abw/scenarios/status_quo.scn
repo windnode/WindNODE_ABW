@@ -204,6 +204,18 @@
             inflow_conversion_factor = 0.94
             outflow_conversion_factor = 0.93
 
+    [[flex_bat_small]]
+        [[[enabled]]]
+            enabled = 1
+        [[[params]]]
+            # cumulative capacity
+            nominal_storage_capacity = 20
+            # following params according to DEA stor, S.180
+            # conversion factors AC calculated via roundtrip AC/DC
+            loss_rate = 0.0042
+            inflow_conversion_factor = 0.94
+            outflow_conversion_factor = 0.93
+
     # decentral PtH (heat pumps, per mun)
     [[flex_dec_pth]]
         [[[enabled]]]

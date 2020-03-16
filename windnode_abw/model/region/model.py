@@ -897,6 +897,36 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                         )
                     )
 
+    # PV batteries in small rooftop solar home systems
+    if scn_data['flexopt']['flex_bat_small']['enabled']['enabled'] == 1 and \
+            region.batteries_small is not None:
+        batt_params = scn_data['flexopt']['flex_bat_small']['params']
+
+        for mun in region.muns.itertuples():
+            mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
+
+            batt_cap = region.batteries_large[mun.Index] / len(mun_buses)
+
+            if batt_cap > 0:
+                batt_params['nominal_storage_capacity'] = batt_cap
+
+                for busdata in mun_buses.itertuples():
+                    bus = esys_nodes[f'b_el_{busdata.Index}']
+
+                    nodes.append(
+                        solph.components.GenericStorage(
+                            label=f'flex_bat_small_{mun.Index}_b{busdata.Index}',
+                            inputs={bus: solph.Flow(
+                                variable_costs=region.tech_assumptions_scn.loc[
+                                    'stor_battery_small']['opex_var']
+                            )},
+                            outputs={bus: solph.Flow()},
+                            **batt_params
+                            # Note: efficiencies are read from cfg, not tech table
+                        )
+                    )
+
+
     ##################################################
     # PTH for decentralized heat supply (heat pumps) #
     ##################################################

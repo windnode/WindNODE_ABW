@@ -88,6 +88,10 @@ def aggregate_flows(esys):
             'pattern': 'flex_bat_large_(\d+)_b\d+',
             'level': 1
         },
+        'PV-Batteriespeicher nach Gemeinde': {
+            'pattern': 'flex_bat_small_(\d+)_b\d+',
+            'level': 1
+        },
         'Stromexport nach Spannungsebene': {
             'pattern': 'excess_el_(\w+)_b\d+',
             'level': 1
@@ -113,6 +117,10 @@ def aggregate_flows(esys):
         },
         'Speicherfüllstand Großbatterien nach Gemeinde': {
             'pattern': 'flex_bat_large_(\d+)_b\d+',
+            'variable': 'capacity'
+        },
+        'Speicherfüllstand PV-Batteriespeicher nach Gemeinde': {
+            'pattern': 'flex_bat_small_(\d+)_b\d+',
             'variable': 'capacity'
         },
         'Speicherfüllstand dezentrale Wärmespeicher nach Sektor': {
