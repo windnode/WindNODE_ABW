@@ -665,3 +665,31 @@ def distribute_large_battery_capacity(region):
                 batt_cap)
 
     return None
+
+
+def distribute_small_battery_capacity(region):
+    """Distribute cumulative capacity of PV batteries to
+    municipalities proportional to installed small-scale rooftop PV capacity.
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+
+    Returns
+    -------
+    :pandas:`pandas.DataFrame` or None
+        Battery capacity per municipality, None if capacity is zero
+    """
+    # get batt. capacity and RE technologies
+    batt_cap = region.cfg['scn_data']['flexopt']['flex_bat_small'][
+        'params']['nominal_storage_capacity']
+
+    if batt_cap > 0:
+        # get cumulated installed small PV cap. per mun
+        pv_cum_cap_per_mun = region.muns['gen_capacity_pv_roof_small']
+
+        # distribute prop. to installed cap.
+        return (pv_cum_cap_per_mun / pv_cum_cap_per_mun.sum() *
+                batt_cap)
+
+    return None
