@@ -120,7 +120,7 @@ def set_node_colors(grph):
         elif node[:10] == 'dem_th_cen':
             colors[node] = '#df65b0'
 
-        elif node[:8] == 'flex_bat':
+        elif node[:14] == 'flex_bat_large':
             colors[node] = '#08519c'
         elif node[:12] == 'flex_dec_pth':
             colors[node] = '#ffffb2'

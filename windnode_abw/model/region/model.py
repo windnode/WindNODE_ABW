@@ -886,7 +886,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
 
                     nodes.append(
                         solph.components.GenericStorage(
-                            label=f'flex_bat_{mun.Index}_b{busdata.Index}',
+                            label=f'flex_bat_large_{mun.Index}_b{busdata.Index}',
                             inputs={bus: solph.Flow(
                                 variable_costs=region.tech_assumptions_scn.loc[
                                     'stor_battery_large']['opex_var']
