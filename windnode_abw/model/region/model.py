@@ -668,7 +668,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     )
                 )
 
-        # GuD Bitterfeld-Wolfen
+        # Power plants Bitterfeld-Wolfen
         # Only el. power output is considered
         if ags == 15082015:
             # load GuD params
@@ -707,6 +707,30 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     },
                     conversion_factors={
                         bus_el: el_eff_max_ex
+                    }
+                )
+            )
+
+            # Simple cycle (peak power) gas plant Wolfen
+            gas_cfg = scn_data['generation']['gen_th_cen']['gas_bw']
+            bus_el = esys_nodes['b_el_27910']
+            nodes.append(
+                solph.Transformer(
+                    label=f'gen_el_{ags}_gas',
+                    inputs={commodities['natural_gas']: solph.Flow()},
+                    outputs={bus_el: solph.Flow(
+                        nominal_value=gas_cfg['nom_el_power'],
+                        summed_min=len(datetime_index) / gas_cfg['annual_flh'],
+                        summed_max=len(datetime_index) / gas_cfg['annual_flh'],
+                        variable_costs=region.tech_assumptions_scn.loc[
+                            'pp_natural_gas_sc']['opex_var'],
+                        emissions=region.tech_assumptions_scn.loc[
+                            'pp_natural_gas_sc']['emissions_var']
+                    )
+                    },
+                    conversion_factors={
+                        bus_el: region.tech_assumptions_scn.loc[
+                            'pp_natural_gas_sc']['sys_eff']
                     }
                 )
             )

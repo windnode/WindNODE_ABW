@@ -103,6 +103,13 @@
             # annual power production in MWh
             annual_el_prod = 310000
 
+        # Simple cycle (peak power) gas plant Wolfen
+        [[[gas_bw]]]
+            # nominal electric power
+            nom_el_power = 40
+            # annual full load hours
+            annual_flh = 1250
+
 # storages
 [storage]
     # decentral heat storages
