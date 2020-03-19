@@ -16,7 +16,7 @@
 
 # general options
 [general]
-    name = sq
+    id = sq
     year = 2017
     
 # commodities

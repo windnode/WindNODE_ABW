@@ -325,7 +325,7 @@ def prepare_feedin_timeseries(region):
         (DF column)
 
     """
-    scenario = region.cfg['scn_data']['general']['name']
+    scenario = region.cfg['scn_data']['general']['id']
     region.muns['gen_capacity_solar_heat'] = 1
 
 
