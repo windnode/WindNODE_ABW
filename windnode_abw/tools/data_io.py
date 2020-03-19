@@ -525,7 +525,13 @@ def oemof_nodes_from_excel(filename, header_lines=0):
 
 
 def load_scenario(scn_name=None):
-    """Load scenario from ConfigObj file"""
+    """Load scenario from ConfigObj file
+
+    Parameters
+    ----------
+    scn_name : :obj:`str`
+        Name of scenario
+    """
 
     def convert2numeric(conf_dict):
         """Convert all string numbers to float values in `conf_dict`"""
