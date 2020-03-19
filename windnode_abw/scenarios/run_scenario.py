@@ -14,7 +14,7 @@ config.load_config('config_data.cfg')
 config.load_config('config_misc.cfg')
 
 from windnode_abw.tools.draw import draw_graph, set_node_colors, plot_results
-from windnode_abw.tools.data_io import load_scenario
+from windnode_abw.tools.data_io import load_scenario_cfg
 
 # import oemof modules
 import oemof.solph as solph
@@ -125,7 +125,7 @@ if __name__ == "__main__":
         'load_esys': False
     }
 
-    cfg['scn_data'] = load_scenario(cfg['scenario'])
+    cfg['scn_data'] = load_scenario_cfg(cfg['scenario'])
 
     esys, region = run_scenario(cfg=cfg)
 

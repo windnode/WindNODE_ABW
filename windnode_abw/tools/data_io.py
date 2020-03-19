@@ -524,7 +524,7 @@ def oemof_nodes_from_excel(filename, header_lines=0):
     return nodes_data
 
 
-def load_scenario(scn_name=None):
+def load_scenario_cfg(scn_name=None):
     """Load scenario from ConfigObj file
 
     Parameters
