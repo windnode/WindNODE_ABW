@@ -88,7 +88,7 @@ def run_scenario(cfg):
 
     # add results to energy system
     esys.results['main'] = outputlib.processing.results(om)
-    # add mata infos
+    # add meta infos
     esys.results['meta'] = outputlib.processing.meta_results(om)
     # add initial params to energy system
     esys.results['params'] = outputlib.processing.parameter_as_dict(esys)
