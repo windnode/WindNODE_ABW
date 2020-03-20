@@ -20,7 +20,7 @@ def results_to_dataframes(esys):
                 Series with node parameters, (node, var) as index,
                 labels is excluded
     """
-    result_df = {
+    results = {
         'flows': pd.DataFrame(
             {(str(from_n), str(to_n)): flow['sequences']['flow']
              for (from_n, to_n), flow in esys.results['main'].items()
@@ -44,7 +44,7 @@ def results_to_dataframes(esys):
              for row in flow['scalars'].index if row != 'label'}
         )
     }
-    return result_df
+    return results
 
 
 def aggregate_flows(esys):
