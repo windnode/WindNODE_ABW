@@ -1,50 +1,60 @@
 import pandas as pd
-from re import match
 
 
-def result_seqs_to_dataframe(esys):
+def results_to_dataframes(esys):
     """Convert result dict to DataFrames for flows and stationary variables.
 
     Returns
     -------
-    :pandas:`pandas.DataFrame`
-        DataFrame with flows, node pair as columns.
-    :pandas:`pandas.DataFrame`
-        DataFrame with stationary variables, (node, var) as columns.
-        E.g. DSM measures dsm_up and dsm_do of DSM sink nodes.
+    :obj:`dict`
+        Results, content:
+            :pandas:`pandas.DataFrame`
+                DataFrame with flows, node pair as columns.
+            :pandas:`pandas.DataFrame`
+                DataFrame with stationary variables, (node, var) as columns.
+                E.g. DSM measures dsm_up and dsm_do of DSM sink nodes.
+            :pandas:`pandas.DataFrame`
+                DataFrame with flow parameters, node pair as columns,
+                params as index
+            :pandas:`pandas.Series`
+                Series with node parameters, (node, var) as index,
+                labels is excluded
     """
-    # bidirectional_nodes_prefixes = ['flex_dsm', 'flex_bat']
-    # bidirectional_nodes_pattern = '(?:' + '|'.join(
-    #     p for p in bidirectional_nodes_prefixes) + r')_\w+'
-
-    return pd.DataFrame(
-        {(str(from_n), str(to_n)): flow['sequences']['flow']
-         for (from_n, to_n), flow in esys.results['main'].items()
-         if to_n is not None}
-    ), pd.DataFrame(
-        {(str(from_n), col): flow['sequences'][col]
-        for (from_n, to_n), flow in esys.results['main'].items()
-        if to_n is None
-        for col in flow['sequences'].columns}
-    )
-
-    # pd.DataFrame(
-    #     {(str(from_n), str(to_n)): flow['sequences']['flow']
-    #      for (from_n, to_n), flow in esys.results['main'].items()
-    #      if not match(bidirectional_nodes_pattern, str(from_n))}
-    # )
-    # pd.DataFrame(
-    #     {(str(from_n), col) if match(bidirectional_nodes_pattern, str(from_n))
-    #                         else (col, str(to_n)): flow['sequences'][col]
-    #     for (from_n, to_n), flow in esys.results['main'].items()
-    #     if match(bidirectional_nodes_pattern, str(from_n)) or
-    #        match(bidirectional_nodes_pattern, str(to_n))
-    #     for col in flow['sequences'].columns}
-    # )
+    results = {
+        'flows': pd.DataFrame(
+            {(str(from_n), str(to_n)): flow['sequences']['flow']
+             for (from_n, to_n), flow in esys.results['main'].items()
+             if to_n is not None}
+        ),
+        'vars_stat': pd.DataFrame(
+            {(str(from_n), col): flow['sequences'][col]
+             for (from_n, to_n), flow in esys.results['main'].items()
+             if to_n is None
+             for col in flow['sequences'].columns}
+        ),
+        'params_flows': pd.DataFrame(
+            {(str(from_n), str(to_n)): flow['scalars']
+             for (from_n, to_n), flow in esys.results['params'].items()
+             if to_n is not None}
+        ),
+        'params_stat': pd.Series(
+            {(str(from_n), row): flow['scalars'].loc[row]
+             for (from_n, to_n), flow in esys.results['params'].items()
+             if to_n is None
+             for row in flow['scalars'].index if row != 'label'}
+        )
+    }
+    return results
 
 
-def aggregate_flows(esys):
-    """Aggregate result flows and create result dictionary"""
+def aggregate_flows(results_raw):
+    """Aggregate result flows and create result dictionary
+
+    Parameters
+    ----------
+    results_raw : :obj:`dict`
+        Results
+    """
 
     # aggregations for flows, format:
     # {<TITLE>: {'pattern': <REGEX PATTERN OF NODE NAME>,
@@ -152,21 +162,22 @@ def aggregate_flows(esys):
         },
     }
 
-    flows_df, vars_df = result_seqs_to_dataframe(esys)
-
     results = {}
 
     # aggregation of flows
     for name, params in aggregations_flows.items():
-        results[name] = flows_df.groupby(
-            flows_df.columns.get_level_values(level=params['level']).str.extract(
+        results[name] = results_raw['flows'].groupby(
+            results_raw['flows'].columns.get_level_values(
+                level=params['level']).str.extract(
                 params['pattern'],
                 expand=False),
             axis=1).agg('sum')
 
     # aggregation of stationary vars
     for name, params in aggregations_vars.items():
-        vars_df_filtered = vars_df.xs(params['variable'], level=1, axis=1)
+        vars_df_filtered = results_raw['vars_stat'].xs(params['variable'],
+                                                       level=1,
+                                                       axis=1)
         results[name] = vars_df_filtered.groupby(
             vars_df_filtered.columns.get_level_values(level=0).str.extract(
                 params['pattern'],

@@ -2,11 +2,13 @@
 from windnode_abw.tools.logger import setup_logger
 logger = setup_logger()
 
+import os
+
 from windnode_abw.model import Region
 from windnode_abw.model.region.model import simulate, create_oemof_model
 from windnode_abw.model.region.tools import calc_line_loading
 from windnode_abw.model.region.tools import grid_graph
-from windnode_abw.analysis.tools import aggregate_flows
+from windnode_abw.analysis.tools import results_to_dataframes
 
 # load configs
 from windnode_abw.tools import config
@@ -14,14 +16,12 @@ config.load_config('config_data.cfg')
 config.load_config('config_misc.cfg')
 
 from windnode_abw.tools.draw import draw_graph, set_node_colors, plot_results
-from windnode_abw.tools.data_io import load_scenario_cfg
+from windnode_abw.tools.data_io import load_scenario_cfg, export_results
 
 # import oemof modules
 import oemof.solph as solph
 import oemof.outputlib as outputlib
 from oemof.graph import create_nx_graph
-
-import os
 
 
 def run_scenario(cfg):
@@ -86,13 +86,16 @@ def run_scenario(cfg):
     om = simulate(esys=esys,
                   solver=cfg['solver'])
 
-    # add results to the energy system
+    # add results to energy system
     esys.results['main'] = outputlib.processing.results(om)
+    # add meta infos
     esys.results['meta'] = outputlib.processing.meta_results(om)
-    # add initial params to the energy system
+    # add initial params to energy system
     esys.results['params'] = outputlib.processing.parameter_as_dict(esys)
-    # add om flows to allow access to Flow objects
+    # add om flows to allow access Flow objects
     esys.results['om_flows'] = list(om.flows.items())
+
+    results = results_to_dataframes(esys)
 
     # dump esys to file
     if cfg['dump_esys']:
@@ -103,6 +106,11 @@ def run_scenario(cfg):
 
         # dump region
         region.dump_to_pkl(filename=file_region)
+
+    if cfg['dump_results']:
+        export_results(results=results,
+                       meta=esys.results['meta'],
+                       scenario_id=region.cfg['scn_data']['general']['id'])
 
     return esys, region
 
@@ -122,7 +130,8 @@ if __name__ == "__main__":
         'solver': 'gurobi',
         'verbose': True,
         'dump_esys': False,
-        'load_esys': False
+        'load_esys': False,
+        'dump_results': True
     }
 
     cfg['scn_data'] = load_scenario_cfg(cfg['scenario'])
@@ -131,8 +140,6 @@ if __name__ == "__main__":
 
     # calc_line_loading(esys=esys,
     #                   region=region)
-
-    aggregate_flows(esys=esys)
 
     plot_results(esys=esys,
                  region=region)

@@ -7,6 +7,8 @@ import os
 import requests
 import pandas as pd
 import keyring
+import time
+import json
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import func
@@ -559,3 +561,88 @@ def load_scenario_cfg(scn_name=None):
             logger.info(msg)
             raise ValueError(msg)
         return convert2numeric(dict(ConfigObj(path)))
+
+
+def export_results(results, meta, scenario_id):
+    """Export results to CSV file, meta infos to JSON file
+
+    A new directory is created
+
+    Parameters
+    ----------
+    results : :obj:`dict`
+        Results from optimization
+    meta : :obj:
+        Meta infos from optimization
+    scenario_id : :obj:`str`
+        Scenario id from cfg file
+    """
+    base_path = os.path.join(config.get_data_root_dir(),
+                             config.get('user_dirs',
+                                        'results_dir')
+                             )
+    results_subdir = time.strftime('%y%m%d_%H%M%S')
+    results_path = os.path.join(base_path, results_subdir, scenario_id)
+    os.makedirs(results_path)
+
+    for name, df in results.items():
+        df.to_csv(os.path.join(results_path, f'{name}.csv'))
+
+    with open(os.path.join(results_path, 'meta.json'), 'w', encoding='utf-8') as file:
+        json.dump(meta, file, default=lambda _: '', ensure_ascii=False, indent=2)
+
+
+def load_results(timestamp, scenario):
+    """Load results from CSV and JSON
+
+    Parameters
+    ----------
+    timestamp : :obj:`str`
+        Timestamp of results, format: yymmdd_HHMMSS
+    scenario : :obj:`str`
+        Scenario id, e.g. "sq"
+
+    Returns
+    -------
+    :obj:`dict`
+        Results, content:
+            :pandas:`pandas.DataFrame`
+                DataFrame with flows, node pair as columns.
+            :pandas:`pandas.DataFrame`
+                DataFrame with stationary variables, (node, var) as columns.
+                E.g. DSM measures dsm_up and dsm_do of DSM sink nodes.
+            :pandas:`pandas.DataFrame`
+                DataFrame with flow parameters, node pair as columns,
+                params as index
+            :pandas:`pandas.Series`
+                Series with node parameters, (node, var) as index,
+                labels is excluded
+    """
+
+    results_path = os.path.join(config.get_data_root_dir(),
+                                config.get('user_dirs',
+                                            'results_dir'),
+                                timestamp,
+                                scenario
+                                )
+
+    # DataFrames
+    df_files = ['flows', 'vars_stat', 'params_flows']
+    # Series
+    se_files = ['params_stat']
+
+    results = {}
+    for file in df_files:
+        results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
+                                    index_col=0,
+                                    header=[0, 1])
+    for file in se_files:
+        results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
+                                    index_col=[0, 1],
+                                    header=None,
+                                    squeeze=True)
+
+    with open(os.path.join(results_path, 'meta.json')) as file:
+        results['meta'] = json.load(file)
+
+    return results
