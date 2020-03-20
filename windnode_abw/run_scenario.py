@@ -107,6 +107,11 @@ def run_scenario(cfg):
         # dump region
         region.dump_to_pkl(filename=file_region)
 
+    if cfg['dump_results']:
+        export_results(results=results,
+                       meta=esys.results['meta'],
+                       scenario_id=region.cfg['scn_data']['general']['id'])
+
     return esys, region
 
 
@@ -125,7 +130,8 @@ if __name__ == "__main__":
         'solver': 'gurobi',
         'verbose': True,
         'dump_esys': False,
-        'load_esys': False
+        'load_esys': False,
+        'dump_results': True
     }
 
     cfg['scn_data'] = load_scenario_cfg(cfg['scenario'])
