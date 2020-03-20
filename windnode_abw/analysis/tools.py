@@ -14,9 +14,11 @@ def results_to_dataframes(esys):
                 DataFrame with stationary variables, (node, var) as columns.
                 E.g. DSM measures dsm_up and dsm_do of DSM sink nodes.
             :pandas:`pandas.DataFrame`
-                DataFrame with flow parameters, node pair as columns.
-            :pandas:`pandas.DataFrame`
-                DataFrame with node parameters, (node, var) as columns
+                DataFrame with flow parameters, node pair as columns,
+                params as index
+            :pandas:`pandas.Series`
+                Series with node parameters, (node, var) as index,
+                labels is excluded
     """
     result_df = {
         'flows': pd.DataFrame(
@@ -35,10 +37,11 @@ def results_to_dataframes(esys):
              for (from_n, to_n), flow in esys.results['params'].items()
              if to_n is not None}
         ),
-        'params_stat': pd.DataFrame(
-            {(str(from_n), str(to_n)): flow['scalars']
+        'params_stat': pd.Series(
+            {(str(from_n), row): flow['scalars'].loc[row]
              for (from_n, to_n), flow in esys.results['params'].items()
-             if to_n is None}
+             if to_n is None
+             for row in flow['scalars'].index if row != 'label'}
         )
     }
     return result_df
