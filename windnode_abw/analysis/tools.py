@@ -47,8 +47,14 @@ def results_to_dataframes(esys):
     return results
 
 
-def aggregate_flows(esys):
-    """Aggregate result flows and create result dictionary"""
+def aggregate_flows(results_raw):
+    """Aggregate result flows and create result dictionary
+
+    Parameters
+    ----------
+    results_raw : :obj:`dict`
+        Results
+    """
 
     # aggregations for flows, format:
     # {<TITLE>: {'pattern': <REGEX PATTERN OF NODE NAME>,
@@ -156,21 +162,22 @@ def aggregate_flows(esys):
         },
     }
 
-    flows_df, vars_df = results_to_dataframes(esys)
-
     results = {}
 
     # aggregation of flows
     for name, params in aggregations_flows.items():
-        results[name] = flows_df.groupby(
-            flows_df.columns.get_level_values(level=params['level']).str.extract(
+        results[name] = results_raw['flows'].groupby(
+            results_raw['flows'].columns.get_level_values(
+                level=params['level']).str.extract(
                 params['pattern'],
                 expand=False),
             axis=1).agg('sum')
 
     # aggregation of stationary vars
     for name, params in aggregations_vars.items():
-        vars_df_filtered = vars_df.xs(params['variable'], level=1, axis=1)
+        vars_df_filtered = results_raw['vars_stat'].xs(params['variable'],
+                                                       level=1,
+                                                       axis=1)
         results[name] = vars_df_filtered.groupby(
             vars_df_filtered.columns.get_level_values(level=0).str.extract(
                 params['pattern'],
