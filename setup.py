@@ -34,6 +34,7 @@ setup(
         'oemof',
         'shapely',
         'pandas',
+        'geopandas',
         'GeoAlchemy2',
         'matplotlib',
         'networkx',
@@ -42,7 +43,8 @@ setup(
         'egoio',
         'pyproj',
         'pygraphviz',
-        'configobj'
+        'configobj',
+        'descartes'
     ],
     # package_data={
     #     'config': [
