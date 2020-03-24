@@ -234,7 +234,7 @@ class Region:
             self.heating_structure_dec_scn.index.get_level_values(1) != 'solar']
 
         source_scale_factor = 1 / heating_structure_dec_scn_wo_solar.groupby(
-            ['ags_id']).agg('sum', axis=0)
+            ['ags_id']).agg('sum')
         return heating_structure_dec_scn_wo_solar * source_scale_factor
 
     @property
