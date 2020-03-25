@@ -76,12 +76,12 @@ def run_scenario(cfg):
 
     # create and plot graph of energy system
     graph = create_nx_graph(esys)
-    draw_graph(grph=graph, plot=True, layout='neato', node_size=100, font_size=4,
+    draw_graph(grph=graph, plot=True, layout='neato', node_size=100, font_size=8,
                node_color=set_node_colors(graph))
-
-    # plot grid (not oemof model)
-    graph = grid_graph(region=region,
-                       draw=True)
+    #
+    # # plot grid (not oemof model)
+    # graph = grid_graph(region=region,
+    #                    draw=True)
 
     om = simulate(esys=esys,
                   solver=cfg['solver'])
