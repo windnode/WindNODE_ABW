@@ -9,6 +9,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import pandas as pd
 import geopandas as gpd
+import os
 
 from oemof.outputlib import views
 from oemof.graph import create_nx_graph
@@ -195,34 +196,50 @@ def plot_results(esys, region):
 
 def sample_plots(region, results):
 
-    # grid
-    fig, ax = plt.subplots()
+    ##############
+    # PLOT: Grid #
+    ##############
+    fig, axs = plt.subplots(1, 2)
+    de = gpd.read_file(os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'data',
+        'DEU_adm0.shp')).to_crs("EPSG:3035")
+    de.plot(ax=axs[0], color='white', edgecolor='#aaaaaa')
 
-    #de.plot(ax=ax, color='white', edgecolor='#aaaaaa')
     gdf_region = gpd.GeoDataFrame(region.muns, geometry='geom')
     gdf_region['centroid'] = gdf_region['geom'].centroid
-    gdf_region.plot(ax=ax, color='white', edgecolor='#aaaaaa')
 
+    gdf_region.plot(ax=axs[0])
+
+    gdf_region.plot(ax=axs[1], color='white', edgecolor='#aaaaaa')
     for idx, row in gdf_region.iterrows():
-        plt.annotate(s=row['gen'],
-                     xy=(row['geom'].centroid.x, row['geom'].centroid.y),
-                     ha='center',
-                     va='center',
-                     color='#888888',
-                     size=8)
+        axs[1].annotate(s=row['gen'],
+                        xy=(row['geom'].centroid.x, row['geom'].centroid.y),
+                        ha='center',
+                        va='center',
+                        color='#555555',
+                        size=8)
     gdf_lines = gpd.GeoDataFrame(region.lines, geometry='geom')
-    gdf_lines.plot(ax=ax, color='#88aaaa', linewidth=1.5, alpha=1)
+    gdf_lines.plot(ax=axs[1], color='#88aaaa', linewidth=1.5, alpha=1)
     gdf_buses = gpd.GeoDataFrame(region.buses, geometry='geom')
-    gdf_buses.plot(ax=ax, color='#338888', markersize=6, alpha=1)
+    gdf_buses.plot(ax=axs[1], color='#338888', markersize=6, alpha=1)
 
-    ax.set_yticklabels([])
-    ax.set_xticklabels([])
-    ax.set_title('Region ABW mit Hochspannungsnetz',
-                 fontsize=16,
-                 fontweight='normal')
+    for p in [0, 1]:
+        axs[p].set_yticklabels([])
+        axs[p].set_xticklabels([])
+
+    axs[0].set_title('Region ABW in Deutschland',
+                     fontsize=16,
+                     fontweight='normal')
+    axs[1].set_title('Region ABW mit Hochspannungsnetz',
+                     fontsize=16,
+                     fontweight='normal')
+
     plt.show()
 
-    # RE capacities
+    #######################
+    # PLOT: RE capacities #
+    #######################
     fig, axs = plt.subplots(2, 2)
     gdf_region = gpd.GeoDataFrame(region.muns, geometry='geom')
     gdf_region['gen_capacity_pv_roof'] = gdf_region['gen_capacity_pv_roof_small'] + \
@@ -252,7 +269,9 @@ def sample_plots(region, results):
                  fontweight='normal')
     plt.show()
 
-    # RE feedin stacked
+    ###########################
+    # PLOT: RE feedin stacked #
+    ###########################
     techs = {'hydro': 'Laufwasser',
              'bio': 'Bioenergie',
              'wind': 'Windenergie',
@@ -273,7 +292,9 @@ def sample_plots(region, results):
     plt.legend()
     plt.show()
 
-    # Dec. th. generation
+    #############################
+    # PLOT: Dec. th. generation #
+    #############################
     timesteps = 96
     fig, ax = plt.subplots()
     th_generation = results['Wärmeerzeugung dezentral nach Technologie'].merge(
