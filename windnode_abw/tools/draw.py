@@ -1,5 +1,14 @@
 import networkx as nx
+
+from matplotlib import rcParams
+rcParams['font.family'] = 'sans-serif'
+rcParams['font.sans-serif'] = 'Roboto'
+rcParams['font.weight'] = 'normal'
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+import pandas as pd
+import geopandas as gpd
 
 from oemof.outputlib import views
 from oemof.graph import create_nx_graph
@@ -181,4 +190,101 @@ def plot_results(esys, region):
     ax.set_xticklabels(
         [item.strftime('%d-%m-%Y') for item in dates.tolist()[0::tick_distance]],
         rotation=90, minor=False)
+    plt.show()
+
+
+def sample_plots(region, results):
+
+    # grid
+    fig, ax = plt.subplots()
+
+    #de.plot(ax=ax, color='white', edgecolor='#aaaaaa')
+    gdf_region = gpd.GeoDataFrame(region.muns, geometry='geom')
+    gdf_region['centroid'] = gdf_region['geom'].centroid
+    gdf_region.plot(ax=ax, color='white', edgecolor='#aaaaaa')
+
+    for idx, row in gdf_region.iterrows():
+        plt.annotate(s=row['gen'],
+                     xy=(row['geom'].centroid.x, row['geom'].centroid.y),
+                     ha='center',
+                     va='center',
+                     color='#888888',
+                     size=8)
+    gdf_lines = gpd.GeoDataFrame(region.lines, geometry='geom')
+    gdf_lines.plot(ax=ax, color='#88aaaa', linewidth=1.5, alpha=1)
+    gdf_buses = gpd.GeoDataFrame(region.buses, geometry='geom')
+    gdf_buses.plot(ax=ax, color='#338888', markersize=6, alpha=1)
+
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    ax.set_title('Region ABW mit Hochspannungsnetz',
+                 fontsize=16,
+                 fontweight='normal')
+    plt.show()
+
+    # RE capacities
+    fig, axs = plt.subplots(2, 2)
+    gdf_region = gpd.GeoDataFrame(region.muns, geometry='geom')
+    gdf_region['gen_capacity_pv_roof'] = gdf_region['gen_capacity_pv_roof_small'] + \
+                                         gdf_region['gen_capacity_pv_roof_large']
+    gdf_region.plot(column='gen_capacity_wind', ax=axs[0, 0], legend=True, cmap='viridis')
+
+    axs[0, 0].set_title('Wind')
+    gdf_region.plot(column='gen_capacity_pv_ground', ax=axs[0, 1], legend=True, cmap='viridis')
+    axs[0, 1].set_title('Photovoltaik FF-Anlagen')
+    gdf_region.plot(column='gen_capacity_pv_roof', ax=axs[1, 0], legend=True, cmap='viridis')
+    axs[1, 0].set_title('Photovoltaik Aufdachanlagen')
+    gdf_region.plot(column='gen_capacity_bio', ax=axs[1, 1], legend=True, cmap='viridis')
+    axs[1, 1].set_title('Bioenergie')
+    # plt.axis('off')
+    for x, y in zip([0, 0, 1, 1], [0, 1, 0, 1]):
+        axs[x, y].set_yticklabels([])
+        axs[x, y].set_xticklabels([])
+        # for idx, row in gdf_region.iterrows():
+        #     axs[x, y].annotate(s=row['gen'],
+        #                        xy=(row['geom'].centroid.x, row['geom'].centroid.y),
+        #                        ha='center',
+        #                        va='center',
+        #                        color='#ffffff',
+        #                        size=8)
+    fig.suptitle('Installierte Leistung Erneuerbare Energie in Megawatt',
+                 fontsize=16,
+                 fontweight='normal')
+    plt.show()
+
+    # RE feedin stacked
+    techs = {'hydro': 'Laufwasser',
+             'bio': 'Bioenergie',
+             'wind': 'Windenergie',
+             'pv_ground': 'Photovoltaik (Freifläche)',
+             'pv_roof_small': 'Photovoltaik (Aufdach <30 kW)',
+             'pv_roof_large': 'Photovoltaik (Aufdach >30 kW)',
+             }
+    timesteps = 240
+    fig, ax = plt.subplots()
+    feedin = pd.DataFrame({v: region.feedin_ts[k].sum(axis=1) for k, v in techs.items()}).iloc[2000:2000 + timesteps]
+    feedin.plot.area(ax=ax, cmap='viridis')  # BrBG
+    ax.set_title('Erzeugungszeitreihen Erneuerbare Energien',
+                 fontsize=16,
+                 fontweight='normal')
+    ax.set_xlabel('Zeit', fontsize=12)
+    ax.set_ylabel('MW', fontsize=12)
+    ax.set_ylim(0)
+    plt.legend()
+    plt.show()
+
+    # Dec. th. generation
+    timesteps = 96
+    fig, ax = plt.subplots()
+    th_generation = results['Wärmeerzeugung dezentral nach Technologie'].merge(
+        results['Wärmeerzeugung Wärmepumpen nach Technologie'], left_index=True, right_index=True).iloc[0:0 + timesteps]
+
+    th_generation.plot.area(ax=ax, cmap='viridis')  # BrBG
+    ax.set_title('Wärmeerzeugung dezentral nach Technologie',
+                 fontsize=16,
+                 fontweight='normal')
+    ax.set_xlabel('Zeit', fontsize=12)
+    ax.set_ylabel('MW', fontsize=12)
+    ax.set_ylim(0)
+    plt.legend()
     plt.show()
