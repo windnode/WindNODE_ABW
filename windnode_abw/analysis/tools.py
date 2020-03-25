@@ -184,4 +184,4 @@ def aggregate_flows(results_raw):
                 expand=False),
             axis=1).agg('sum')
 
-    print('xxx')
+    return results
