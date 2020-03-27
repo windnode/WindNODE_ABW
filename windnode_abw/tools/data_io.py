@@ -585,6 +585,8 @@ def export_results(results, meta, scenario_id):
     results_path = os.path.join(base_path, results_subdir, scenario_id)
     os.makedirs(results_path)
 
+    logger.info(f'Exporting results to {results_path}...')
+
     for name, df in results.items():
         df.to_csv(os.path.join(results_path, f'{name}.csv'))
 

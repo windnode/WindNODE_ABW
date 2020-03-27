@@ -155,10 +155,10 @@ def plot_results(esys, region):
         Region object
     """
 
-    logger.info('Plot results')
+    logger.info('Plotting results...')
 
     results = esys.results['main']
-    om_flows = esys.results['om_flows']
+    #om_flows = esys.results['om_flows']
 
     imex_bus_results = views.node(results, 'b_th_dec_15001000_hh_efh')
     imex_bus_results_flows = imex_bus_results['sequences']

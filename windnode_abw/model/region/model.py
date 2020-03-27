@@ -79,7 +79,9 @@ def create_oemof_model(cfg, region):
     )
     esys.add(*flex_nodes)
 
-    print('Number of nodes created:', len(el_nodes) + len(th_nodes) + len(flex_nodes))
+    logger.info(f'Energy system created '
+                f'({len(el_nodes) + len(th_nodes) + len(flex_nodes)} '
+                f'nodes total).')
     # print('The following objects have been created:')
     # for n in esys.nodes:
     #     oobj = str(type(n)).replace("<class 'oemof.solph.", "").replace("'>", "")
