@@ -86,6 +86,7 @@ def run_scenario(cfg):
     om = simulate(esys=esys,
                   solver=cfg['solver'])
 
+    logger.info('Processing results...')
     # add results to energy system
     esys.results['main'] = outputlib.processing.results(om)
     # add meta infos
@@ -96,6 +97,7 @@ def run_scenario(cfg):
     esys.results['om_flows'] = list(om.flows.items())
 
     results = results_to_dataframes(esys)
+    logger.info('Dumping results...')
 
     # dump esys to file
     if cfg['dump_esys']:
