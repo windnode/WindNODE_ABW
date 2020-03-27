@@ -1,5 +1,6 @@
 import pandas as pd
 import oemof.solph as solph
+from windnode_abw.tools.logger import log_memory_usage
 import logging
 logger = logging.getLogger('windnode_abw')
 
@@ -22,10 +23,12 @@ def simulate(esys, solver='cbc', verbose=True):
     """
 
     # Create problem
+    log_memory_usage()
     logger.info('Create optimization problem...')
     om = solph.Model(esys)
 
     # solve it
+    log_memory_usage()
     logger.info('Solve optimization problem...')
     om.solve(solver=solver,
              solve_kwargs={'tee': verbose,
