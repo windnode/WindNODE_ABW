@@ -65,4 +65,4 @@ def log_memory_usage():
     process = psutil.Process(os.getpid())
     mem = round(process.memory_info().rss / 1024**2)
     logger = logging.getLogger('windnode_abw')
-    logger.info(f'[Memory used: {mem} MB]')
+    logger.info(f'[Memory used (w/o solver): {mem} MB]')
