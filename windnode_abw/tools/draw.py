@@ -272,6 +272,8 @@ def sample_plots(region, results):
     ###########################
     # PLOT: RE feedin stacked #
     ###########################
+    time_start = 2000
+    timesteps = 240
     techs = {'hydro': 'Laufwasser',
              'bio': 'Bioenergie',
              'wind': 'Windenergie',
@@ -279,19 +281,33 @@ def sample_plots(region, results):
              'pv_roof_small': 'Photovoltaik (Aufdach <30 kW)',
              'pv_roof_large': 'Photovoltaik (Aufdach >30 kW)',
              }
-    timesteps = 240
+    sectors = {'el_ind': 'Industrie',
+               'el_rca': 'GHD',
+               'el_hh': 'Haushalte'
+               }
     fig, ax = plt.subplots()
-    feedin = pd.DataFrame({v: region.feedin_ts[k].sum(axis=1) for k, v in techs.items()}).iloc[2000:2000 + timesteps]
-    feedin.plot.area(ax=ax, cmap='viridis')  # BrBG
-    ax.set_title('Erzeugungszeitreihen Erneuerbare Energien',
+    feedin = pd.DataFrame({v: region.feedin_ts[k].sum(axis=1)
+                           for k, v in techs.items()}).iloc[
+             time_start:time_start + timesteps]
+    demand = pd.DataFrame({v: region.demand_ts[k].sum(axis=1)
+                           for k, v in sectors.items()}).iloc[
+             time_start:time_start + timesteps]
+
+    residual_load = demand.sum(axis=1) - feedin.sum(axis=1)
+
+    (-feedin).plot.area(ax=ax, cmap='viridis')
+    demand.plot.area(ax=ax, cmap='copper')
+    residual_load.plot(ax=ax, style='r--', label='Residuallast')
+    ax.set_title('Strom: Last- und EE-Erzeugungszeitreihen, Residuallast',
                  fontsize=16,
                  fontweight='normal')
     ax.set_xlabel('Zeit', fontsize=12)
     ax.set_ylabel('MW', fontsize=12)
-    ax.set_ylim(0)
+    ax.set_ylim(round(min(-feedin.sum(axis=1)) / 100 - 1) * 100,
+                round(max(demand.sum(axis=1)) / 100 + 1) * 100)
     plt.legend()
     plt.show()
-
+    
     #############################
     # PLOT: Dec. th. generation #
     #############################
