@@ -1,5 +1,6 @@
 import pickle
 import os
+import pandas as pd
 
 import logging
 logger = logging.getLogger('windnode_abw')
@@ -169,6 +170,27 @@ class Region:
     def demand_ts(self):
         return self._demand_ts
 
+    def demand_ts_agg_per_mun(self, sectors):
+        """Returns demand sum per municipality
+
+        Parameters
+        ----------
+        sectors : :obj:`list` of :obj:`str`
+            Sectors to be included, e.g. ['el_hh', 'el_rca']
+
+        Returns
+        -------
+        :pandas:`pandas.DataFrame`
+            Aggregated demand with muns as columns
+        """
+        if not all([sec in self._demand_ts.keys() for sec in sectors]):
+            raise ValueError('At least 1 sector not found!')
+
+        return pd.DataFrame(
+            {ags: sum(self._demand_ts[tech][ags]
+                      for tech in sectors)
+             for ags in self._muns.index})
+
     @property
     def feedin_ts_init(self):
         return self._feedin_ts_init
@@ -180,6 +202,27 @@ class Region:
     @property
     def feedin_ts(self):
         return self._feedin_ts
+
+    def feedin_ts_agg_per_mun(self, techs):
+        """Returns feedin sum per municipality
+
+        Parameters
+        ----------
+        techs : :obj:`list` of :obj:`str`
+            Technologies to be included, e.g. ['wind', 'bio']
+
+        Returns
+        -------
+        :pandas:`pandas.DataFrame`
+            Aggregated feedin with muns as columns
+        """
+        if not all([tech in self._feedin_ts.keys() for tech in techs]):
+            raise ValueError('At least 1 technology not found!')
+
+        return pd.DataFrame(
+            {ags: sum(self._feedin_ts[tech][ags]
+                      for tech in techs)
+             for ags in self._muns.index})
 
     @property
     def dsm_ts(self):
