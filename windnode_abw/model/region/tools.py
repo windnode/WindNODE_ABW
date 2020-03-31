@@ -636,13 +636,23 @@ def calc_annuity(cfg, tech_assumptions):
     return tech_assumptions
 
 
-def distribute_large_battery_capacity(region):
+def distribute_large_battery_capacity(region, method='re_cap_peak_load'):
     """Distribute cumulative capacity of large-scale batteries to
-    municipalities proportional to installed RE capacity.
+    municipalities, supports 3 different methods:
+
+    * proportional to ratio of installed RE capacity and peak load (default)
+      (method='re_cap_peak_load')
+    * proportional to maximum of residual load
+      (method='residual_peak_load')
+    * proportional to installed RE capacity
+      (method='re_cap')
 
     Parameters
     ----------
     region : :class:`~.model.Region`
+        Region object
+    method : :obj:`str`
+        Distribution method (see above)
 
     Returns
     -------
@@ -655,14 +665,44 @@ def distribute_large_battery_capacity(region):
 
     if batt_cap > 0:
         ee_techs = region.cfg['scn_data']['generation']['gen_el']['technologies']
+        dem_el_sectors = ['el_hh', 'el_rca', 'el_ind']
 
         # get cumulated installed cap. per mun
         ee_cum_cap_per_mun = region.muns[[f'gen_capacity_{tech}'
                                           for tech in ee_techs]].sum(axis=1)
 
-        # distribute prop. to installed cap.
-        return (ee_cum_cap_per_mun / ee_cum_cap_per_mun.sum() *
-                batt_cap)
+        if method == 're_cap_peak_load':
+            re_cap_peak_load_ratio = ee_cum_cap_per_mun /\
+                                     region.demand_ts_agg_per_mun(
+                                         sectors=dem_el_sectors).max()
+
+            return (re_cap_peak_load_ratio / re_cap_peak_load_ratio.sum() *
+                    batt_cap)
+
+        elif method == 'residual_peak_load':
+            # calc maximum of residual load
+            residual_peak_load = (
+                    region.demand_ts_agg_per_mun(sectors=dem_el_sectors) -
+                    region.feedin_ts_agg_per_mun(techs=ee_techs)
+            ).max()
+            # set negative residual load to zero
+            residual_peak_load[residual_peak_load < 0] = 0
+
+            return (residual_peak_load / residual_peak_load.sum() *
+                    batt_cap)
+
+        elif method == 're_cap':
+            return (ee_cum_cap_per_mun / ee_cum_cap_per_mun.sum() *
+                    batt_cap)
+
+        # # PLOT: Compare methods
+        # results_compare = pd.DataFrame({
+        #     're_cap_peak_load': re_cap_peak_load_ratio / re_cap_peak_load_ratio.sum(),
+        #     'residual_peak_load': residual_peak_load / residual_peak_load.sum(),
+        #     're_cap': ee_cum_cap_per_mun / ee_cum_cap_per_mun.sum(),
+        # }
+        # )
+        # results_compare.plot.bar(title='Ergebnisvergleich verschiedener Verteilungsmethoden für Großbatterien')
 
     return None
 
