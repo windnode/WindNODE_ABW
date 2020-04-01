@@ -636,15 +636,15 @@ def calc_annuity(cfg, tech_assumptions):
     return tech_assumptions
 
 
-def distribute_large_battery_capacity(region, method='re_cap_peak_load'):
+def distribute_large_battery_capacity(region, method='re_cap'):
     """Distribute cumulative capacity of large-scale batteries to
     municipalities, supports 3 different methods:
 
-    * proportional to ratio of installed RE capacity and peak load (default)
+    * proportional to ratio of installed RE capacity and peak load
       (method='re_cap_peak_load')
     * proportional to maximum of residual load
       (method='residual_peak_load')
-    * proportional to installed RE capacity
+    * proportional to installed RE capacity (default)
       (method='re_cap')
 
     Parameters
