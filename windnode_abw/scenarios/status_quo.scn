@@ -43,10 +43,54 @@
 
 # electrical and heat production
 [generation]
+    [[re_potentials]]
+        #####################
+        # GROUND-MOUNTED PV #
+        #####################
+        # potential area scenario to be used to build ground mounted pv
+        # possible values:
+        #   (leave empty for status quo (existing PV systems only)
+        #   HS: Use available areas excluding those where hard and light
+        #       restrictions apply
+        #   H:  Use available areas excluding those where hard
+        #       restrictions apply
+        pv_scenario = HS
+
+        # max. usable area in ha for PV installations on agricultural areas
+        # (1 % of the total area of fields and meadows in ABW)
+        pv_usable_area_agri_max = 2086
+
+        # land use in ha/MWp
+        pv_land_use = 1.5
+
+        #################
+        # WIND TURBINES #
+        #################
+        # potential area scenario to be used to build wec
+        # possible values:
+        #   (leave empty for status quo (existing WEC only)
+        #   s1000f1:  Use available areas resulting from 1000 m distance from
+        #             settlements, do use forests
+        #   s500f0:   Use available areas resulting from 500 m distance from
+        #             settlements, do not use forests
+        #   s500f1:   Use available areas resulting from 500 m distance from
+        #             settlements, do use forests
+        wec_scenario = s1000f1
+
+        # usable area (0..1) for WEC installations
+        wec_usable_area = 0.1
+
+        # land use per WEC (E-141) in ha
+        wec_land_use = 20
+
+        # nominal power of WEC (E-141)
+        wec_nom_power = 4.2
+
     [[gen_el]]
         # technologies to be included, possible values:
         # (pv_ground, pv_roof_small, pv_roof_large, hydro, bio, conventional, wind)
         technologies = pv_ground,pv_roof_small,pv_roof_large,hydro,wind,bio
+
     [[gen_th_dec]]
         [[[general]]]
             # min share of energy source to be considered
