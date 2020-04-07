@@ -783,8 +783,8 @@ def calc_available_wec_capacity(region):
 
     Returns
     -------
-    :pandas:`pandas.Series` or None
-        Installable WEC capacity, muns as index
+    :pandas:`pandas.DataFrame` or None
+        Installable WEC count (rounded) and capacity, muns as index
     """
     cfg = region.cfg['scn_data']['generation']['re_potentials']
 
@@ -792,7 +792,10 @@ def calc_available_wec_capacity(region):
     if areas is None:
         return None
 
-    return areas.groupby('ags_id').agg('sum') *\
-           cfg['wec_usable_area'] / \
-           cfg['wec_land_use'] * \
-           cfg['wec_nom_power']
+    wec_count = (areas.groupby('ags_id').agg('sum') *
+                 cfg['wec_usable_area'] /
+                 cfg['wec_land_use']).round().astype(int)
+
+    return pd.DataFrame({'gen_count_wind': wec_count,
+                         'gen_capacity_wind': wec_count * cfg['wec_nom_power']}
+                        )
