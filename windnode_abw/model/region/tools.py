@@ -748,8 +748,8 @@ def calc_available_pv_capacity(region):
 
     Returns
     -------
-    :pandas:`pandas.Series` or None
-        Installable PV capacity, muns as index
+    :pandas:`pandas.DataFrame` or None
+        Installable PV count (zero) and capacity, muns as index
     """
     cfg = region.cfg['scn_data']['generation']['re_potentials']
 
@@ -766,8 +766,10 @@ def calc_available_pv_capacity(region):
         areas_agri *= cfg['pv_usable_area_agri_max'] / areas_agri.sum()
     areas.update(areas_agri)
 
-    return areas.groupby('ags_id').agg('sum') / \
-           cfg['pv_land_use']
+    return pd.DataFrame({'gen_count_pv_ground': 0,
+                         'gen_capacity_pv_ground':areas.groupby(
+                             'ags_id').agg('sum') / cfg['pv_land_use']}
+                        )
 
 
 def calc_available_wec_capacity(region):
