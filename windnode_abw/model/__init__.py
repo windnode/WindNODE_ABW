@@ -11,7 +11,8 @@ from windnode_abw.model.region.tools import \
     prepare_feedin_timeseries, prepare_demand_timeseries, \
     prepare_temp_timeseries, preprocess_heating_structure, \
     calc_annuity, distribute_large_battery_capacity, \
-    distribute_small_battery_capacity
+    distribute_small_battery_capacity, calc_available_pv_capacity, \
+    calc_available_wec_capacity
 
 
 class Region:
@@ -78,6 +79,13 @@ class Region:
 
         self._results_lines = kwargs.get('_results_lines', None)
 
+        self._pot_areas_pv = kwargs.get('pot_areas_pv', None)
+        self._pot_areas_wec = kwargs.get('pot_areas_wec', None)
+
+        # update mun data table using RE potential areas
+        self._muns.update(calc_available_pv_capacity(self))
+        self._muns.update(calc_available_wec_capacity(self))
+
         self._demand_ts_init = kwargs.get('demand_ts_init', None)
         self._demand_ts = prepare_demand_timeseries(self)
         self._feedin_ts_init = kwargs.get('feedin_ts_init', None)
@@ -91,9 +99,6 @@ class Region:
             cfg=self._cfg,
             heating_structure=kwargs.get('heating_structure', None)
         )
-
-        self._pot_areas_pv = kwargs.get('pot_areas_pv', None)
-        self._pot_areas_wec = kwargs.get('pot_areas_wec', None)
 
         self._tech_assumptions = calc_annuity(
             cfg=self._cfg,
