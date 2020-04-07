@@ -63,6 +63,7 @@
 
         # max. usable area in ha for PV installations on agricultural areas
         # (1 % of the total area of fields and meadows in ABW)
+        # leave empty for no restrictions
         pv_usable_area_agri_max = 2086
 
         # land use in ha/MWp

@@ -764,9 +764,10 @@ def calc_available_pv_capacity(region):
 
     # limit area on fields and meadows so that it does not exceed 1 % of the
     # total area of fields and meadows in ABW
-    if areas_agri.sum() > cfg['pv_usable_area_agri_max']:
-        areas_agri *= cfg['pv_usable_area_agri_max'] / areas_agri.sum()
-    areas.update(areas_agri)
+    if cfg['pv_usable_area_agri_max'] != '':
+        if areas_agri.sum() > cfg['pv_usable_area_agri_max']:
+            areas_agri *= cfg['pv_usable_area_agri_max'] / areas_agri.sum()
+            areas.update(areas_agri)
 
     return pd.DataFrame({'gen_count_pv_ground': 0,
                          'gen_capacity_pv_ground':areas.groupby(
