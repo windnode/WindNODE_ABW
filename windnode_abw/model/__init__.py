@@ -11,7 +11,8 @@ from windnode_abw.model.region.tools import \
     prepare_feedin_timeseries, prepare_demand_timeseries, \
     prepare_temp_timeseries, preprocess_heating_structure, \
     calc_annuity, distribute_large_battery_capacity, \
-    distribute_small_battery_capacity
+    distribute_small_battery_capacity, calc_available_pv_capacity, \
+    calc_available_wec_capacity
 
 
 class Region:
@@ -77,6 +78,13 @@ class Region:
         self._generators = kwargs.get('generators', None)
 
         self._results_lines = kwargs.get('_results_lines', None)
+
+        self._pot_areas_pv = kwargs.get('pot_areas_pv', None)
+        self._pot_areas_wec = kwargs.get('pot_areas_wec', None)
+
+        # update mun data table using RE potential areas
+        self._muns.update(calc_available_pv_capacity(self))
+        self._muns.update(calc_available_wec_capacity(self))
 
         self._demand_ts_init = kwargs.get('demand_ts_init', None)
         self._demand_ts = prepare_demand_timeseries(self)
@@ -307,6 +315,44 @@ class Region:
     @property
     def batteries_small(self):
         return self._batteries_small
+
+    @property
+    def pot_areas_pv(self):
+        return self._pot_areas_pv
+
+    @property
+    def pot_areas_pv_scn(self):
+        """Return PV potential areas, aggregated by area scenario
+
+        Return None for empty PV scenario.
+        """
+        if self._cfg['scn_data']['generation']['re_potentials'][
+                'pv_scenario'] == '':
+            return None
+        scn = self._cfg['scn_data']['generation'][
+            're_potentials']['pv_scenario']
+        return self._pot_areas_pv[
+            self._pot_areas_pv.index.get_level_values(level=1).str.endswith(
+                f'_{scn.lower()}')]['area_ha']
+
+    @property
+    def pot_areas_wec(self):
+        return self._pot_areas_wec
+
+    @property
+    def pot_areas_wec_scn(self):
+        """Return WEC potential areas, aggregated by area scenario
+
+        Return None for status quo or empty WEC scenario.
+        """
+        if self._cfg['scn_data']['generation']['re_potentials'][
+                'wec_scenario'] == '':
+            return None
+        scn = self._cfg['scn_data']['generation'][
+            're_potentials']['wec_scenario']
+        return self._pot_areas_wec[
+            self._pot_areas_wec.index.get_level_values(level=1) ==
+                scn.lower()]['area_ha']
 
     @classmethod
     def import_data(cls, cfg=None):

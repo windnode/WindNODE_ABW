@@ -20,7 +20,8 @@ from windnode_abw.config.db_models import \
     WnAbwDemandTs, WnAbwFeedinTs, WnAbwGridHvBus, WnAbwGridHvLine,\
     WnAbwGridHvmvSubstation, WnAbwGridMvGriddistrict, WnAbwGridHvTransformer,\
     WnAbwMun, WnAbwMundata, WnAbwPowerplant, WnAbwRelSubstIdAgsId, WnAbwDsmTs,\
-    WnAbwTempTs, WnAbwHeatingStructure, WnAbwTechAssumptions
+    WnAbwTempTs, WnAbwHeatingStructure, WnAbwTechAssumptions,\
+    WnAbwPotentialAreasPv, WnAbwPotentialAreasWec
 
 
 def db_session(db_section):
@@ -466,6 +467,34 @@ def import_db_data(cfg):
         tech_assumptions_query.statement,
         session.bind,
         index_col=['technology', 'year'])
+
+    #####################################
+    # import WEC and PV potential areas #
+    #####################################
+    logger.info('Importing RE potential areas...')
+    pot_areas_pv_query = session.query(
+        WnAbwPotentialAreasPv.ags_id,
+        WnAbwPotentialAreasPv.scenario,
+        WnAbwPotentialAreasPv.area_ha,
+        func.ST_AsText(func.ST_Transform(
+            WnAbwPotentialAreasPv.geom, srid)).label('geom')
+    )
+    data['pot_areas_pv'] = pd.read_sql_query(
+        pot_areas_pv_query.statement,
+        session.bind,
+        index_col=['ags_id', 'scenario'])
+
+    pot_areas_wec_query = session.query(
+        WnAbwPotentialAreasWec.ags_id,
+        WnAbwPotentialAreasWec.scenario,
+        WnAbwPotentialAreasWec.area_ha,
+        func.ST_AsText(func.ST_Transform(
+            WnAbwPotentialAreasWec.geom, srid)).label('geom')
+    )
+    data['pot_areas_wec'] = pd.read_sql_query(
+        pot_areas_wec_query.statement,
+        session.bind,
+        index_col=['ags_id', 'scenario'])
 
     return data
 
