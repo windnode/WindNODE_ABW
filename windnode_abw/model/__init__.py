@@ -92,6 +92,9 @@ class Region:
             heating_structure=kwargs.get('heating_structure', None)
         )
 
+        self._pot_areas_pv = kwargs.get('pot_areas_pv', None)
+        self._pot_areas_wec = kwargs.get('pot_areas_wec', None)
+
         self._tech_assumptions = calc_annuity(
             cfg=self._cfg,
             tech_assumptions=kwargs.get('tech_assumptions', None)
