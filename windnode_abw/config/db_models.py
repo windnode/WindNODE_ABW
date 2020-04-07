@@ -406,3 +406,55 @@ class WnAbwTechAssumptions(Base):
     emissions_var = Column(Float(53))
     emissions_fix = Column(Float(53))
     sys_eff = Column(Float(53))
+
+
+class WnAbwPotentialAreasPv(Base):
+    """Potential areas for ground-mounted PV plants
+
+    Attributes
+    ----------
+    ags_id : :class:`sqlalchemy.sql.schema.Column`
+        AGS of municipality
+    scenario : :class:`sqlalchemy.sql.schema.Column`
+        Scenario (e.g. 'bab_hs' for areas around highways including
+        areas being subject to hard and light restrictions)
+    area_ha : :class:`sqlalchemy.sql.schema.Column`
+        Potential area in ha
+    geom : :class:`sqlalchemy.sql.schema.Column`
+        Geometry (polygons, EPSG:3035)
+    """
+    __tablename__ = 'wn_abw_potential_areas_pv'
+    __table_args__ = {'schema': 'windnode'}
+
+    ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), primary_key=True, nullable=False)
+    scenario = Column(String, primary_key=True, nullable=False)
+    area_ha = Column(BigInteger)
+    geom = Column(Geometry('MULTIPOLYGON', 3035), index=True)
+
+    ags = relationship('WnAbwMun')
+
+
+class WnAbwPotentialAreasWec(Base):
+    """Potential areas for wind turbines
+
+    Attributes
+    ----------
+    ags_id : :class:`sqlalchemy.sql.schema.Column`
+        AGS of municipality
+    scenario : :class:`sqlalchemy.sql.schema.Column`
+        Scenario
+        (e.g. 's500f0' for 500m distance to settlements, do not use forests)
+    area_ha : :class:`sqlalchemy.sql.schema.Column`
+        Potential area in ha
+    geom : :class:`sqlalchemy.sql.schema.Column`
+        Geometry (polygons, EPSG:3035)
+    """
+    __tablename__ = 'wn_abw_potential_areas_wec'
+    __table_args__ = {'schema': 'windnode'}
+
+    ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), primary_key=True, nullable=False)
+    scenario = Column(String, primary_key=True, nullable=False)
+    area_ha = Column(BigInteger)
+    geom = Column(Geometry('MULTIPOLYGON', 3035), index=True)
+
+    ags = relationship('WnAbwMun')
