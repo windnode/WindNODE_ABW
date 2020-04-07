@@ -306,7 +306,6 @@ class WnAbwMundata(Base):
     gen_capacity_conventional_small = Column(Float(53))
     gen_count_conventional_large = Column(Float(53))
     gen_count_conventional_small = Column(Float(53))
-    scenario = Column(String, primary_key=True, nullable=False)
 
     mun = relationship('WnAbwMun', back_populates='mundata')
 
