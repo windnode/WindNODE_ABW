@@ -308,6 +308,42 @@ class Region:
     def batteries_small(self):
         return self._batteries_small
 
+    @property
+    def pot_areas_pv(self):
+        return self._pot_areas_pv
+
+    @property
+    def pot_areas_pv_scn(self):
+        """Return PV potential areas, aggregated by area scenario
+
+        Return None for status quo.
+        """
+        if self._cfg['scn_data']['general']['id'] != 'sq':
+            return None
+        scn = self._cfg['scn_data']['generation'][
+            're_potentials']['pv_scenario']
+        return self._pot_areas_pv[
+            self._pot_areas_pv.index.get_level_values(level=1).str.endswith(
+                f'_{scn.lower()}')]['area_ha']
+
+    @property
+    def pot_areas_wec(self):
+        return self._pot_areas_wec
+
+    @property
+    def pot_areas_wec_scn(self):
+        """Return WEC potential areas, aggregated by area scenario
+
+        Return None for status quo.
+        """
+        if self._cfg['scn_data']['general']['id'] != 'sq':
+            return None
+        scn = self._cfg['scn_data']['generation'][
+            're_potentials']['wec_scenario']
+        return self._pot_areas_wec[
+            self._pot_areas_wec.index.get_level_values(level=1) ==
+                scn.lower()]['area_ha']
+
     @classmethod
     def import_data(cls, cfg=None):
         """Import data to Region object"""
