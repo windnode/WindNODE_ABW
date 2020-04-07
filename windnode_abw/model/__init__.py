@@ -316,9 +316,11 @@ class Region:
     def pot_areas_pv_scn(self):
         """Return PV potential areas, aggregated by area scenario
 
-        Return None for status quo.
+        Return None for status quo or empty PV scenario.
         """
-        if self._cfg['scn_data']['general']['id'] != 'sq':
+        if (self._cfg['scn_data']['general']['id'] == 'sq' or
+            self._cfg['scn_data']['generation']['re_potentials'][
+                'pv_scenario'] == ''):
             return None
         scn = self._cfg['scn_data']['generation'][
             're_potentials']['pv_scenario']
@@ -334,9 +336,11 @@ class Region:
     def pot_areas_wec_scn(self):
         """Return WEC potential areas, aggregated by area scenario
 
-        Return None for status quo.
+        Return None for status quo or empty WEC scenario.
         """
-        if self._cfg['scn_data']['general']['id'] != 'sq':
+        if (self._cfg['scn_data']['general']['id'] == 'sq' or
+            self._cfg['scn_data']['generation']['re_potentials'][
+                'wec_scenario'] == ''):
             return None
         scn = self._cfg['scn_data']['generation'][
             're_potentials']['wec_scenario']
