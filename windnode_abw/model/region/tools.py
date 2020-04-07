@@ -325,7 +325,8 @@ def prepare_feedin_timeseries(region):
         (DF column)
 
     """
-    scenario = region.cfg['scn_data']['general']['id']
+    year = int(region.cfg['scn_data']['general']['year'])
+    status_quo = True if year == 2017 else False
     region.muns['gen_capacity_solar_heat'] = 1
 
 
@@ -342,10 +343,10 @@ def prepare_feedin_timeseries(region):
             'gen_capacity_solar_heat']
 
     # mapping for capacity columns to timeseries columns
-    # if repowering scenario present, use wind_fs time series
+    # if future scenario is present, use wind_fs time series
     tech_mapping = {
         'gen_capacity_wind':
-            'wind_sq' if scenario == 'sq'
+            'wind_sq' if status_quo
                       else 'wind_fs',
         'gen_capacity_pv_ground': 'pv_ground',
         'gen_capacity_pv_roof_small': 'pv_roof_small',
@@ -378,7 +379,7 @@ def prepare_feedin_timeseries(region):
                                  inplace=True)
 
     region.feedin_ts_init.drop(
-        columns=['wind_fs' if scenario == 'sq'
+        columns=['wind_fs' if status_quo
                  else 'wind_sq'
                  ],
         level=0,
@@ -402,7 +403,7 @@ def prepare_feedin_timeseries(region):
     feedin_agg['conventional'] = region.feedin_ts_init['conventional'] * conv_cap_per_mun
 
     # rename wind column depending on scenario
-    if scenario == 'sq':
+    if status_quo:
         feedin_agg['wind'] = feedin_agg.pop('wind_sq')
     else:
         feedin_agg['wind'] = feedin_agg.pop('wind_fs')
