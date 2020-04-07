@@ -739,6 +739,8 @@ def calc_available_pv_capacity(region):
     """Calculate available capacity for ground-mounted PV systems
 
     Uses land use and land availability from config and PV potential areas.
+    Return None if areas are None (applies for status quo or empty PV
+    scenario).
 
     Parameters
     ----------
@@ -747,12 +749,15 @@ def calc_available_pv_capacity(region):
 
     Returns
     -------
-    :pandas:`pandas.Series`
+    :pandas:`pandas.Series` or None
         Installable PV capacity, muns as index
     """
     cfg = region.cfg['scn_data']['generation']['re_potentials']
 
     areas = region.pot_areas_pv_scn
+    if areas is None:
+        return None
+
     areas_agri = areas[areas.index.get_level_values(level=1).str.startswith(
         'agri_')]
 
@@ -762,13 +767,16 @@ def calc_available_pv_capacity(region):
         areas_agri *= cfg['pv_usable_area_agri_max'] / areas_agri.sum()
     areas.update(areas_agri)
 
-    return areas.groupby('ags_id').agg('sum') / cfg['pv_land_use']
+    return areas.groupby('ags_id').agg('sum') / \
+           cfg['pv_land_use']
 
 
 def calc_available_wec_capacity(region):
     """Calculate available capacity for wind turbines
 
     Uses land use and land availability from config and WEC potential areas.
+    Return None if areas are None (applies for status quo or empty WEC
+    scenario).
 
     Parameters
     ----------
@@ -777,12 +785,16 @@ def calc_available_wec_capacity(region):
 
     Returns
     -------
-    :pandas:`pandas.Series`
+    :pandas:`pandas.Series` or None
         Installable WEC capacity, muns as index
     """
     cfg = region.cfg['scn_data']['generation']['re_potentials']
 
-    return region.pot_areas_wec_scn.groupby('ags_id').agg('sum') *\
+    areas = region.pot_areas_wec_scn
+    if areas is None:
+        return None
+
+    return areas.groupby('ags_id').agg('sum') *\
            cfg['wec_usable_area'] / \
            cfg['wec_land_use'] * \
            cfg['wec_nom_power']
