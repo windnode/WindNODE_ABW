@@ -733,3 +733,56 @@ def distribute_small_battery_capacity(region):
                 batt_cap)
 
     return None
+
+
+def calc_available_pv_capacity(region):
+    """Calculate available capacity for ground-mounted PV systems
+
+    Uses land use and land availability from config and PV potential areas.
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+
+    Returns
+    -------
+    :pandas:`pandas.Series`
+        Installable PV capacity, muns as index
+    """
+    cfg = region.cfg['scn_data']['generation']['re_potentials']
+
+    areas = region.pot_areas_pv_scn
+    areas_agri = areas[areas.index.get_level_values(level=1).str.startswith(
+        'agri_')]
+
+    # limit area on fields and meadows so that it does not exceed 1 % of the
+    # total area of fields and meadows in ABW
+    if areas_agri.sum() > cfg['pv_usable_area_agri_max']:
+        areas_agri *= cfg['pv_usable_area_agri_max'] / areas_agri.sum()
+    areas.update(areas_agri)
+
+    return areas.groupby('ags_id').agg('sum') / cfg['pv_land_use']
+
+
+def calc_available_wec_capacity(region):
+    """Calculate available capacity for wind turbines
+
+    Uses land use and land availability from config and WEC potential areas.
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+
+    Returns
+    -------
+    :pandas:`pandas.Series`
+        Installable WEC capacity, muns as index
+    """
+    cfg = region.cfg['scn_data']['generation']['re_potentials']
+
+    return region.pot_areas_wec_scn.groupby('ags_id').agg('sum') *\
+           cfg['wec_usable_area'] / \
+           cfg['wec_land_use'] * \
+           cfg['wec_nom_power']
