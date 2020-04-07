@@ -753,10 +753,11 @@ def calc_available_pv_capacity(region):
     """
     cfg = region.cfg['scn_data']['generation']['re_potentials']
 
-    areas = region.pot_areas_pv_scn
-    if areas is None:
+
+    if region.pot_areas_pv_scn is None:
         return None
 
+    areas = region.pot_areas_pv_scn.copy()
     areas_agri = areas[areas.index.get_level_values(level=1).str.startswith(
         'agri_')]
 
