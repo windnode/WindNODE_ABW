@@ -17,6 +17,11 @@
 # general options
 [general]
     id = sq
+
+    # the year directly affects some of the data used by the model:
+    #   * to decide on wind time series (2017: wind_sq / other: wind_fs)
+    #   * heating structure
+    #   * tech. parameters, costs, emissions
     year = 2017
     
 # commodities
