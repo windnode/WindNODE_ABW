@@ -15,6 +15,7 @@ from sqlalchemy import func
 
 from windnode_abw.tools.geo import convert_df_wkt_to_shapely
 from egoio.tools.db import connection
+from windnode_abw.tools.logger import log_memory_usage
 
 from windnode_abw.config.db_models import \
     WnAbwDemandTs, WnAbwFeedinTs, WnAbwGridHvBus, WnAbwGridHvLine,\
@@ -609,6 +610,7 @@ def export_results(results, cfg, solver_meta):
     scenario_id = cfg['scn_data']['general']['id']
     meta = {
         'config': cfg,
+        'memory_used_wo_solver': f'{str(log_memory_usage())} MB',
         'solver': solver_meta
     }
 
