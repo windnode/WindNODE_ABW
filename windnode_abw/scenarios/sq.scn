@@ -38,13 +38,29 @@
 [demand]
     [[dem_el_general]]
         sectors = hh,rca,ind
+
+        # el. energy saving: households (0..1, 0=no change)
+        saving_el_hh = 0
+        # el. energy saving: retail, commercial, agriculture (0..1, 0=no change)
+        saving_el_rca = 0
+        # el. energy saving: industry (0..1, 0=no change)
+        saving_el_ind = 0
+
     # households
     [[dem_el_hh]]
         # profile_type: slp or ioew
         profile_type = ioew
+
     [[dem_th_general]]
         # heat demand sectors
         sectors = hh_efh,hh_mfh,rca
+
+        # th. energy saving: single-family households (0..1, 0=no change)
+        saving_th_hh_efh = 0
+        # th. energy saving: multi-family households (0..1, 0=no change)
+        saving_th_hh_mfh = 0
+        # th. energy saving: retail, commercial, agriculture (0..1, 0=no change)
+        saving_th_rca = 0
 
 # electrical and heat production
 [generation]

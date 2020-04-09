@@ -412,7 +412,9 @@ def prepare_feedin_timeseries(region):
 
 
 def prepare_demand_timeseries(region):
-    """Reformat demand timeseries: from single DF to DF per sector
+    """Reformat demand timeseries: from single DF to DF per sector.
+
+    Include savings from scenario config.
 
     Parameters
     ----------
@@ -424,10 +426,18 @@ def prepare_demand_timeseries(region):
         Absolute demand timeseries per demand sector (dict key) and
         municipality (DF column)
     """
+    savings = {**region.cfg['scn_data']['demand']['dem_el_general'],
+               **region.cfg['scn_data']['demand']['dem_th_general']}
+    for sav in [v for k, v in savings.items() if k[:7] == 'saving_']:
+        if sav < 0 or sav > 1:
+            msg = 'Saving must be in range [0, 1]'
+            logger.error(msg)
+            raise ValueError(msg)
+
     demand_ts = {}
     demand_types = region.demand_ts_init.columns.get_level_values(0).unique()
     for dt in demand_types:
-        demand_ts[dt] = region.demand_ts_init[dt]
+        demand_ts[dt] = region.demand_ts_init[dt] * (1 - savings.get(f'saving_{dt}'))
 
     return demand_ts
 
