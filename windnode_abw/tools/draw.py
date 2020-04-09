@@ -144,7 +144,7 @@ def set_node_colors(grph):
     return colors
 
 
-def plot_results(esys, region):
+def debug_plot_results(esys, region):
     """Plots results of simulation
 
     Parameters

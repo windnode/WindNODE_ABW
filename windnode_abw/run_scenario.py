@@ -15,7 +15,7 @@ from windnode_abw.tools import config
 config.load_config('config_data.cfg')
 config.load_config('config_misc.cfg')
 
-from windnode_abw.tools.draw import draw_graph, set_node_colors, plot_results
+from windnode_abw.tools.draw import draw_graph, set_node_colors, debug_plot_results
 from windnode_abw.tools.data_io import load_scenario_cfg, export_results
 
 # import oemof modules
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     # calc_line_loading(esys=esys,
     #                   region=region)
 
-    plot_results(esys=esys,
-                 region=region)
+    debug_plot_results(esys=esys,
+                       region=region)
 
     logger.info('Done!')
