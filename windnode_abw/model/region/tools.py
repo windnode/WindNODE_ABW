@@ -423,8 +423,6 @@ def prepare_demand_timeseries(region):
     :obj:`dict` of :pandas:`pandas.DataFrame`
         Absolute demand timeseries per demand sector (dict key) and
         municipality (DF column)
-
-    ToDo: Allow for different scenarios
     """
     demand_ts = {}
     demand_types = region.demand_ts_init.columns.get_level_values(0).unique()
