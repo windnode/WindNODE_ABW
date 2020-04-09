@@ -102,7 +102,6 @@ def run_scenario(cfg):
     log_memory_usage()
 
     results = results_to_dataframes(esys)
-    logger.info('Dumping results...')
 
     # dump esys to file
     if cfg['dump_esys']:
@@ -115,6 +114,7 @@ def run_scenario(cfg):
         region.dump_to_pkl(filename=file_region)
 
     if cfg['dump_results']:
+        logger.info('Dumping results...')
         export_results(results=results,
                        meta=esys.results['meta'],
                        scenario_id=region.cfg['scn_data']['general']['id'])
