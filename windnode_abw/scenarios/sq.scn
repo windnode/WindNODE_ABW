@@ -329,4 +329,3 @@
             shift_interval = 24
             delay_time = 12
             mode = 'flex_min'
-
