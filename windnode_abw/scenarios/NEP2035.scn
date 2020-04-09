@@ -1,0 +1,331 @@
+# This file is part of WindNODE_ABW, a regional simulation model.
+# WindNODE_ABW lives at github: https://github.com/windnode/WindNODE_ABW/
+#
+# This file sets scenario parameters. It will be obsolete if the
+# parametrization is done via DB tables (not implemented yet).
+#
+# Note: All power values must be provided in MW, costs in €/MWh and emissions
+# in kg/MWh
+#
+# Any param additions or removals in this file must be manually checked in
+# the model (models.py)
+#
+########################
+# Scenario: status quo #
+########################
+
+# general options
+[general]
+    id = NEP2035
+
+    # the year affects some of the data used by the model:
+    #   * to decide on wind time series (2017: wind_sq / other: wind_fs)
+    #   * heating structure
+    #   * tech. parameters, costs, emissions
+    # possible values: 2017, 2035, 2050
+    year = 2035
+    
+# commodities
+[commodities]
+    # comm. to be created
+    # Note: The names must match name "comm_<NAME>" in tech. assumptions DB table
+    commodities = fuel_oil,natural_gas,wood,coal,solar
+
+[economics]
+    wacc = 0.06
+
+# electrical and heat demand
+# (parametrized via DB table)
+[demand]
+    [[dem_el_general]]
+        sectors = hh,rca,ind
+
+        # el. energy saving: households (0..1, 0=no change)
+        saving_el_hh = 0.1
+        # el. energy saving: retail, commercial, agriculture (0..1, 0=no change)
+        saving_el_rca = 0.1
+        # el. energy saving: industry (0..1, 0=no change)
+        saving_el_ind = 0.1
+
+    # households
+    [[dem_el_hh]]
+        # profile_type: slp or ioew
+        profile_type = ioew
+
+    [[dem_th_general]]
+        # heat demand sectors
+        sectors = hh_efh,hh_mfh,rca
+
+        # th. energy saving: single-family households (0..1, 0=no change)
+        saving_th_hh_efh = 0.1
+        # th. energy saving: multi-family households (0..1, 0=no change)
+        saving_th_hh_mfh = 0.1
+        # th. energy saving: retail, commercial, agriculture (0..1, 0=no change)
+        saving_th_rca = 0.1
+
+# electrical and heat production
+[generation]
+    [[re_potentials]]
+        #####################
+        # GROUND-MOUNTED PV #
+        #####################
+        # potential area scenario to be used to build ground mounted pv
+        # possible values:
+        #   (leave empty for status quo (existing PV systems only)
+        #   HS: Use available areas excluding those where hard and light
+        #       restrictions apply
+        #   H:  Use available areas excluding those where hard
+        #       restrictions apply
+        pv_scenario = H
+
+        # max. usable area in ha for PV installations on agricultural areas
+        # (1 % of the total area of fields and meadows in ABW)
+        # leave empty for no restrictions
+        pv_usable_area_agri_max = 2086
+
+        # land use in ha/MWp
+        pv_land_use = 1.5
+
+        #################
+        # WIND TURBINES #
+        #################
+        # potential area scenario to be used to build wec
+        # possible values:
+        #   (leave empty for status quo (existing WEC only)
+        #   s1000f1:  Use available areas resulting from 1000 m distance from
+        #             settlements, do use forests
+        #   s500f0:   Use available areas resulting from 500 m distance from
+        #             settlements, do not use forests
+        #   s500f1:   Use available areas resulting from 500 m distance from
+        #             settlements, do use forests
+        wec_scenario = s1000f1
+
+        # usable area (0..1) for WEC installations
+        wec_usable_area = 0.1
+
+        # land use per WEC (E-141) in ha
+        wec_land_use = 20
+
+        # nominal power of WEC (E-141)
+        wec_nom_power = 4.2
+
+    [[gen_el]]
+        # technologies to be included, possible values:
+        # (pv_ground, pv_roof_small, pv_roof_large, hydro, bio, conventional, wind)
+        technologies = pv_ground,pv_roof_small,pv_roof_large,hydro,wind,bio
+
+    [[gen_th_dec]]
+        [[[general]]]
+            # min share of energy source to be considered
+            # set to 0 to include all data
+            source_min_share = 0
+
+    [[gen_th_cen]]
+        [[[bhkw]]]
+            # nominal th. power in relation to peak load
+            nom_th_power_rel_to_pl = 0.17
+            # minimal th/el power in relation to nominal (currently unused)
+            min_power = 0.7
+            # Stromkennzahl BHKW (P/Q ratio)
+            pq_coeff = 0.85
+            # months of BHKW maintenance (jan=1), leave empty for no maintenance
+            #maint_months = 3,9
+            maint_months =
+            # duration of BHKW maintenance in days
+            maint_duration = 7
+
+        [[[gas_boiler]]]
+            # nominal th. power in relation to peak load
+            nom_th_power_rel_to_pl = 1.0
+
+        # GuD Dessau
+        [[[gud_dessau]]]
+            # nominal thermal power
+            nom_th_power = 60
+            # minimal th. energy share provided by GuD in relation to demand
+            # TODO: Set back to 0.8 for annual optimization
+            #min_th_energy_share = 0.8
+            min_th_energy_share = 0
+            # cb-coefficient/back-pressure coefficient (Stromkennzahl/P-Q ratio)
+            cb_coeff = 1.2
+            # cv-coefficient/beta (Stromverlustkenziffer)
+            cv_coeff = 0.125
+            # el. efficiency (full condensation)
+            efficiency_full_cond = 0.47
+
+        # GuD Bitterfeld-Wolfen
+        [[[gud_bw]]]
+            # nominal thermal power
+            nom_th_power = 110
+            # nominal electric power
+            nom_el_power = 110
+            # cb-coefficient/back-pressure coefficient (Stromkennzahl/P-Q ratio)
+            cb_coeff = 1.2
+            # cv-coefficient/beta (Stromverlustkenziffer)
+            cv_coeff = 0.125
+            # el. efficiency (full condensation)
+            efficiency_full_cond = 0.47
+            # annual heat production in MWh
+            annual_th_prod = 330000
+            # annual power production in MWh
+            annual_el_prod = 310000
+
+        # Simple cycle (peak power) gas plant Wolfen
+        [[[gas_bw]]]
+            # nominal electric power
+            nom_el_power = 40
+            # annual full load hours
+            annual_flh = 1250
+
+# storages
+[storage]
+    # decentral heat storages
+    # (used by all dec heat sources except heat pumps)
+    # TODO: Replace costs, capacity
+    [[th_dec_storage]]
+        [[[enabled]]]
+            enabled = 1
+        [[[inflow]]]
+            nominal_value = 30
+            variable_costs = 1
+        [[[outflow]]]
+            nominal_value = 30
+        [[[params]]]
+            nominal_storage_capacity = 100
+            loss_rate = 0.021
+            inflow_conversion_factor = 1
+            outflow_conversion_factor = 1
+
+    # decentral heat storages for heat pumps only
+    # TODO: Replace costs, capacity
+    [[th_dec_pth_storage]]
+        [[[enabled]]]
+            enabled = 1
+        [[[inflow]]]
+            # prevent charging restrictions
+            nominal_value = 1000
+            variable_costs = 1
+        [[[outflow]]]
+            # prevent discharging restrictions
+            nominal_value = 1000
+        [[[params]]]
+            nominal_storage_capacity = 100
+            loss_rate = 0.021
+            inflow_conversion_factor = 1
+            outflow_conversion_factor = 1
+
+    # heat storage for Dessau
+    # TODO: Replace costs, capacity
+    [[th_cen_storage]]
+        [[[enabled]]]
+            enabled = 1
+        [[[inflow]]]
+            nominal_value = 60
+            variable_costs = 1
+        [[[outflow]]]
+            nominal_value = 60
+        [[[params]]]
+            nominal_storage_capacity = 600
+            loss_rate = 0.001
+            inflow_conversion_factor = 1
+            outflow_conversion_factor = 1
+
+# regional and external el. grid
+[grid]
+    # regional lines
+    # TODO: Revise costs, efficiencies
+    [[lines]]
+        [[[params]]]
+            # conversion_factor: efficiency
+            conversion_factor = 0.98
+        [[[outflow]]]
+            variable_costs = 0.0001
+
+    [[trafos]]
+        [[[params]]]
+            # conversion_factor: efficiency
+            conversion_factor = 0.98
+
+    # external grid
+    # TODO: Revise costs, efficiencies
+    [[extgrid]]
+        [[[imex_lines]]]
+            [[[[params]]]]
+                # conversion_factor: efficiency
+                conversion_factor = 0.98
+                # max_usable_capacity: usable cap. of external grid
+                # (rel. to nominal power)
+                max_usable_capacity = 0.1
+            [[[[outflow]]]]
+                variable_costs = 100
+
+# flexibility options
+[flexopt]
+    # batteries
+    [[flex_bat_large]]
+        [[[enabled]]]
+            enabled = 1
+        [[[params]]]
+            # cumulative capacity
+            nominal_storage_capacity = 50
+            # following params according to DEA stor, S.180
+            # conversion factors AC calculated via roundtrip AC/DC
+            loss_rate = 0.0042
+            inflow_conversion_factor = 0.94
+            outflow_conversion_factor = 0.93
+
+    [[flex_bat_small]]
+        [[[enabled]]]
+            enabled = 1
+        [[[params]]]
+            # cumulative capacity
+            nominal_storage_capacity = 10
+            # following params according to DEA stor, S.180
+            # conversion factors AC calculated via roundtrip AC/DC
+            loss_rate = 0.0042
+            inflow_conversion_factor = 0.94
+            outflow_conversion_factor = 0.93
+
+    # decentral PtH (heat pumps, per mun)
+    [[flex_dec_pth]]
+        [[[enabled]]]
+            # CAUTION: thermal demand cannot be covered if pth is disabled
+            enabled = 1
+        [[[technology]]]
+            # share of air-source heat pumps
+            share_ASHP = 0.5
+            # share of ground-source heat pumps
+            share_GSHP = 0.5
+        [[[params]]]
+            # output temp
+            heating_temp = 40
+            # quality grade (general efficiency)
+            quality_grade_ASHP = 0.4
+            quality_grade_GSHP = 0.4
+            # efficiency due to icing
+            icing_factor = 0.8
+            # temperature threshold for icing
+            icing_temp = 2
+
+    # central PtH (boilers)
+    [[flex_cen_pth]]
+        [[[enabled]]]
+            enabled = 1
+        [[[outflow]]]
+            nominal_value = 1000
+        [[[params]]]
+            conversion_factor = 0.95
+
+    # demand side management in households
+    [[dsm]]
+        [[[enabled]]]
+            # enabling DSM will disable residential loads
+            enabled = 1
+        [[[params]]]
+            # share of HH with DSM
+            hh_share = 0.1
+
+            method = interval
+            shift_interval = 24
+            delay_time = 12
+            mode = 'flex_min'
