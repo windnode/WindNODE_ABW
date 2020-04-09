@@ -660,7 +660,7 @@ def load_results(timestamp, scenario):
 
     results_path = os.path.join(config.get_data_root_dir(),
                                 config.get('user_dirs',
-                                            'results_dir'),
+                                           'results_dir'),
                                 timestamp,
                                 scenario
                                 )
