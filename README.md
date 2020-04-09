@@ -28,7 +28,7 @@ Afterwards you can access the database via
 | Field | Value |
 |---|---|
 | host | localhost |
-| port | 5432 |
+| port | 54321 |
 | Maintance DB | windnode_abw |
 | User | windnode |
 | Password | windnode |
@@ -46,7 +46,7 @@ Scenario data is contained in the database dump [windnode_db_191211.backup](http
 1. Download the above scenario data file
 2. Import tables, data, and constraints by 
    ```
-   pg_restore -U windnode -d windnode_abw -h localhost --no-owner --no-privileges --no-tablespace -1  <windnode_db_190926.backup
+   pg_restore -U windnode -d windnode_abw -h localhost -port 54321 -W --no-owner --no-privileges --no-tablespace -1  <windnode_db_190926.backup
    ```
 
 ## Setup database connection config file
@@ -64,10 +64,10 @@ When you use a local database, the section in the config looks like
 dialect = psycopg2
 username = windnode
 host = localhost
-port = 5432
+port = 54321
 database = windnode_abw
 ```
 
 ## Run model with _status quo_ scenario
 
-Execute `windnode_abw/scenarios/run_scenario.py`.
+Execute `python windnode_abw/run_scenario.py`.
