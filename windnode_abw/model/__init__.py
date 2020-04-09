@@ -1,5 +1,6 @@
 import pickle
 import os
+import pandas as pd
 
 import logging
 logger = logging.getLogger('windnode_abw')
@@ -10,7 +11,8 @@ from windnode_abw.model.region.tools import \
     prepare_feedin_timeseries, prepare_demand_timeseries, \
     prepare_temp_timeseries, preprocess_heating_structure, \
     calc_annuity, distribute_large_battery_capacity, \
-    distribute_small_battery_capacity
+    distribute_small_battery_capacity, calc_available_pv_capacity, \
+    calc_available_wec_capacity
 
 
 class Region:
@@ -76,6 +78,13 @@ class Region:
         self._generators = kwargs.get('generators', None)
 
         self._results_lines = kwargs.get('_results_lines', None)
+
+        self._pot_areas_pv = kwargs.get('pot_areas_pv', None)
+        self._pot_areas_wec = kwargs.get('pot_areas_wec', None)
+
+        # update mun data table using RE potential areas
+        self._muns.update(calc_available_pv_capacity(self))
+        self._muns.update(calc_available_wec_capacity(self))
 
         self._demand_ts_init = kwargs.get('demand_ts_init', None)
         self._demand_ts = prepare_demand_timeseries(self)
@@ -169,6 +178,27 @@ class Region:
     def demand_ts(self):
         return self._demand_ts
 
+    def demand_ts_agg_per_mun(self, sectors):
+        """Returns demand sum per municipality
+
+        Parameters
+        ----------
+        sectors : :obj:`list` of :obj:`str`
+            Sectors to be included, e.g. ['el_hh', 'el_rca']
+
+        Returns
+        -------
+        :pandas:`pandas.DataFrame`
+            Aggregated demand with muns as columns
+        """
+        if not all([sec in self._demand_ts.keys() for sec in sectors]):
+            raise ValueError('At least 1 sector not found!')
+
+        return pd.DataFrame(
+            {ags: sum(self._demand_ts[tech][ags]
+                      for tech in sectors)
+             for ags in self._muns.index})
+
     @property
     def feedin_ts_init(self):
         return self._feedin_ts_init
@@ -180,6 +210,27 @@ class Region:
     @property
     def feedin_ts(self):
         return self._feedin_ts
+
+    def feedin_ts_agg_per_mun(self, techs):
+        """Returns feedin sum per municipality
+
+        Parameters
+        ----------
+        techs : :obj:`list` of :obj:`str`
+            Technologies to be included, e.g. ['wind', 'bio']
+
+        Returns
+        -------
+        :pandas:`pandas.DataFrame`
+            Aggregated feedin with muns as columns
+        """
+        if not all([tech in self._feedin_ts.keys() for tech in techs]):
+            raise ValueError('At least 1 technology not found!')
+
+        return pd.DataFrame(
+            {ags: sum(self._feedin_ts[tech][ags]
+                      for tech in techs)
+             for ags in self._muns.index})
 
     @property
     def dsm_ts(self):
@@ -264,6 +315,44 @@ class Region:
     @property
     def batteries_small(self):
         return self._batteries_small
+
+    @property
+    def pot_areas_pv(self):
+        return self._pot_areas_pv
+
+    @property
+    def pot_areas_pv_scn(self):
+        """Return PV potential areas, aggregated by area scenario
+
+        Return None for empty PV scenario.
+        """
+        if self._cfg['scn_data']['generation']['re_potentials'][
+                'pv_scenario'] == '':
+            return None
+        scn = self._cfg['scn_data']['generation'][
+            're_potentials']['pv_scenario']
+        return self._pot_areas_pv[
+            self._pot_areas_pv.index.get_level_values(level=1).str.endswith(
+                f'_{scn.lower()}')]['area_ha']
+
+    @property
+    def pot_areas_wec(self):
+        return self._pot_areas_wec
+
+    @property
+    def pot_areas_wec_scn(self):
+        """Return WEC potential areas, aggregated by area scenario
+
+        Return None for status quo or empty WEC scenario.
+        """
+        if self._cfg['scn_data']['generation']['re_potentials'][
+                'wec_scenario'] == '':
+            return None
+        scn = self._cfg['scn_data']['generation'][
+            're_potentials']['wec_scenario']
+        return self._pot_areas_wec[
+            self._pot_areas_wec.index.get_level_values(level=1) ==
+                scn.lower()]['area_ha']
 
     @classmethod
     def import_data(cls, cfg=None):

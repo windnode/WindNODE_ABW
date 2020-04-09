@@ -1,6 +1,7 @@
 import os
 import logging
 import logging.config
+import psutil
 
 from windnode_abw.tools import config
 
@@ -56,3 +57,12 @@ def setup_logger(log_dir=None, loglevel=logging.DEBUG):
     logging.info('Path for logging: %s' % log_dir)
 
     return logger
+
+
+def log_memory_usage():
+    """Get memory usage and write to log"""
+
+    process = psutil.Process(os.getpid())
+    mem = round(process.memory_info().rss / 1024**2)
+    logger = logging.getLogger('windnode_abw')
+    logger.info(f'[Memory used (w/o solver): {mem} MB]')

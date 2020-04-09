@@ -325,7 +325,8 @@ def prepare_feedin_timeseries(region):
         (DF column)
 
     """
-    scenario = region.cfg['scn_data']['general']['id']
+    year = int(region.cfg['scn_data']['general']['year'])
+    status_quo = True if year == 2017 else False
     region.muns['gen_capacity_solar_heat'] = 1
 
 
@@ -342,10 +343,10 @@ def prepare_feedin_timeseries(region):
             'gen_capacity_solar_heat']
 
     # mapping for capacity columns to timeseries columns
-    # if repowering scenario present, use wind_fs time series
+    # if future scenario is present, use wind_fs time series
     tech_mapping = {
         'gen_capacity_wind':
-            'wind_sq' if scenario == 'sq'
+            'wind_sq' if status_quo
                       else 'wind_fs',
         'gen_capacity_pv_ground': 'pv_ground',
         'gen_capacity_pv_roof_small': 'pv_roof_small',
@@ -378,7 +379,7 @@ def prepare_feedin_timeseries(region):
                                  inplace=True)
 
     region.feedin_ts_init.drop(
-        columns=['wind_fs' if scenario == 'sq'
+        columns=['wind_fs' if status_quo
                  else 'wind_sq'
                  ],
         level=0,
@@ -402,7 +403,7 @@ def prepare_feedin_timeseries(region):
     feedin_agg['conventional'] = region.feedin_ts_init['conventional'] * conv_cap_per_mun
 
     # rename wind column depending on scenario
-    if scenario == 'sq':
+    if status_quo:
         feedin_agg['wind'] = feedin_agg.pop('wind_sq')
     else:
         feedin_agg['wind'] = feedin_agg.pop('wind_fs')
@@ -636,13 +637,23 @@ def calc_annuity(cfg, tech_assumptions):
     return tech_assumptions
 
 
-def distribute_large_battery_capacity(region):
+def distribute_large_battery_capacity(region, method='re_cap'):
     """Distribute cumulative capacity of large-scale batteries to
-    municipalities proportional to installed RE capacity.
+    municipalities, supports 3 different methods:
+
+    * proportional to ratio of installed RE capacity and peak load
+      (method='re_cap_peak_load')
+    * proportional to maximum of residual load
+      (method='residual_peak_load')
+    * proportional to installed RE capacity (default)
+      (method='re_cap')
 
     Parameters
     ----------
     region : :class:`~.model.Region`
+        Region object
+    method : :obj:`str`
+        Distribution method (see above)
 
     Returns
     -------
@@ -655,14 +666,44 @@ def distribute_large_battery_capacity(region):
 
     if batt_cap > 0:
         ee_techs = region.cfg['scn_data']['generation']['gen_el']['technologies']
+        dem_el_sectors = ['el_hh', 'el_rca', 'el_ind']
 
         # get cumulated installed cap. per mun
         ee_cum_cap_per_mun = region.muns[[f'gen_capacity_{tech}'
                                           for tech in ee_techs]].sum(axis=1)
 
-        # distribute prop. to installed cap.
-        return (ee_cum_cap_per_mun / ee_cum_cap_per_mun.sum() *
-                batt_cap)
+        if method == 're_cap_peak_load':
+            re_cap_peak_load_ratio = ee_cum_cap_per_mun /\
+                                     region.demand_ts_agg_per_mun(
+                                         sectors=dem_el_sectors).max()
+
+            return (re_cap_peak_load_ratio / re_cap_peak_load_ratio.sum() *
+                    batt_cap)
+
+        elif method == 'residual_peak_load':
+            # calc maximum of residual load
+            residual_peak_load = (
+                    region.demand_ts_agg_per_mun(sectors=dem_el_sectors) -
+                    region.feedin_ts_agg_per_mun(techs=ee_techs)
+            ).max()
+            # set negative residual load to zero
+            residual_peak_load[residual_peak_load < 0] = 0
+
+            return (residual_peak_load / residual_peak_load.sum() *
+                    batt_cap)
+
+        elif method == 're_cap':
+            return (ee_cum_cap_per_mun / ee_cum_cap_per_mun.sum() *
+                    batt_cap)
+
+        # # PLOT: Compare methods
+        # results_compare = pd.DataFrame({
+        #     're_cap_peak_load': re_cap_peak_load_ratio / re_cap_peak_load_ratio.sum(),
+        #     'residual_peak_load': residual_peak_load / residual_peak_load.sum(),
+        #     're_cap': ee_cum_cap_per_mun / ee_cum_cap_per_mun.sum(),
+        # }
+        # )
+        # results_compare.plot.bar(title='Ergebnisvergleich verschiedener Verteilungsmethoden für Großbatterien')
 
     return None
 
@@ -693,3 +734,73 @@ def distribute_small_battery_capacity(region):
                 batt_cap)
 
     return None
+
+
+def calc_available_pv_capacity(region):
+    """Calculate available capacity for ground-mounted PV systems
+
+    Uses land use and land availability from config and PV potential areas.
+    Return None if areas are None (applies for empty PV scenario).
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+
+    Returns
+    -------
+    :pandas:`pandas.DataFrame` or None
+        Installable PV count (zero) and capacity, muns as index
+    """
+    cfg = region.cfg['scn_data']['generation']['re_potentials']
+
+
+    if region.pot_areas_pv_scn is None:
+        return None
+
+    areas = region.pot_areas_pv_scn.copy()
+    areas_agri = areas[areas.index.get_level_values(level=1).str.startswith(
+        'agri_')]
+
+    # limit area on fields and meadows so that it does not exceed 1 % of the
+    # total area of fields and meadows in ABW
+    if cfg['pv_usable_area_agri_max'] != '':
+        if areas_agri.sum() > cfg['pv_usable_area_agri_max']:
+            areas_agri *= cfg['pv_usable_area_agri_max'] / areas_agri.sum()
+            areas.update(areas_agri)
+
+    return pd.DataFrame({'gen_count_pv_ground': 0,
+                         'gen_capacity_pv_ground':areas.groupby(
+                             'ags_id').agg('sum') / cfg['pv_land_use']}
+                        )
+
+
+def calc_available_wec_capacity(region):
+    """Calculate available capacity for wind turbines
+
+    Uses land use and land availability from config and WEC potential areas.
+    Return None if areas are None (applies for empty WEC scenario).
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+
+    Returns
+    -------
+    :pandas:`pandas.DataFrame` or None
+        Installable WEC count (rounded) and capacity, muns as index
+    """
+    cfg = region.cfg['scn_data']['generation']['re_potentials']
+
+    areas = region.pot_areas_wec_scn
+    if areas is None:
+        return None
+
+    wec_count = (areas.groupby('ags_id').agg('sum') *
+                 cfg['wec_usable_area'] /
+                 cfg['wec_land_use']).round().astype(int)
+
+    return pd.DataFrame({'gen_count_wind': wec_count,
+                         'gen_capacity_wind': wec_count * cfg['wec_nom_power']}
+                        )

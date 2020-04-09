@@ -41,7 +41,8 @@ CREATE EXTENSION postgis;
 
 ### Import scenario data
 
-Scenario data is contained in the database dump [windnode_db_191211.backup](https://next.rl-institut.de/s/qtkez7fgYseqTSG). Do the following steps to import the scenario data to your database
+Scenario data is contained in the database dump [windnode_db_200330.backup](https://next.rl-institut.de/s/5XkY4JDFGQi4frM).
+Do the following steps to import the scenario data to your database
 
 1. Download the above scenario data file
 2. Import tables, data, and constraints by 
@@ -51,11 +52,10 @@ Scenario data is contained in the database dump [windnode_db_191211.backup](http
 
 ## Setup database connection config file
 
-When you try to run `windnode_abw/scenarios/run_scenario.py`, it will search for 
-the file `$HOME/.egoio/config.ini`. More specifically, in the file `config.ini` 
-it searches for a section `[windnode_abw]`. It won't be found whe you run it for
-the first time. Subsequently, a command-line dialog opens that asks you for database
-connection details.
+When you try to run `windnode_abw/run_scenario.py`, it will search for  the file `$HOME/.egoio/config.ini`.
+More specifically, in the file `config.ini` it searches for a section `[windnode_abw]`.
+It won't be found whe you run it for the first time. Subsequently, a command-line dialog opens that asks you for
+database connection details.
 
 When you use a local database, the section in the config looks like
 

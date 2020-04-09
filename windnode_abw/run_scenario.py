@@ -1,5 +1,5 @@
 # define and setup logger
-from windnode_abw.tools.logger import setup_logger
+from windnode_abw.tools.logger import setup_logger, log_memory_usage
 logger = setup_logger()
 
 import os
@@ -62,6 +62,7 @@ def run_scenario(cfg):
 
         return esys, region
 
+    log_memory_usage()
     region = Region.import_data(cfg)
 
     # Vergleich el load IÖW+SLP
@@ -71,21 +72,24 @@ def run_scenario(cfg):
     #               axis=1)
     # x.plot()
 
+    log_memory_usage()
     esys = create_oemof_model(cfg=cfg,
                               region=region)
 
     # create and plot graph of energy system
     graph = create_nx_graph(esys)
-    draw_graph(grph=graph, plot=True, layout='neato', node_size=100, font_size=4,
+    draw_graph(grph=graph, plot=True, layout='neato', node_size=100, font_size=8,
                node_color=set_node_colors(graph))
-
-    # plot grid (not oemof model)
-    graph = grid_graph(region=region,
-                       draw=True)
+    #
+    # # plot grid (not oemof model)
+    # graph = grid_graph(region=region,
+    #                    draw=True)
 
     om = simulate(esys=esys,
                   solver=cfg['solver'])
 
+    log_memory_usage()
+    logger.info('Processing results...')
     # add results to energy system
     esys.results['main'] = outputlib.processing.results(om)
     # add meta infos
@@ -93,9 +97,12 @@ def run_scenario(cfg):
     # add initial params to energy system
     esys.results['params'] = outputlib.processing.parameter_as_dict(esys)
     # add om flows to allow access Flow objects
-    esys.results['om_flows'] = list(om.flows.items())
+    #esys.results['om_flows'] = list(om.flows.items())
+
+    log_memory_usage()
 
     results = results_to_dataframes(esys)
+    logger.info('Dumping results...')
 
     # dump esys to file
     if cfg['dump_esys']:

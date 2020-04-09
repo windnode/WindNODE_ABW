@@ -44,7 +44,8 @@ setup(
         'pyproj',
         'pygraphviz',
         'configobj',
-        'descartes'
+        'descartes',
+        'psutil'
     ],
     # package_data={
     #     'config': [
