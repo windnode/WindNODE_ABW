@@ -18,10 +18,11 @@
 [general]
     id = sq
 
-    # the year directly affects some of the data used by the model:
+    # the year affects some of the data used by the model:
     #   * to decide on wind time series (2017: wind_sq / other: wind_fs)
     #   * heating structure
     #   * tech. parameters, costs, emissions
+    # possible values: 2017, 2035, 2050
     year = 2017
     
 # commodities
@@ -322,6 +323,7 @@
         [[[params]]]
             # share of HH with DSM
             hh_share = 0.1
+
             method = interval
             shift_interval = 24
             delay_time = 12
