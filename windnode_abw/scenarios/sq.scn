@@ -215,6 +215,7 @@
             outflow_conversion_factor = 1
 
     # heat storage for Dessau
+    # TODO: Replace costs, capacity
     [[th_cen_storage]]
         [[[enabled]]]
             enabled = 1
