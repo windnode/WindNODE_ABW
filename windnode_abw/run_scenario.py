@@ -114,7 +114,6 @@ def run_scenario(cfg):
         region.dump_to_pkl(filename=file_region)
 
     if cfg['dump_results']:
-        logger.info('Dumping results...')
         export_results(results=results,
                        meta=esys.results['meta'],
                        scenario_id=region.cfg['scn_data']['general']['id'])
