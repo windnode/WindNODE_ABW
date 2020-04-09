@@ -115,8 +115,8 @@ def run_scenario(cfg):
 
     if cfg['dump_results']:
         export_results(results=results,
-                       meta=esys.results['meta'],
-                       scenario_id=region.cfg['scn_data']['general']['id'])
+                       cfg=cfg,
+                       solver_meta=esys.results['meta'])
 
     return esys, region
 

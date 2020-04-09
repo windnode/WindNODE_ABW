@@ -592,7 +592,7 @@ def load_scenario_cfg(scn_name=None):
         return convert2numeric(dict(ConfigObj(path)))
 
 
-def export_results(results, meta, scenario_id):
+def export_results(results, cfg, solver_meta):
     """Export results to CSV file, meta infos to JSON file
 
     A new directory is created
@@ -601,11 +601,17 @@ def export_results(results, meta, scenario_id):
     ----------
     results : :obj:`dict`
         Results from optimization
-    meta : :obj:
+    cfg : :obj:`dict`
+        Run and scenario config
+    solver_meta : :obj:`dict`
         Meta infos from optimization
-    scenario_id : :obj:`str`
-        Scenario id from cfg file
     """
+    scenario_id = cfg['scn_data']['general']['id']
+    meta = {
+        'config': cfg,
+        'solver': solver_meta
+    }
+
     base_path = os.path.join(config.get_data_root_dir(),
                              config.get('user_dirs',
                                         'results_dir')
