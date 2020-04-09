@@ -60,9 +60,17 @@ def setup_logger(log_dir=None, loglevel=logging.DEBUG):
 
 
 def log_memory_usage():
-    """Get memory usage and write to log"""
+    """Get memory usage and write to log
+
+    Returns
+    -------
+    :obj:`int`
+        Memory in MB
+    """
 
     process = psutil.Process(os.getpid())
     mem = round(process.memory_info().rss / 1024**2)
     logger = logging.getLogger('windnode_abw')
     logger.info(f'[Memory used (w/o solver): {mem} MB]')
+
+    return mem
