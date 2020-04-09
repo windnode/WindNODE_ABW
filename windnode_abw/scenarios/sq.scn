@@ -75,7 +75,7 @@
         #       restrictions apply
         #   H:  Use available areas excluding those where hard
         #       restrictions apply
-        pv_scenario = HS
+        pv_scenario =
 
         # max. usable area in ha for PV installations on agricultural areas
         # (1 % of the total area of fields and meadows in ABW)
@@ -97,7 +97,7 @@
         #             settlements, do not use forests
         #   s500f1:   Use available areas resulting from 500 m distance from
         #             settlements, do use forests
-        wec_scenario = s1000f1
+        wec_scenario =
 
         # usable area (0..1) for WEC installations
         wec_usable_area = 0.1
@@ -199,7 +199,7 @@
     # TODO: Replace costs, capacity
     [[th_dec_pth_storage]]
         [[[enabled]]]
-            enabled = 1
+            enabled = 0
         [[[inflow]]]
             # prevent charging restrictions
             nominal_value = 1000
@@ -231,6 +231,7 @@
 # regional and external el. grid
 [grid]
     # regional lines
+    # TODO: Revise costs, efficiencies
     [[lines]]
         [[[params]]]
             # conversion_factor: efficiency
@@ -244,6 +245,7 @@
             conversion_factor = 0.98
 
     # external grid
+    # TODO: Revise costs, efficiencies
     [[extgrid]]
         [[[imex_lines]]]
             [[[[params]]]]
@@ -260,10 +262,10 @@
     # batteries
     [[flex_bat_large]]
         [[[enabled]]]
-            enabled = 1
+            enabled = 0
         [[[params]]]
             # cumulative capacity
-            nominal_storage_capacity = 30
+            nominal_storage_capacity = 0
             # following params according to DEA stor, S.180
             # conversion factors AC calculated via roundtrip AC/DC
             loss_rate = 0.0042
@@ -272,10 +274,10 @@
 
     [[flex_bat_small]]
         [[[enabled]]]
-            enabled = 1
+            enabled = 0
         [[[params]]]
             # cumulative capacity
-            nominal_storage_capacity = 20
+            nominal_storage_capacity = 0
             # following params according to DEA stor, S.180
             # conversion factors AC calculated via roundtrip AC/DC
             loss_rate = 0.0042
@@ -306,7 +308,7 @@
     # central PtH (boilers)
     [[flex_cen_pth]]
         [[[enabled]]]
-            enabled = 1
+            enabled = 0
         [[[outflow]]]
             nominal_value = 1000
         [[[params]]]
@@ -316,7 +318,7 @@
     [[dsm]]
         [[[enabled]]]
             # enabling DSM will disable residential loads
-            enabled = 1
+            enabled = 0
         [[[params]]]
             # share of HH with DSM
             hh_share = 0.1
