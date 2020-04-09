@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
     # configuration
     cfg = {
-        'scenario': 'status_quo',
+        'scenario': 'sq',
         'date_from': '2015-01-01 00:00:00',
         'date_to': '2015-01-04 23:00:00',
         'freq': '60min',
