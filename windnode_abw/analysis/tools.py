@@ -50,6 +50,10 @@ def results_to_dataframes(esys):
 def aggregate_flows(results_raw):
     """Aggregate result flows and create result dictionary
 
+    Notes
+    -----
+    * The node prefixes can be found in the Offline-Documentation (section 1.9)
+
     Parameters
     ----------
     results_raw : :obj:`dict`

@@ -16,13 +16,14 @@
 
 # general options
 [general]
-    id = sq
+    id = NEP2035
 
-    # the year directly affects some of the data used by the model:
+    # the year affects some of the data used by the model:
     #   * to decide on wind time series (2017: wind_sq / other: wind_fs)
     #   * heating structure
     #   * tech. parameters, costs, emissions
-    year = 2017
+    # possible values: 2017, 2035, 2050
+    year = 2035
     
 # commodities
 [commodities]
@@ -38,13 +39,29 @@
 [demand]
     [[dem_el_general]]
         sectors = hh,rca,ind
+
+        # el. energy saving: households (0..1, 0=no change)
+        saving_el_hh = 0.1
+        # el. energy saving: retail, commercial, agriculture (0..1, 0=no change)
+        saving_el_rca = 0.1
+        # el. energy saving: industry (0..1, 0=no change)
+        saving_el_ind = 0.1
+
     # households
     [[dem_el_hh]]
         # profile_type: slp or ioew
         profile_type = ioew
+
     [[dem_th_general]]
         # heat demand sectors
         sectors = hh_efh,hh_mfh,rca
+
+        # th. energy saving: single-family households (0..1, 0=no change)
+        saving_th_hh_efh = 0.1
+        # th. energy saving: multi-family households (0..1, 0=no change)
+        saving_th_hh_mfh = 0.1
+        # th. energy saving: retail, commercial, agriculture (0..1, 0=no change)
+        saving_th_rca = 0.1
 
 # electrical and heat production
 [generation]
@@ -59,7 +76,7 @@
         #       restrictions apply
         #   H:  Use available areas excluding those where hard
         #       restrictions apply
-        pv_scenario = HS
+        pv_scenario = H
 
         # max. usable area in ha for PV installations on agricultural areas
         # (1 % of the total area of fields and meadows in ABW)
@@ -198,6 +215,7 @@
             outflow_conversion_factor = 1
 
     # heat storage for Dessau
+    # TODO: Replace costs, capacity
     [[th_cen_storage]]
         [[[enabled]]]
             enabled = 1
@@ -215,6 +233,7 @@
 # regional and external el. grid
 [grid]
     # regional lines
+    # TODO: Revise costs, efficiencies
     [[lines]]
         [[[params]]]
             # conversion_factor: efficiency
@@ -228,6 +247,7 @@
             conversion_factor = 0.98
 
     # external grid
+    # TODO: Revise costs, efficiencies
     [[extgrid]]
         [[[imex_lines]]]
             [[[[params]]]]
@@ -247,7 +267,7 @@
             enabled = 1
         [[[params]]]
             # cumulative capacity
-            nominal_storage_capacity = 30
+            nominal_storage_capacity = 50
             # following params according to DEA stor, S.180
             # conversion factors AC calculated via roundtrip AC/DC
             loss_rate = 0.0042
@@ -259,7 +279,7 @@
             enabled = 1
         [[[params]]]
             # cumulative capacity
-            nominal_storage_capacity = 20
+            nominal_storage_capacity = 10
             # following params according to DEA stor, S.180
             # conversion factors AC calculated via roundtrip AC/DC
             loss_rate = 0.0042
@@ -304,8 +324,8 @@
         [[[params]]]
             # share of HH with DSM
             hh_share = 0.1
+
             method = interval
             shift_interval = 24
             delay_time = 12
             mode = 'flex_min'
-

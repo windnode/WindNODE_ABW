@@ -15,6 +15,7 @@ from sqlalchemy import func
 
 from windnode_abw.tools.geo import convert_df_wkt_to_shapely
 from egoio.tools.db import connection
+from windnode_abw.tools.logger import log_memory_usage
 
 from windnode_abw.config.db_models import \
     WnAbwDemandTs, WnAbwFeedinTs, WnAbwGridHvBus, WnAbwGridHvLine,\
@@ -592,7 +593,7 @@ def load_scenario_cfg(scn_name=None):
         return convert2numeric(dict(ConfigObj(path)))
 
 
-def export_results(results, meta, scenario_id):
+def export_results(results, cfg, solver_meta):
     """Export results to CSV file, meta infos to JSON file
 
     A new directory is created
@@ -601,11 +602,18 @@ def export_results(results, meta, scenario_id):
     ----------
     results : :obj:`dict`
         Results from optimization
-    meta : :obj:
+    cfg : :obj:`dict`
+        Run and scenario config
+    solver_meta : :obj:`dict`
         Meta infos from optimization
-    scenario_id : :obj:`str`
-        Scenario id from cfg file
     """
+    scenario_id = cfg['scn_data']['general']['id']
+    meta = {
+        'config': cfg,
+        'memory_used_wo_solver': f'{str(log_memory_usage())} MB',
+        'solver': solver_meta
+    }
+
     base_path = os.path.join(config.get_data_root_dir(),
                              config.get('user_dirs',
                                         'results_dir')
@@ -652,7 +660,7 @@ def load_results(timestamp, scenario):
 
     results_path = os.path.join(config.get_data_root_dir(),
                                 config.get('user_dirs',
-                                            'results_dir'),
+                                           'results_dir'),
                                 timestamp,
                                 scenario
                                 )

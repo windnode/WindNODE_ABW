@@ -15,7 +15,7 @@ from windnode_abw.tools import config
 config.load_config('config_data.cfg')
 config.load_config('config_misc.cfg')
 
-from windnode_abw.tools.draw import draw_graph, set_node_colors, plot_results
+from windnode_abw.tools.draw import draw_graph, set_node_colors, debug_plot_results
 from windnode_abw.tools.data_io import load_scenario_cfg, export_results
 
 # import oemof modules
@@ -102,7 +102,6 @@ def run_scenario(cfg):
     log_memory_usage()
 
     results = results_to_dataframes(esys)
-    logger.info('Dumping results...')
 
     # dump esys to file
     if cfg['dump_esys']:
@@ -116,8 +115,8 @@ def run_scenario(cfg):
 
     if cfg['dump_results']:
         export_results(results=results,
-                       meta=esys.results['meta'],
-                       scenario_id=region.cfg['scn_data']['general']['id'])
+                       cfg=cfg,
+                       solver_meta=esys.results['meta'])
 
     return esys, region
 
@@ -126,8 +125,7 @@ if __name__ == "__main__":
 
     # configuration
     cfg = {
-        'scenario': 'status_quo',
-        'data_path': os.path.join(os.path.dirname(__file__), 'data'),
+        'scenario': 'sq',
         'date_from': '2015-01-01 00:00:00',
         'date_to': '2015-01-04 23:00:00',
         'freq': '60min',
@@ -148,7 +146,7 @@ if __name__ == "__main__":
     # calc_line_loading(esys=esys,
     #                   region=region)
 
-    plot_results(esys=esys,
-                 region=region)
+    debug_plot_results(esys=esys,
+                       region=region)
 
     logger.info('Done!')

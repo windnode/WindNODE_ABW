@@ -41,7 +41,7 @@ CREATE EXTENSION postgis;
 
 ### Import scenario data
 
-Scenario data is contained in the database dump [windnode_db_200330.backup](https://next.rl-institut.de/s/5XkY4JDFGQi4frM).
+Scenario data is contained in the database dump [windnode_db_200409.backup](https://next.rl-institut.de/s/Mk3KsPKQrEs6EHo).
 Do the following steps to import the scenario data to your database
 
 1. Download the above scenario data file
