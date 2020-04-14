@@ -42,7 +42,7 @@ Do the following steps to import the scenario data to your database
 1. Download the above scenario data file
 2. Import tables, data, and constraints by 
    ```
-   pg_restore -U windnode -d windnode_abw -h localhost -port 54321 -W --no-owner --no-privileges --no-tablespace -1  <windnode_db_200409.backup
+   pg_restore -U windnode -d windnode_abw -h localhost -p 54321 -W --no-owner --no-privileges --no-tablespace -1  <windnode_db_200409.backup
    ```
 
 ## Setup database connection config file
