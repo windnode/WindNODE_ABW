@@ -179,13 +179,14 @@ def aggregate_flows(results_raw):
 
     # aggregation of stationary vars
     for name, params in aggregations_vars.items():
-        vars_df_filtered = results_raw['vars_stat'].xs(params['variable'],
-                                                       level=1,
-                                                       axis=1)
-        results[name] = vars_df_filtered.groupby(
-            vars_df_filtered.columns.get_level_values(level=0).str.extract(
-                params['pattern'],
-                expand=False),
-            axis=1).agg('sum')
+        if params["variable"] in results_raw["vars_stat"].columns.get_level_values(level=1):
+            vars_df_filtered = results_raw['vars_stat'].xs(params['variable'],
+                                                           level=1,
+                                                           axis=1)
+            results[name] = vars_df_filtered.groupby(
+                vars_df_filtered.columns.get_level_values(level=0).str.extract(
+                    params['pattern'],
+                    expand=False),
+                axis=1).agg('sum')
 
     return results
