@@ -141,7 +141,7 @@ def create_el_model(region=None, datetime_index=None):
 
     # get el. demand profile type for households and DSM status from cfg
     hh_profile_type = scn_data['demand']['dem_el_hh']['profile_type']
-    hh_dsm = scn_data['flexopt']['dsm']['enabled']['enabled']
+    hh_dsm_share = scn_data['flexopt']['dsm']['params']['hh_share']
 
     # create nodes for all municipalities
     for ags, mundata in region.muns.iterrows():
@@ -175,10 +175,7 @@ def create_el_model(region=None, datetime_index=None):
                     )
 
             for sector in el_sectors:
-                # deactivate hh_sinks if DSM is enabled in scenario config
-                if sector == 'hh' and hh_dsm == 1:
-                    pass
-                else:
+                if sector in ['rca', 'ind']:
                     inflow_args = {
                         'nominal_value': 1,
                         'fixed':  True,
@@ -188,22 +185,50 @@ def create_el_model(region=None, datetime_index=None):
                              )[datetime_index]
                         )
                     }
-
-                    # use IÖW load profile if set in scenario config
-                    if sector == 'hh' and hh_profile_type == 'ioew':
-                        inflow_args['actual_value'] = \
-                            list(
-                                (region.dsm_ts['Lastprofil'][ags] /
-                                 len(mun_buses)
-                                 )[datetime_index]
-                            )
-
                     nodes.append(
                         solph.Sink(
                             label=f'dem_el_{ags}_b{bus_id}_{sector}',
                             inputs={buses[bus_id]: solph.Flow(
                                 **inflow_args)})
                     )
+                elif sector == 'hh':
+                    # deactivate hh_sinks if DSM is 100% in scenario config,
+                    # reduce load otherwise
+                    if hh_dsm_share == 1:
+                        pass
+                    elif 1 > hh_dsm_share > 0:
+                        if hh_profile_type == 'ioew':
+                            actual_value = list(
+                                (region.dsm_ts['Lastprofil'][ags] /
+                                 len(mun_buses)
+                                 )[datetime_index] * (1 - hh_dsm_share)
+                            )
+                        else:
+                            actual_value = list(
+                                (region.demand_ts[f'el_{sector}'][ags] /
+                                 len(mun_buses)
+                                 )[datetime_index] * (1 - hh_dsm_share)
+                            )
+
+                        inflow_args = {
+                            'nominal_value': 1,
+                            'fixed': True,
+                            'actual_value': actual_value
+                        }
+                        nodes.append(
+                            solph.Sink(
+                                label=f'dem_el_{ags}_b{bus_id}_{sector}',
+                                inputs={buses[bus_id]: solph.Flow(
+                                    **inflow_args)})
+                        )
+                    else:
+                        msg = 'DSM share must be in range 0..1'
+                        logger.error(msg)
+                        raise ValueError(msg)
+                else:
+                    msg = 'Invalid power demand sector'
+                    logger.error(msg)
+                    raise ValueError(msg)
 
     ################
     # TRANSFORMERS #
@@ -1116,9 +1141,10 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     ####################
     # DSM (households) #
     ####################
-    # if DSM is enabled hh Sinks in l.170 ff. will be deactivated
-    if scn_data['flexopt']['dsm']['enabled']['enabled'] == 1:
-        dsm_cfg = scn_data['flexopt']['dsm']
+    dsm_cfg = scn_data['flexopt']['dsm']
+
+    # if DSM is enabled (>0), load of HH Sinks in l.191 ff. will be reduced
+    if dsm_cfg['params']['hh_share'] > 0:
 
         for mun in region.muns.itertuples():
             mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
@@ -1134,21 +1160,21 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                         demand=list(
                             (region.dsm_ts['Lastprofil']
                              [mun.Index] / len(mun_buses)
-                             )[datetime_index]
+                             )[datetime_index] * dsm_cfg['params']['hh_share']
                         ),
                         capacity_up=list(
                             (calc_dsm_cap_up(
                                 region.dsm_ts,
                                 mun.Index,
                                 mode=dsm_mode) / len(mun_buses)
-                             )[datetime_index]
+                             )[datetime_index] * dsm_cfg['params']['hh_share']
                         ),
                         capacity_down=list(
                             (calc_dsm_cap_down(
                                 region.dsm_ts,
                                 mun.Index,
                                 mode=dsm_mode) / len(mun_buses)
-                             )[datetime_index]
+                             )[datetime_index] * dsm_cfg['params']['hh_share']
                         ),
                         method=dsm_cfg['params']['method'],
                         shift_interval=int(dsm_cfg['params']['shift_interval']),
