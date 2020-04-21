@@ -317,19 +317,25 @@ def create_el_model(region=None, datetime_index=None):
                 outputs={
                     bus: solph.Flow(
                         nominal_value=s_nom *
-                                      scn_data['grid']['extgrid']['imex_lines']['params']['max_usable_capacity'],
+                                      scn_data['grid']['extgrid'][
+                                          'imex_lines']['params'][
+                                          'max_usable_capacity'],
                         **scn_data['grid']['extgrid']['imex_lines']['outflow']
                     ),
                     imex_bus: solph.Flow(
                         nominal_value=s_nom *
-                                      scn_data['grid']['extgrid']['imex_lines']['params']['max_usable_capacity'],
+                                      scn_data['grid']['extgrid'][
+                                          'imex_lines']['params'][
+                                          'max_usable_capacity'],
                         **scn_data['grid']['extgrid']['imex_lines']['outflow']
                     )
                 },
                 # TODO: Revise efficiencies
                 conversion_factors={
-                    (bus, imex_bus): scn_data['grid']['extgrid']['imex_lines']['params']['conversion_factor'],
-                    (imex_bus, bus): scn_data['grid']['extgrid']['imex_lines']['params']['conversion_factor']
+                    (bus, imex_bus): scn_data['grid']['extgrid'][
+                        'imex_lines']['params']['conversion_factor'],
+                    (imex_bus, bus): scn_data['grid']['extgrid'][
+                        'imex_lines']['params']['conversion_factor']
                 }
             )
         )
