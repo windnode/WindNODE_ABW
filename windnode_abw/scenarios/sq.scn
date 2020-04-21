@@ -318,12 +318,9 @@
 
     # demand side management in households
     [[dsm]]
-        [[[enabled]]]
-            # enabling DSM will disable residential loads
-            enabled = 0
         [[[params]]]
-            # share of HH with DSM
-            hh_share = 0.1
+            # share of HH with DSM (0..1)
+            hh_share = 0
 
             method = interval
             shift_interval = 24
