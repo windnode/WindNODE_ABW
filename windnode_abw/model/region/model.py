@@ -196,7 +196,7 @@ def create_el_model(region=None, datetime_index=None):
                     # reduce load otherwise
                     if hh_dsm_share == 1:
                         pass
-                    elif 1 > hh_dsm_share > 0:
+                    elif 1 > hh_dsm_share >= 0:
                         if hh_profile_type == 'ioew':
                             actual_value = list(
                                 (region.dsm_ts['Lastprofil'][ags] /
