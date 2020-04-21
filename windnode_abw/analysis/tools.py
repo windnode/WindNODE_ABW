@@ -70,6 +70,7 @@ def aggregate_flows(results_raw):
             'level': 0
         },
         'Strombedarf nach Sektor': {
+            # Note for HH: only power demand without DSM is included
             'pattern': 'dem_el_\d+_b\d+_(\w+)',
             'level': 1
         },
