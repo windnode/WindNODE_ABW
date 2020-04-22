@@ -145,14 +145,6 @@ def aggregate_flows(results_raw):
             'pattern': 'flex_bat_small_(\d+)_b\d+',
             'variable': 'capacity'
         },
-        'Speicherfüllstand dezentrale Wärmespeicher nach Sektor': {
-            'pattern': 'stor_th_dec_\d+_((?:hh_efh|hh_mfh|rca))',
-            'variable': 'capacity'
-        },
-        'Speicherfüllstand dezentrale Wärmespeicher nach Gemeinde': {
-            'pattern': 'stor_th_dec_(\d+)_(?:hh_efh|hh_mfh|rca)',
-            'variable': 'capacity'
-        },
         'Speicherfüllstand dezentrale Wärmespeicher (Wärmepumpen) nach Sektor': {
             'pattern': 'stor_th_dec_pth_\d+_((?:hh_efh|hh_mfh|rca))',
             'variable': 'capacity'

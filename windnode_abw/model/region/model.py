@@ -532,21 +532,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                             )
                         )
 
-            # general common heat storage
-            if scn_data['storage']['th_dec_storage']['enabled']['enabled'] == 1:
-                nodes.append(
-                    solph.components.GenericStorage(
-                        label=f'stor_th_dec_{mun.Index}_{sector}',
-                        inputs={bus_th: solph.Flow(
-                            **scn_data['storage']['th_dec_storage']['inflow']
-                        )},
-                        outputs={bus_th: solph.Flow(
-                            **scn_data['storage']['th_dec_storage']['outflow']
-                        )},
-                        **scn_data['storage']['th_dec_storage']['params']
-                    )
-                )
-
         # demand per sector and mun
         for sector in th_sectors:
             inflow_args = {
