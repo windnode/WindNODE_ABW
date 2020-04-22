@@ -179,23 +179,6 @@
 
 # storages
 [storage]
-    # decentral heat storages
-    # (used by all dec heat sources except heat pumps)
-    # TODO: Replace costs, capacity
-    [[th_dec_storage]]
-        [[[enabled]]]
-            enabled = 1
-        [[[inflow]]]
-            nominal_value = 30
-            variable_costs = 1
-        [[[outflow]]]
-            nominal_value = 30
-        [[[params]]]
-            nominal_storage_capacity = 100
-            loss_rate = 0.021
-            inflow_conversion_factor = 1
-            outflow_conversion_factor = 1
-
     # decentral heat storages for heat pumps only
     # TODO: Replace costs, capacity
     [[th_dec_pth_storage]]
