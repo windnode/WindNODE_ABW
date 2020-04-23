@@ -222,7 +222,7 @@ def create_el_model(region=None, datetime_index=None):
                                     **inflow_args)})
                         )
                     else:
-                        msg = 'DSM share must be in range 0..1'
+                        msg = 'cfg parameter hh_share must be in range 0..1'
                         logger.error(msg)
                         raise ValueError(msg)
                 else:
@@ -489,7 +489,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
         conversion_factors = {comm_buses['b_natural_gas']: 1 - methane_share,
                               comm_buses['b_methane']: methane_share}
     else:
-        msg = 'Methane share must be in range 0..1'
+        msg = 'cfg parameter methane_share must be in range 0..1'
         logger.error(msg)
         raise ValueError(msg)
 
