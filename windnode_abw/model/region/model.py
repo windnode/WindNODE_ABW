@@ -454,7 +454,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     for es in scn_data['commodities']['commodities']:
         # do not create methane comm. when share is zero
         if es == 'methane' and methane_share == 0:
-            pass
+            continue
         if es not in ['elenergy', 'dist_heating']:
             bus = solph.Bus(label=f'b_{es}')
             com = solph.Source(
