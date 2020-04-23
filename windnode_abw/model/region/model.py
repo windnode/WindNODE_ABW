@@ -465,6 +465,21 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             nodes.append(bus)
             nodes.append(com)
 
+    # make buses of natural gas and methane feed into general gas bus
+    # with predefined ratio
+    b_gas = solph.Bus(label=f'b_gas')
+    nodes.append(b_gas)
+    nodes.append(
+        solph.Transformer(
+            label='natural_gas_methane_ratio',
+            inputs={comm_buses['b_natural_gas']: solph.Flow(),
+                    comm_buses['b_methane']: solph.Flow()},
+            outputs={b_gas: solph.Flow()},
+            conversion_factors={comm_buses['b_natural_gas']: 0.25,
+                                comm_buses['b_methane']: 0.75}
+        )
+    )
+
     #############################
     # DECENTRALIZED HEAT SUPPLY #
     #############################
@@ -505,7 +520,13 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                         }
 
                         if es.Index != 'elenergy':
-                            inputs = {comm_buses[f'b_{es.Index}']: solph.Flow()}
+                            # use mixed gas bus if energy source is natural gas
+                            if es.Index == 'natural_gas':
+                                bus_in = b_gas
+                            else:
+                                bus_in = comm_buses[f'b_{es.Index}']
+
+                            inputs = {bus_in: solph.Flow()}
                             outflow_args['variable_costs'] = region.tech_assumptions_scn.loc[
                                 'heating_' + es.Index]['opex_var']
                             outflow_args['emissions'] = region.tech_assumptions_scn.loc[
@@ -623,7 +644,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             nodes.append(
                 solph.components.ExtractionTurbineCHP(
                     label=f'gen_th_cen_{ags}_gud',
-                    inputs={comm_buses['b_natural_gas']: solph.Flow(
+                    inputs={b_gas: solph.Flow(
                         # nom. power gas derived from nom. th. power and
                         # max. th. efficiency
                         nominal_value=nom_th_power / th_eff_max_ex
@@ -658,7 +679,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             nodes.append(
                 solph.Transformer(
                     label=f'gen_th_cen_{ags}_gas_boiler',
-                    inputs={comm_buses['b_natural_gas']: solph.Flow()},
+                    inputs={b_gas: solph.Flow()},
                     outputs={
                         bus_th_net_in: solph.Flow(
                             nominal_value=chp_th_power,
@@ -715,7 +736,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             nodes.append(
                 solph.Transformer(
                     label=f'gen_th_cen_{ags}_gud',
-                    inputs={comm_buses['b_natural_gas']: solph.Flow()},
+                    inputs={b_gas: solph.Flow()},
                     outputs={bus_el: solph.Flow(
                         nominal_value=gud_cfg['nom_el_power'],
                         fixed=True,
@@ -739,7 +760,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             nodes.append(
                 solph.Transformer(
                     label=f'gen_el_{ags}_gas',
-                    inputs={comm_buses['b_natural_gas']: solph.Flow()},
+                    inputs={b_gas: solph.Flow()},
                     outputs={bus_el: solph.Flow(
                         nominal_value=gas_cfg['nom_el_power'],
                         summed_min=len(datetime_index) / gas_cfg['annual_flh'],
@@ -789,7 +810,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             nodes.append(
                 solph.Transformer(
                     label=f'gen_th_cen_{ags}_bhkw',
-                    inputs={comm_buses['b_natural_gas']: solph.Flow()},
+                    inputs={b_gas: solph.Flow()},
                     outputs={
                         bus_th_net_in: solph.Flow(
                             nominal_value=chp_th_power,
@@ -814,7 +835,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             nodes.append(
                 solph.Transformer(
                     label=f'gen_th_cen_{ags}_gas_boiler',
-                    inputs={comm_buses['b_natural_gas']: solph.Flow()},
+                    inputs={b_gas: solph.Flow()},
                     outputs={
                         bus_th_net_in: solph.Flow(
                             nominal_value=chp_th_power,
