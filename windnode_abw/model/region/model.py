@@ -469,14 +469,30 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     # with predefined ratio
     b_gas = solph.Bus(label=f'b_gas')
     nodes.append(b_gas)
+
+    methane_share = scn_data['commodities']['methane_share']
+    if methane_share == 0:
+        inputs = {comm_buses['b_natural_gas']: solph.Flow()}
+        conversion_factors = {comm_buses['b_natural_gas']: 1}
+    elif methane_share == 1:
+        inputs = {comm_buses['b_methane']: solph.Flow()}
+        conversion_factors = {comm_buses['b_methane']: 1}
+    elif 1 > methane_share > 0:
+        inputs = {comm_buses['b_natural_gas']: solph.Flow(),
+                  comm_buses['b_methane']: solph.Flow()}
+        conversion_factors = {comm_buses['b_natural_gas']: 1 - methane_share,
+                              comm_buses['b_methane']: methane_share}
+    else:
+        msg = 'Methane share must be in range 0..1'
+        logger.error(msg)
+        raise ValueError(msg)
+
     nodes.append(
         solph.Transformer(
             label='natural_gas_methane_ratio',
-            inputs={comm_buses['b_natural_gas']: solph.Flow(),
-                    comm_buses['b_methane']: solph.Flow()},
+            inputs=inputs,
             outputs={b_gas: solph.Flow()},
-            conversion_factors={comm_buses['b_natural_gas']: 0.25,
-                                comm_buses['b_methane']: 0.75}
+            conversion_factors=conversion_factors
         )
     )
 

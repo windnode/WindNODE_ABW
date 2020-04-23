@@ -29,7 +29,11 @@
 [commodities]
     # comm. to be created
     # Note: The names must match name "comm_<NAME>" in tech. assumptions DB table
-    commodities = fuel_oil,natural_gas,wood,coal,solar
+    commodities = fuel_oil,natural_gas,wood,coal,solar,methane
+
+    # share of methane (0..1)
+    # Note: methane needs to be in commodity list above
+    methane_share = 0.25
 
 [economics]
     wacc = 0.06
