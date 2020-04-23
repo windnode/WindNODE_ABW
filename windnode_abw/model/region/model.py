@@ -471,12 +471,12 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             nodes.append(bus)
             nodes.append(com)
 
-    # make buses of natural gas and methane feed into general gas bus
-    # with predefined ratio
+    # make buses of natural gas and, if existing, methane feed into general
+    # gas bus with predefined ratio
     b_gas = solph.Bus(label=f'b_gas')
     nodes.append(b_gas)
 
-    methane_share = scn_data['commodities']['methane_share']
+    # adjust gas inputs
     if methane_share == 0:
         inputs = {comm_buses['b_natural_gas']: solph.Flow()}
         conversion_factors = {comm_buses['b_natural_gas']: 1}
