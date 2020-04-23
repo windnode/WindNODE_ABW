@@ -439,9 +439,12 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
     # create a commodity for each energy source in cfg
     # except for el. energy and ambient_heat (el. bus is used)
 
+    methane_share = scn_data['commodities']['methane_share']
+
     # make sure all sources have data in heating structure
+    # (except for methane which is handled separately)
     if not all([_ in region.heating_structure_dec.index.get_level_values('energy_source').unique()
-                for _ in scn_data['commodities']['commodities']]):
+                for _ in scn_data['commodities']['commodities'] if _ != 'methane']):
         msg = 'You have invalid commodities in your config! (at ' \
               'least one is not contained in heating structure)'
         logger.error(msg)
@@ -449,6 +452,9 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
 
     comm_buses = {}
     for es in scn_data['commodities']['commodities']:
+        # do not create methane comm. when share is zero
+        if es == 'methane' and methane_share == 0:
+            pass
         if es not in ['elenergy', 'dist_heating']:
             bus = solph.Bus(label=f'b_{es}')
             com = solph.Source(
