@@ -33,7 +33,7 @@
 
     # share of methane (0..1)
     # Note: methane needs to be in commodity list above
-    methane_share = 0.25
+    methane_share = 0
 
 [economics]
     wacc = 0.06
