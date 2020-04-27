@@ -220,31 +220,29 @@
 # regional and external el. grid
 [grid]
     # regional lines
-    # TODO: Revise costs, efficiencies
     [[lines]]
         [[[params]]]
             # conversion_factor: efficiency
-            conversion_factor = 0.98
+            conversion_factor = 0.988
         [[[outflow]]]
             variable_costs = 0.0001
 
     [[trafos]]
         [[[params]]]
             # conversion_factor: efficiency
-            conversion_factor = 0.98
+            conversion_factor = 0.997
 
     # external grid
-    # TODO: Revise costs, efficiencies
     [[extgrid]]
         [[[imex_lines]]]
             [[[[params]]]]
                 # conversion_factor: efficiency
-                conversion_factor = 0.98
+                conversion_factor = 0.988
                 # max_usable_capacity: usable cap. of external grid
                 # (rel. to nominal power)
                 max_usable_capacity = 0.1
             [[[[outflow]]]]
-                variable_costs = 100
+                variable_costs = 0.0001
 
 # flexibility options
 [flexopt]
