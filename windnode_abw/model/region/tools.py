@@ -589,7 +589,8 @@ def preprocess_heating_structure(cfg, heating_structure):
     heating_structure_dec = heating_structure_wo_dist_heating *\
                             source_scale_factor
 
-    # extract district heating share (use RCA value only as
+    # extract district heating share (use RCA value only as it's the same for
+    # all sectors)
     dist_heating_share = heating_structure.xs(
             'dist_heating',
             level='energy_source'
