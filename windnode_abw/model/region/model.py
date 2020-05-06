@@ -1236,6 +1236,27 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
 
 
 def imported_electricity_limit(om):
+    """
+    Limit the annual imported electricity from national system
+
+    Adds a constraint to the optimization problem that limits imported electricity
+    from the national system to a certain share of total consumed electricity.
+
+    .. math::
+
+        \sum_{tr \in Trafos_{HV/EHV} } \sum_t P_{tr} \left( t \right)
+        \leq limit
+        \cdot \sum_t \left( \sum_{d \in demand_{el}} P_d(t)
+        + \sum_{s \in storages_{el}} P_{loss,s}(t)
+        + \sum_{l \in lines} P_{loss,l}(t)
+        + \sum_{hp \in heat\_pump_{el}} P_{el,hp}(t) \right)
+
+    Parameters
+    ----------
+
+    om : :class:`OperationalModel <oemof.solph.Model>`
+        Instance of oemof.solph operational model
+    """
     el_demand_labels = ("dem_el", "flex_dsm", "flex_dec_pth", "trans_dummy_th_dec_pth, flex_cen_pth")
 
     import_flows = [(i, o) for (i, o) in om.FLOWS if i.label.startswith("shortage_el")]
