@@ -11,7 +11,7 @@ from windnode_abw.model.region.tools import calc_heat_pump_cops, \
     calc_dsm_cap_down, calc_dsm_cap_up, create_maintenance_timeseries
 
 
-def simulate(esys, solver='cbc', verbose=True):
+def simulate(esys, solver='cbc', verbose=True, save_lp=False):
     """Optimize energy system
 
     Parameters
@@ -32,6 +32,16 @@ def simulate(esys, solver='cbc', verbose=True):
 
     # Add electricity import limit
     imported_electricity_limit(om)
+
+    # Save .lp file
+    if save_lp:
+        from windnode_abw.tools import config
+        om.write(os.path.join(config.get_data_root_dir(),
+                              config.get('user_dirs',
+                                         'log_dir'),
+                              "windnode_abw.lp"),
+                 io_options={'symbolic_solver_labels': True})
+
     # solve it
     log_memory_usage()
     logger.info('Solve optimization problem...')

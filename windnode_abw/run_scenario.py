@@ -86,7 +86,8 @@ def run_scenario(cfg):
     #                    draw=True)
 
     om = simulate(esys=esys,
-                  solver=cfg['solver'])
+                  solver=cfg['solver'],
+                  save_lp=True)
 
     log_memory_usage()
     logger.info('Processing results...')
