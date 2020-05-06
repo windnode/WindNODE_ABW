@@ -31,7 +31,8 @@ def simulate(esys, scn_data, solver='cbc', verbose=True, save_lp=False):
     om = solph.Model(esys)
 
     # Add electricity import limit
-    imported_electricity_limit(om, scn_data)
+    if scn_data['grid']['extgrid']['imex_lines']['params']['limit'] < 1:
+        imported_electricity_limit(om, scn_data)
 
     # Save .lp file
     if save_lp:
