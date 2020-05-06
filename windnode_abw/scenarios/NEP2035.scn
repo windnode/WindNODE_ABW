@@ -241,6 +241,9 @@
                 # max_usable_capacity: usable cap. of external grid
                 # (rel. to nominal power)
                 max_usable_capacity = 0.1
+                # limit: 0..1 limiting electricity imports from external grid
+                # set to 1 to deactivate
+                limit = .25
             [[[[outflow]]]]
                 variable_costs = 0.0001
 
