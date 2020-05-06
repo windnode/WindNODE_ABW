@@ -1242,6 +1242,9 @@ def imported_electricity_limit(om):
     el_demand_flows = [(i, o) for (i, o) in om.FLOWS if o.label.startswith(el_demand_labels)]
     battery_storage_charge_flows = [(i, o) for (i, o) in om.FLOWS if o.label.startswith("flex_bat")]
     battery_storage_discharge_flows = [(i, o) for (i, o) in om.FLOWS if i.label.startswith("flex_bat")]
+    grid_flows_to_grid = [(i, o) for (i, o) in om.FLOWS if isinstance(o, solph.custom.Link)]
+    grid_flows_to_bus = [(i, o) for (i, o) in om.FLOWS if isinstance(i, solph.custom.Link)]
+
     def _import_limit_rule(om):
         lhs = sum(om.flow[i, o, t]
                   for (i, o) in import_flows
@@ -1254,6 +1257,12 @@ def imported_electricity_limit(om):
                    for t in om.TIMESTEPS) -
                sum(om.flow[i, o, t]
                    for (i, o) in battery_storage_discharge_flows
+                   for t in om.TIMESTEPS) +
+               sum(om.flow[i, o, t]
+                   for (i, o) in grid_flows_to_grid
+                   for t in om.TIMESTEPS) -
+               sum(om.flow[i, o, t]
+                   for (i, o) in grid_flows_to_bus
                    for t in om.TIMESTEPS))
 
         return lhs <= rhs
