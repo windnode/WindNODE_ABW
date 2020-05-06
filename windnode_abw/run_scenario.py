@@ -86,6 +86,7 @@ def run_scenario(cfg):
     #                    draw=True)
 
     om = simulate(esys=esys,
+                  scn_data=region.cfg['scn_data'],
                   solver=cfg['solver'],
                   save_lp=True)
 

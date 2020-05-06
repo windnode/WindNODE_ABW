@@ -11,7 +11,7 @@ from windnode_abw.model.region.tools import calc_heat_pump_cops, \
     calc_dsm_cap_down, calc_dsm_cap_up, create_maintenance_timeseries
 
 
-def simulate(esys, solver='cbc', verbose=True, save_lp=False):
+def simulate(esys, scn_data, solver='cbc', verbose=True, save_lp=False):
     """Optimize energy system
 
     Parameters
@@ -31,7 +31,7 @@ def simulate(esys, solver='cbc', verbose=True, save_lp=False):
     om = solph.Model(esys)
 
     # Add electricity import limit
-    imported_electricity_limit(om)
+    imported_electricity_limit(om, scn_data)
 
     # Save .lp file
     if save_lp:
@@ -1235,7 +1235,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     return nodes
 
 
-def imported_electricity_limit(om):
+def imported_electricity_limit(om, scn_data):
     """
     Limit the annual imported electricity from national system
 
@@ -1256,6 +1256,8 @@ def imported_electricity_limit(om):
 
     om : :class:`OperationalModel <oemof.solph.Model>`
         Instance of oemof.solph operational model
+    scn_data : dict
+        Scenario parameters
     """
     el_demand_labels = ("dem_el", "flex_dsm", "flex_dec_pth", "trans_dummy_th_dec_pth, flex_cen_pth")
 
@@ -1266,11 +1268,13 @@ def imported_electricity_limit(om):
     grid_flows_to_grid = [(i, o) for (i, o) in om.FLOWS if isinstance(o, solph.custom.Link)]
     grid_flows_to_bus = [(i, o) for (i, o) in om.FLOWS if isinstance(i, solph.custom.Link)]
 
+    limit = scn_data['grid']['extgrid']['imex_lines']['params']['limit']
+
     def _import_limit_rule(om):
         lhs = sum(om.flow[i, o, t]
                   for (i, o) in import_flows
                   for t in om.TIMESTEPS)
-        rhs = (sum(om.flow[i, o, t]
+        rhs = limit * (sum(om.flow[i, o, t]
                    for (i, o) in el_demand_flows
                    for t in om.TIMESTEPS) +
                sum(om.flow[i, o, t]
