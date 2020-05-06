@@ -1,10 +1,13 @@
 import pandas as pd
 import oemof.solph as solph
+import os
+from pyomo.environ import Constraint
 from windnode_abw.tools.logger import log_memory_usage
 import logging
+
 logger = logging.getLogger('windnode_abw')
 
-from windnode_abw.model.region.tools import calc_heat_pump_cops,\
+from windnode_abw.model.region.tools import calc_heat_pump_cops, \
     calc_dsm_cap_down, calc_dsm_cap_up, create_maintenance_timeseries
 
 
@@ -27,6 +30,8 @@ def simulate(esys, solver='cbc', verbose=True):
     logger.info('Create optimization problem...')
     om = solph.Model(esys)
 
+    # Add electricity import limit
+    imported_electricity_limit(om)
     # solve it
     log_memory_usage()
     logger.info('Solve optimization problem...')
@@ -1218,3 +1223,31 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                 )
 
     return nodes
+
+
+def imported_electricity_limit(om):
+    el_demand_labels = ("dem_el", "flex_dsm", "flex_dec_pth", "trans_dummy_th_dec_pth, flex_cen_pth")
+
+    import_flows = [(i, o) for (i, o) in om.FLOWS if i.label.startswith("shortage_el")]
+    el_demand_flows = [(i, o) for (i, o) in om.FLOWS if o.label.startswith(el_demand_labels)]
+    battery_storage_charge_flows = [(i, o) for (i, o) in om.FLOWS if o.label.startswith("flex_bat")]
+    battery_storage_discharge_flows = [(i, o) for (i, o) in om.FLOWS if i.label.startswith("flex_bat")]
+    def _import_limit_rule(om):
+        lhs = sum(om.flow[i, o, t]
+                  for (i, o) in import_flows
+                  for t in om.TIMESTEPS)
+        rhs = (sum(om.flow[i, o, t]
+                   for (i, o) in el_demand_flows
+                   for t in om.TIMESTEPS) +
+               sum(om.flow[i, o, t]
+                   for (i, o) in battery_storage_charge_flows
+                   for t in om.TIMESTEPS) -
+               sum(om.flow[i, o, t]
+                   for (i, o) in battery_storage_discharge_flows
+                   for t in om.TIMESTEPS))
+
+        return lhs <= rhs
+
+    el_import_lim = Constraint(rule=_import_limit_rule)
+
+    setattr(om, "el_import_constraint", el_import_lim)
