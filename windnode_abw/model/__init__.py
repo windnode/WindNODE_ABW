@@ -369,6 +369,15 @@ class Region:
             level='year'
     )
 
+    @property
+    def demography_change(self):
+        """Return relative change of population and employees for year set in
+        cfg since 2017"""
+        return self._demography.xs(
+            self._cfg['scn_data']['general']['year'],
+            level='year') / self._demography.xs(2017,
+                                                level='year')
+
     @classmethod
     def import_data(cls, cfg=None):
         """Import data to Region object"""
