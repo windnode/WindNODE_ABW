@@ -255,9 +255,6 @@ class WnAbwMundata(Base):
 
     ags_id = Column(ForeignKey('windnode.wn_abw_mun.ags'), primary_key=True, nullable=False)
     area = Column(Float(53))
-    pop_2017 = Column(Integer)
-    pop_2030 = Column(Integer)
-    pop_2050 = Column(Integer)
     gen_count_wind = Column(Float(53))
     gen_capacity_pv_roof_small = Column(Float(53))
     gen_count_pv_ground = Column(Float(53))
@@ -280,7 +277,6 @@ class WnAbwMundata(Base):
     dem_th_energy_hh = Column(Float(53))
     dem_th_energy_rca = Column(Float(53))
     dem_th_energy_ind = Column(Float(53))
-    pop_2011 = Column(Integer)
     gen_count_pv_roof_large = Column(Float(53))
     gen_count_pv_roof_small = Column(Float(53))
     gen_capacity_storage = Column(Float(53))
