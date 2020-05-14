@@ -453,3 +453,15 @@ class WnAbwPotentialAreasWec(Base):
     geom = Column(Geometry('MULTIPOLYGON', 3035), index=True)
 
     ags = relationship('WnAbwMun')
+
+
+class WnAbwDemography(Base):
+    __tablename__ = 'wn_abw_demography'
+    __table_args__ = {'schema': 'windnode'}
+
+    ags_id = Column(Integer, primary_key=True, nullable=False)
+    year = Column(Integer, primary_key=True, nullable=False)
+    population = Column(Integer)
+    employees = Column(Integer)
+
+    ags = relationship('WnAbwMun')
