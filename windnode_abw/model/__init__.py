@@ -258,8 +258,8 @@ class Region:
 
     @property
     def heating_structure_dec_scn(self):
-        """Return decentral heating structure (relative shares) for current
-        scenario set in cfg WITHOUT district heating.
+        """Return decentral heating structure (relative shares) for year set
+        in cfg WITHOUT district heating.
 
         Unlike the heating structure in DB table
         :class:`WnAbwHeatingStructure <windnode.config.db_models.WnAbwHeatingStructure>`
@@ -290,8 +290,8 @@ class Region:
 
     @property
     def dist_heating_share_scn(self):
-        """Return district heating share per municipality for current scenario
-        set in cfg"""
+        """Return district heating share per municipality for year set in
+        cfg"""
         return self._dist_heating_share.xs(
             self._cfg['scn_data']['general']['year'],
             level='year'
@@ -303,7 +303,7 @@ class Region:
 
     @property
     def tech_assumptions_scn(self):
-        """Return technical assumptions for current scenario set in cfg"""
+        """Return technical assumptions for year set in cfg"""
         return self._tech_assumptions.xs(
             self._cfg['scn_data']['general']['year'],
             level='year'
