@@ -108,6 +108,8 @@ class Region:
         self._batteries_large = distribute_large_battery_capacity(self)
         self._batteries_small = distribute_small_battery_capacity(self)
 
+        self._demography = kwargs.get('demography', None)
+
     @property
     def muns(self):
         """Returns region's municipalities"""
@@ -353,6 +355,18 @@ class Region:
         return self._pot_areas_wec[
             self._pot_areas_wec.index.get_level_values(level=1) ==
                 scn.lower()]['area_ha']
+
+    @property
+    def demography(self):
+        return self._demography
+
+    @property
+    def demography_scn(self):
+        """Return demography for year set in cfg"""
+        return self._demography.xs(
+            self._cfg['scn_data']['general']['year'],
+            level='year'
+    )
 
     @classmethod
     def import_data(cls, cfg=None):
