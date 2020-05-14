@@ -214,7 +214,6 @@ def import_db_data(cfg):
             WnAbwMun.geom, srid)).label('geom'),
         WnAbwRelSubstIdAgsId.subst_id,
 
-        WnAbwMundata.pop_2017,
         WnAbwMundata.area,
         WnAbwMundata.gen_capacity_wind,
         WnAbwMundata.gen_capacity_pv_roof_small,
