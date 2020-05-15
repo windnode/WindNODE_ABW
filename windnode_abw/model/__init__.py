@@ -89,10 +89,12 @@ class Region:
         self._demography = kwargs.get('demography', None)
 
         self._demand_ts_init = kwargs.get('demand_ts_init', None)
-        self._demand_ts = prepare_demand_timeseries(self)
+        self._dsm_ts = kwargs.get('dsm_ts', None)
+        self._demand_ts, self._dsm_ts = prepare_demand_timeseries(self)
+
         self._feedin_ts_init = kwargs.get('feedin_ts_init', None)
         self._feedin_ts = prepare_feedin_timeseries(self)
-        self._dsm_ts = kwargs.get('dsm_ts', None)
+
         self._temp_ts_init = kwargs.get('temp_ts_init', None)
         self._temp_ts = prepare_temp_timeseries(self)
 

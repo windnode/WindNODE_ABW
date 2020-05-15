@@ -412,9 +412,10 @@ def prepare_feedin_timeseries(region):
 
 
 def prepare_demand_timeseries(region):
-    """Reformat demand timeseries: from single DF to DF per sector.
+    """Calculate demand and reformat demand timeseries
+    (from single DF to DF per sector)
 
-    Include
+    Perform demand calculation using
     * savings from scenario config
     * change in population and employment
 
@@ -438,9 +439,7 @@ def prepare_demand_timeseries(region):
             logger.error(msg)
             raise ValueError(msg)
 
-    # get savings due to decrease of population and employees
-    savings_dem = region.demography_change
-
+    # calc savings for all sectors and carriers
     demand_ts = {}
     demand_types = region.demand_ts_init.columns.get_level_values(0).unique()
     for dt in demand_types:
@@ -448,9 +447,13 @@ def prepare_demand_timeseries(region):
 
         demand_ts[dt] = (region.demand_ts_init[dt] *
                          (1 - savings.get(f'saving_{dt}'))).T.mul(
-            savings_dem[col], axis=0).T
+            region.demography_change[col], axis=0).T
 
-    return demand_ts
+    # calc savings for DSM
+    dsm_ts = (region._dsm_ts * (1 - savings.get('saving_el_hh'))).T.mul(
+            region.demography_change['population'], level='ags', axis=0).T
+
+    return demand_ts, dsm_ts
 
 
 def prepare_temp_timeseries(region):
