@@ -133,9 +133,9 @@ if __name__ == "__main__":
 
     # configuration
     cfg = {
-        'scenario': 'sq',
-        'date_from': '2015-01-01 00:00:00',
-        'date_to': '2015-01-04 23:00:00',
+        'scenario': 'NEP2035',
+        'date_from': '2015-06-01 00:00:00',
+        'date_to': '2015-06-07 23:00:00',
         'freq': '60min',
         'results_path': os.path.join(config.get_data_root_dir(),
                                      config.get('user_dirs',
