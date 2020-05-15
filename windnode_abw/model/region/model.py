@@ -31,8 +31,10 @@ def simulate(esys, scn_data, solver='cbc', verbose=True, save_lp=False):
     om = solph.Model(esys)
 
     # Add electricity import limit
-    if scn_data['grid']['extgrid']['imex_lines']['params']['limit'] < 1:
-        imported_electricity_limit(om, scn_data)
+    el_import_limit = scn_data['grid']['extgrid'][
+        'imex_lines']['params']['limit']
+    if el_import_limit < 1:
+        imported_electricity_limit(om, limit=el_import_limit)
 
     # Save .lp file
     if save_lp:
@@ -1236,7 +1238,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     return nodes
 
 
-def imported_electricity_limit(om, scn_data):
+def imported_electricity_limit(om, limit):
     """
     Limit the annual imported electricity from national system
 
@@ -1257,8 +1259,8 @@ def imported_electricity_limit(om, scn_data):
 
     om : :class:`OperationalModel <oemof.solph.Model>`
         Instance of oemof.solph operational model
-    scn_data : dict
-        Scenario parameters
+    limit : float
+        Electricity imports limit from external grid (0..1)
     """
     el_demand_labels = ("dem_el", "flex_dsm", "flex_dec_pth", "trans_dummy_th_dec_pth, flex_cen_pth")
 
@@ -1268,8 +1270,6 @@ def imported_electricity_limit(om, scn_data):
     battery_storage_discharge_flows = [(i, o) for (i, o) in om.FLOWS if i.label.startswith("flex_bat")]
     grid_flows_to_grid = [(i, o) for (i, o) in om.FLOWS if isinstance(o, solph.custom.Link)]
     grid_flows_to_bus = [(i, o) for (i, o) in om.FLOWS if isinstance(i, solph.custom.Link)]
-
-    limit = scn_data['grid']['extgrid']['imex_lines']['params']['limit']
 
     def _import_limit_rule(om):
         lhs = sum(om.flow[i, o, t]
