@@ -76,11 +76,17 @@ def run_scenario(cfg):
     esys = create_oemof_model(cfg=cfg,
                               region=region)
 
-    # create and plot graph of energy system
-    graph = create_nx_graph(esys)
-    draw_graph(grph=graph, plot=True, layout='neato', node_size=100, font_size=8,
-               node_color=set_node_colors(graph))
-    #
+    # # create and plot graph of energy system
+    # graph = create_nx_graph(esys)
+    # # entire system
+    # draw_graph(grph=graph, plot=True, layout='neato',
+    #            node_size=100, font_size=10,
+    #            node_color=set_node_colors(graph))
+    # # single municipality only
+    # draw_graph(grph=graph, mun_ags=15001000, plot=True, layout='neato',
+    #            node_size=100, font_size=10,
+    #            node_color=set_node_colors(graph))
+
     # # plot grid (not oemof model)
     # graph = grid_graph(region=region,
     #                    draw=True)
