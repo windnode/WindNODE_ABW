@@ -94,7 +94,7 @@ def run_scenario(cfg):
     om = simulate(esys=esys,
                   scn_data=region.cfg['scn_data'],
                   solver=cfg['solver'],
-                  save_lp=True)
+                  save_lp=cfg['save_lp'])
 
     log_memory_usage()
     logger.info('Processing results...')
@@ -142,6 +142,7 @@ if __name__ == "__main__":
                                                 'results_dir')),
         'solver': 'gurobi',
         'verbose': True,
+        'save_lp': True,
         'dump_esys': False,
         'load_esys': False,
         'dump_results': True
