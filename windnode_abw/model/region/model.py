@@ -32,7 +32,7 @@ def simulate(esys, scn_data, solver='cbc', verbose=True, save_lp=False):
 
     # Add electricity import limit
     el_import_limit = scn_data['grid']['extgrid'][
-        'imex_lines']['params']['limit']
+        'imex_lines']['params']['energy_limit']
     if el_import_limit < 1:
         imported_electricity_limit(om, limit=el_import_limit)
 
@@ -337,14 +337,14 @@ def create_el_model(region=None, datetime_index=None):
                         nominal_value=s_nom *
                                       scn_data['grid']['extgrid'][
                                           'imex_lines']['params'][
-                                          'max_usable_capacity'],
+                                          'power_limit'],
                         **scn_data['grid']['extgrid']['imex_lines']['outflow']
                     ),
                     imex_bus: solph.Flow(
                         nominal_value=s_nom *
                                       scn_data['grid']['extgrid'][
                                           'imex_lines']['params'][
-                                          'max_usable_capacity'],
+                                          'power_limit'],
                         **scn_data['grid']['extgrid']['imex_lines']['outflow']
                     )
                 },
