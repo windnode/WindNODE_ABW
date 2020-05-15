@@ -44,6 +44,9 @@
     [[dem_el_general]]
         sectors = hh,rca,ind
 
+        # Savings (excl. decrease of population and employment,
+        # these factors will be calculated in the tool using demography data)
+
         # el. energy saving: households (0..1, 0=no change)
         saving_el_hh = 0
         # el. energy saving: retail, commercial, agriculture (0..1, 0=no change)
@@ -59,6 +62,9 @@
     [[dem_th_general]]
         # heat demand sectors
         sectors = hh_efh,hh_mfh,rca
+
+        # Savings (excl. decrease of population and employment,
+        # these factors will be calculated in the tool using demography data)
 
         # th. energy saving: single-family households (0..1, 0=no change)
         saving_th_hh_efh = 0

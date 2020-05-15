@@ -22,7 +22,7 @@ from windnode_abw.config.db_models import \
     WnAbwGridHvmvSubstation, WnAbwGridMvGriddistrict, WnAbwGridHvTransformer,\
     WnAbwMun, WnAbwMundata, WnAbwPowerplant, WnAbwRelSubstIdAgsId, WnAbwDsmTs,\
     WnAbwTempTs, WnAbwHeatingStructure, WnAbwTechAssumptions,\
-    WnAbwPotentialAreasPv, WnAbwPotentialAreasWec
+    WnAbwPotentialAreasPv, WnAbwPotentialAreasWec, WnAbwDemography
 
 
 def db_session(db_section):
@@ -214,7 +214,6 @@ def import_db_data(cfg):
             WnAbwMun.geom, srid)).label('geom'),
         WnAbwRelSubstIdAgsId.subst_id,
 
-        WnAbwMundata.pop_2017,
         WnAbwMundata.area,
         WnAbwMundata.gen_capacity_wind,
         WnAbwMundata.gen_capacity_pv_roof_small,
@@ -254,6 +253,21 @@ def import_db_data(cfg):
     # convert geom to shapely
     data['muns'] = convert_df_wkt_to_shapely(df=muns,
                                              cols=['geom'])
+
+    ###############################################
+    # import population and employment timeseries #
+    ###############################################
+    logger.info('Importing demography...')
+    demography_query = session.query(
+        WnAbwDemography.ags_id.label('ags'),
+        WnAbwDemography.year,
+        WnAbwDemography.population,
+        WnAbwDemography.employees
+    ).order_by(WnAbwDemography.year,
+               WnAbwDemography.ags_id)
+    data['demography'] = pd.read_sql_query(demography_query.statement,
+                                           session.bind,
+                                           index_col=['year', 'ags'])
 
     ############################
     # import demand timeseries #

@@ -86,6 +86,8 @@ class Region:
         self._muns.update(calc_available_pv_capacity(self))
         self._muns.update(calc_available_wec_capacity(self))
 
+        self._demography = kwargs.get('demography', None)
+
         self._demand_ts_init = kwargs.get('demand_ts_init', None)
         self._demand_ts = prepare_demand_timeseries(self)
         self._feedin_ts_init = kwargs.get('feedin_ts_init', None)
@@ -258,8 +260,8 @@ class Region:
 
     @property
     def heating_structure_dec_scn(self):
-        """Return decentral heating structure (relative shares) for current
-        scenario set in cfg WITHOUT district heating.
+        """Return decentral heating structure (relative shares) for year set
+        in cfg WITHOUT district heating.
 
         Unlike the heating structure in DB table
         :class:`WnAbwHeatingStructure <windnode.config.db_models.WnAbwHeatingStructure>`
@@ -290,8 +292,8 @@ class Region:
 
     @property
     def dist_heating_share_scn(self):
-        """Return district heating share per municipality for current scenario
-        set in cfg"""
+        """Return district heating share per municipality for year set in
+        cfg"""
         return self._dist_heating_share.xs(
             self._cfg['scn_data']['general']['year'],
             level='year'
@@ -303,7 +305,7 @@ class Region:
 
     @property
     def tech_assumptions_scn(self):
-        """Return technical assumptions for current scenario set in cfg"""
+        """Return technical assumptions for year set in cfg"""
         return self._tech_assumptions.xs(
             self._cfg['scn_data']['general']['year'],
             level='year'
@@ -353,6 +355,28 @@ class Region:
         return self._pot_areas_wec[
             self._pot_areas_wec.index.get_level_values(level=1) ==
                 scn.lower()]['area_ha']
+
+    @property
+    def demography(self):
+        """Return population and employees"""
+        return self._demography
+
+    @property
+    def demography_scn(self):
+        """Return population and employees for year set in cfg"""
+        return self._demography.xs(
+            self._cfg['scn_data']['general']['year'],
+            level='year'
+    )
+
+    @property
+    def demography_change(self):
+        """Return relative change of population and employees for year set in
+        cfg since 2017"""
+        return self._demography.xs(
+            self._cfg['scn_data']['general']['year'],
+            level='year') / self._demography.xs(2017,
+                                                level='year')
 
     @classmethod
     def import_data(cls, cfg=None):

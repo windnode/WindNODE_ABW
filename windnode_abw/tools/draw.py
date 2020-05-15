@@ -18,7 +18,8 @@ import logging
 logger = logging.getLogger('windnode_abw')
 
 
-def draw_graph(grph, edge_labels=True, node_color='#AFAFAF',
+def draw_graph(grph, mun_ags=None,
+               edge_labels=True, node_color='#AFAFAF',
                edge_color='#CFCFCF', plot=True, node_size=2000,
                with_labels=True, arrows=True, layout='neato',
                node_pos = None, font_size=10):
@@ -29,6 +30,9 @@ def draw_graph(grph, edge_labels=True, node_color='#AFAFAF',
     ----------
     grph : networkxGraph
         A graph to draw.
+    mun_ags : int
+        Municipality's AGS. If provided, the graph will contain only nodes from
+        this municipality.
     edge_labels : boolean
         Use nominal values of flow as edge label
     node_color : dict or string
@@ -67,16 +71,35 @@ def draw_graph(grph, edge_labels=True, node_color='#AFAFAF',
         'font_size': font_size
     }
 
-    # draw graph
-    if node_pos is None:
-        pos = nx.drawing.nx_agraph.graphviz_layout(grph, prog=layout)
+    if mun_ags is not None:
+        nodes = [n for n in grph.nodes if str(mun_ags) in n]
+        nodes_neighbors = [list(nx.all_neighbors(grph, n))
+                           for n in nodes]
+        nodes = set(nodes + list(set([n for nlist in nodes_neighbors
+                                      for n in nlist])))
+        grph = grph.subgraph(nodes)
+        grph = nx.relabel_nodes(grph,
+                                lambda x: x.replace('_' + str(mun_ags), ''))
+        options['node_color'] = [set_node_colors(grph).get(n, '#AFAFAF')
+                                 for n in grph.nodes()]
+        options['node_size'] = 200
+        options['arrowsize'] = 15
+        options['with_labels'] = False
+        options['font_size'] = 10
+        pos = nx.drawing.nx_agraph.graphviz_layout(grph,
+                                                   prog='neato',
+                                                   args='-Gepsilon=0.0001')
+        nx.draw(grph, pos=pos, **options)
+        pos = {k: (v[0], v[1] + 10) for k, v in pos.items()}
+        nx.draw_networkx_labels(grph, pos=pos, **options)
+
     else:
-        pos = node_pos
+        if node_pos is None:
+            pos = nx.drawing.nx_agraph.graphviz_layout(grph, prog=layout)
+        else:
+            pos = node_pos
 
-    nx.draw(grph, pos=pos, **options)
-
-    # add edge labels for all edges
-    if edge_labels is True and plt:
+        nx.draw(grph, pos=pos, **options)
         labels = nx.get_edge_attributes(grph, 'weight')
         nx.draw_networkx_edge_labels(grph, pos=pos, edge_labels=labels)
 
