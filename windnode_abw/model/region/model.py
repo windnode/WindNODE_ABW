@@ -1262,14 +1262,26 @@ def imported_electricity_limit(om, limit):
     limit : float
         Electricity imports limit from external grid (0..1)
     """
-    el_demand_labels = ("dem_el", "flex_dsm", "flex_dec_pth", "trans_dummy_th_dec_pth, flex_cen_pth")
+    el_demand_labels = ("dem_el", "flex_dsm", "flex_dec_pth", "flex_cen_pth")
 
-    import_flows = [(i, o) for (i, o) in om.FLOWS if i.label.startswith("shortage_el")]
-    el_demand_flows = [(i, o) for (i, o) in om.FLOWS if o.label.startswith(el_demand_labels)]
-    battery_storage_charge_flows = [(i, o) for (i, o) in om.FLOWS if o.label.startswith("flex_bat")]
-    battery_storage_discharge_flows = [(i, o) for (i, o) in om.FLOWS if i.label.startswith("flex_bat")]
-    grid_flows_to_grid = [(i, o) for (i, o) in om.FLOWS if isinstance(o, solph.custom.Link)]
-    grid_flows_to_bus = [(i, o) for (i, o) in om.FLOWS if isinstance(i, solph.custom.Link)]
+    import_flows = [(i, o)
+                    for (i, o) in om.FLOWS
+                    if i.label.startswith("shortage_el")]
+    el_demand_flows = [(i, o)
+                       for (i, o) in om.FLOWS
+                       if o.label.startswith(el_demand_labels)]
+    battery_storage_charge_flows = [(i, o)
+                                    for (i, o) in om.FLOWS
+                                    if o.label.startswith("flex_bat")]
+    battery_storage_discharge_flows = [(i, o)
+                                       for (i, o) in om.FLOWS
+                                       if i.label.startswith("flex_bat")]
+    grid_flows_to_grid = [(i, o)
+                          for (i, o) in om.FLOWS
+                          if isinstance(o, solph.custom.Link)]
+    grid_flows_to_bus = [(i, o)
+                         for (i, o) in om.FLOWS
+                         if isinstance(i, solph.custom.Link)]
 
     def _import_limit_rule(om):
         lhs = sum(om.flow[i, o, t]
