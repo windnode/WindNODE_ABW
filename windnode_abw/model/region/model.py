@@ -11,43 +11,26 @@ from windnode_abw.model.region.tools import calc_heat_pump_cops, \
     calc_dsm_cap_down, calc_dsm_cap_up, create_maintenance_timeseries
 
 
-def simulate(esys, scn_data, solver='cbc', verbose=True, save_lp=False):
+def simulate(om, solver='cbc', verbose=True):
     """Optimize energy system
 
     Parameters
     ----------
-    esys : oemof.solph.EnergySystem
-    solver : `obj`:str
+    om : oemof.solph.OperationalModel
+    solver : :obj:`str`
         Solver which is used
+    verbose : :obj:`bool`
+        If set, be verbose
 
     Returns
     -------
     oemof.solph.OperationalModel
     """
 
-    # Create problem
-    log_memory_usage()
-    logger.info('Create optimization problem...')
-    om = solph.Model(esys)
-
-    # Add electricity import limit
-    el_import_limit = scn_data['grid']['extgrid'][
-        'imex_lines']['params']['energy_limit']
-    if el_import_limit < 1:
-        imported_electricity_limit(om, limit=el_import_limit)
-
-    # Save .lp file
-    if save_lp:
-        from windnode_abw.tools import config
-        om.write(os.path.join(config.get_data_root_dir(),
-                              config.get('user_dirs',
-                                         'log_dir'),
-                              "windnode_abw.lp"),
-                 io_options={'symbolic_solver_labels': True})
-
     # solve it
     log_memory_usage()
     logger.info('Solve optimization problem...')
+
     om.solve(solver=solver,
              solve_kwargs={'tee': verbose,
                            'keepfiles': True})
@@ -55,22 +38,26 @@ def simulate(esys, scn_data, solver='cbc', verbose=True, save_lp=False):
     return om
 
 
-def create_oemof_model(cfg, region):
+def create_oemof_model(region, cfg, save_lp=False):
     """Create oemof model using config and data files. An oemof energy system
     is created, nodes are added and parametrized.
 
     Parameters
     ----------
-    cfg : :obj:`dict`
-        Config to be used to create model
     region : :class:`~.model.Region`
         Region object
+    cfg : :obj:`dict`
+        Config to be used to create model
+    save_lp : :obj:`bool`
+        Triggers dump of lp file
 
     Returns
     -------
     oemof.solph.EnergySystem
+    oemof.solph.OperationalModel
     """
     logger.info('Create energy system...')
+
     # create time index
     datetime_index = pd.date_range(start=cfg['date_from'],
                                    end=cfg['date_to'],
@@ -108,7 +95,28 @@ def create_oemof_model(cfg, region):
     #     oobj = str(type(n)).replace("<class 'oemof.solph.", "").replace("'>", "")
     #     print(oobj + ':', n.label)
 
-    return esys
+    # Create problem
+    log_memory_usage()
+    logger.info('Create optimization problem...')
+
+    om = solph.Model(esys)
+
+    # Add electricity import limit
+    el_import_limit = region.cfg['scn_data']['grid']['extgrid'][
+        'imex_lines']['params']['energy_limit']
+    if el_import_limit < 1:
+        imported_electricity_limit(om, limit=el_import_limit)
+
+    # Save .lp file
+    if save_lp:
+        from windnode_abw.tools import config
+        om.write(os.path.join(config.get_data_root_dir(),
+                              config.get('user_dirs',
+                                         'log_dir'),
+                              "windnode_abw.lp"),
+                 io_options={'symbolic_solver_labels': True})
+
+    return esys, om
 
 
 def create_el_model(region=None, datetime_index=None):
