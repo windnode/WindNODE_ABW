@@ -201,18 +201,15 @@ def debug_plot_results(esys, region):
     grid_flows_to_bus = sum([v['sequences'].sum().sum()
                            for k, v in results.items()
                            if isinstance(k[0], Link)])
-    print('EL DEMAND: ',
-          el_demand_flows +
-          battery_storage_charge_flows -
-          battery_storage_discharge_flows +
-          grid_flows_to_grid -
-          grid_flows_to_bus)
-    # print('EL DEMAND FIXED ONLY: ', sum([v.iloc[0:24].sum().sum()
-    #                           for k, v in region.demand_ts.items()
-    #                           if k.startswith('el_')]))
-    print('EL IMPORT: ', sum([v['sequences'].sum().sum()
-                              for k, v in results.items()
-                              if str(k[0]).startswith('shortage_el')]))
+    demand = el_demand_flows +\
+             battery_storage_charge_flows - battery_storage_discharge_flows +\
+             grid_flows_to_grid - grid_flows_to_bus
+    print('EL DEMAND: ', demand)
+    imported = sum([v['sequences'].sum().sum()
+                    for k, v in results.items()
+                    if str(k[0]).startswith('shortage_el')])
+    print('EL IMPORT: ', imported)
+    print('SHARE: ', imported / demand * 100, ' %')
     print('=====================================================')
 
 
