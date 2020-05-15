@@ -251,7 +251,7 @@
                 # energy_limit: 0..1, set to 1 to deactivate
                 # limiting electricity imports from external grid
                 # (annual amount rel. to el. demand)
-                energy_limit = .25
+                energy_limit = .01
             [[[[outflow]]]]
                 variable_costs = 0.0001
 
