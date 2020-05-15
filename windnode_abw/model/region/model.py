@@ -1276,20 +1276,21 @@ def imported_electricity_limit(om, limit):
                   for (i, o) in import_flows
                   for t in om.TIMESTEPS)
         rhs = limit * (sum(om.flow[i, o, t]
-                   for (i, o) in el_demand_flows
-                   for t in om.TIMESTEPS) +
-               sum(om.flow[i, o, t]
-                   for (i, o) in battery_storage_charge_flows
-                   for t in om.TIMESTEPS) -
-               sum(om.flow[i, o, t]
-                   for (i, o) in battery_storage_discharge_flows
-                   for t in om.TIMESTEPS) +
-               sum(om.flow[i, o, t]
-                   for (i, o) in grid_flows_to_grid
-                   for t in om.TIMESTEPS) -
-               sum(om.flow[i, o, t]
-                   for (i, o) in grid_flows_to_bus
-                   for t in om.TIMESTEPS))
+                           for (i, o) in el_demand_flows
+                           for t in om.TIMESTEPS) +
+                       sum(om.flow[i, o, t]
+                           for (i, o) in battery_storage_charge_flows
+                           for t in om.TIMESTEPS) -
+                       sum(om.flow[i, o, t]
+                           for (i, o) in battery_storage_discharge_flows
+                           for t in om.TIMESTEPS) +
+                       sum(om.flow[i, o, t]
+                           for (i, o) in grid_flows_to_grid
+                           for t in om.TIMESTEPS) -
+                       sum(om.flow[i, o, t]
+                           for (i, o) in grid_flows_to_bus
+                           for t in om.TIMESTEPS)
+                       )
 
         return lhs <= rhs
 
