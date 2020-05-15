@@ -94,6 +94,7 @@ def run_scenario(cfg):
     om = simulate(esys=esys,
                   scn_data=region.cfg['scn_data'],
                   solver=cfg['solver'],
+                  verbose=cfg['verbose'],
                   save_lp=cfg['save_lp'])
 
     log_memory_usage()
