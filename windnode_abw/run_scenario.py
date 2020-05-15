@@ -73,8 +73,9 @@ def run_scenario(cfg):
     # x.plot()
 
     log_memory_usage()
-    esys = create_oemof_model(cfg=cfg,
-                              region=region)
+    esys, om = create_oemof_model(region=region,
+                                  cfg=cfg,
+                                  save_lp=cfg['save_lp'])
 
     # # create and plot graph of energy system
     # graph = create_nx_graph(esys)
@@ -91,11 +92,9 @@ def run_scenario(cfg):
     # graph = grid_graph(region=region,
     #                    draw=True)
 
-    om = simulate(esys=esys,
-                  scn_data=region.cfg['scn_data'],
+    om = simulate(om=om,
                   solver=cfg['solver'],
-                  verbose=cfg['verbose'],
-                  save_lp=cfg['save_lp'])
+                  verbose=cfg['verbose'])
 
     log_memory_usage()
     logger.info('Processing results...')
