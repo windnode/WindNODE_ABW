@@ -183,6 +183,39 @@ def debug_plot_results(esys, region):
     results = esys.results['main']
     #om_flows = esys.results['om_flows']
 
+    print('=====================================================')
+    from oemof.solph.custom import Link
+    el_demand_labels = ("dem_el", "flex_dsm", "flex_dec_pth", "flex_cen_pth")
+    el_demand_flows = sum([v['sequences'].sum().sum()
+                           for k, v in results.items()
+                           if str(k[1]).startswith(el_demand_labels)])
+    battery_storage_charge_flows = sum([v['sequences'].sum().sum()
+                           for k, v in results.items()
+                           if str(k[1]).startswith('flex_bat')])
+    battery_storage_discharge_flows = sum([v['sequences'].sum().sum()
+                           for k, v in results.items()
+                           if str(k[0]).startswith('flex_bat')])
+    grid_flows_to_grid = sum([v['sequences'].sum().sum()
+                           for k, v in results.items()
+                           if isinstance(k[1], Link)])
+    grid_flows_to_bus = sum([v['sequences'].sum().sum()
+                           for k, v in results.items()
+                           if isinstance(k[0], Link)])
+    print('EL DEMAND: ',
+          el_demand_flows +
+          battery_storage_charge_flows -
+          battery_storage_discharge_flows +
+          grid_flows_to_grid -
+          grid_flows_to_bus)
+    # print('EL DEMAND FIXED ONLY: ', sum([v.iloc[0:24].sum().sum()
+    #                           for k, v in region.demand_ts.items()
+    #                           if k.startswith('el_')]))
+    print('EL IMPORT: ', sum([v['sequences'].sum().sum()
+                              for k, v in results.items()
+                              if str(k[0]).startswith('shortage_el')]))
+    print('=====================================================')
+
+
     imex_bus_results = views.node(results, 'b_th_dec_15001000_hh_efh')
     imex_bus_results_flows = imex_bus_results['sequences']
 
