@@ -244,9 +244,14 @@
             [[[[params]]]]
                 # conversion_factor: efficiency
                 conversion_factor = 0.988
-                # max_usable_capacity: usable cap. of external grid
+                # power_limit: 0..1
+                # usable cap. of external grid
                 # (rel. to nominal power)
-                max_usable_capacity = 0.1
+                power_limit = 1
+                # energy_limit: 0..1, set to 1 to deactivate
+                # limiting electricity imports from external grid
+                # (annual amount rel. to el. demand)
+                energy_limit = .25
             [[[[outflow]]]]
                 variable_costs = 0.0001
 

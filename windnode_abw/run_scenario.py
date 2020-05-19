@@ -73,8 +73,9 @@ def run_scenario(cfg):
     # x.plot()
 
     log_memory_usage()
-    esys = create_oemof_model(cfg=cfg,
-                              region=region)
+    esys, om = create_oemof_model(region=region,
+                                  cfg=cfg,
+                                  save_lp=cfg['save_lp'])
 
     # # create and plot graph of energy system
     # graph = create_nx_graph(esys)
@@ -91,8 +92,9 @@ def run_scenario(cfg):
     # graph = grid_graph(region=region,
     #                    draw=True)
 
-    om = simulate(esys=esys,
-                  solver=cfg['solver'])
+    om = simulate(om=om,
+                  solver=cfg['solver'],
+                  verbose=cfg['verbose'])
 
     log_memory_usage()
     logger.info('Processing results...')
@@ -140,6 +142,7 @@ if __name__ == "__main__":
                                                 'results_dir')),
         'solver': 'gurobi',
         'verbose': True,
+        'save_lp': True,
         'dump_esys': False,
         'load_esys': False,
         'dump_results': True

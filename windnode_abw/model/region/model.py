@@ -1,35 +1,36 @@
 import pandas as pd
 import oemof.solph as solph
+import os
+from pyomo.environ import Constraint
 from windnode_abw.tools.logger import log_memory_usage
 import logging
+
 logger = logging.getLogger('windnode_abw')
 
-from windnode_abw.model.region.tools import calc_heat_pump_cops,\
+from windnode_abw.model.region.tools import calc_heat_pump_cops, \
     calc_dsm_cap_down, calc_dsm_cap_up, create_maintenance_timeseries
 
 
-def simulate(esys, solver='cbc', verbose=True):
+def simulate(om, solver='cbc', verbose=True):
     """Optimize energy system
 
     Parameters
     ----------
-    esys : oemof.solph.EnergySystem
-    solver : `obj`:str
+    om : oemof.solph.OperationalModel
+    solver : :obj:`str`
         Solver which is used
+    verbose : :obj:`bool`
+        If set, be verbose
 
     Returns
     -------
     oemof.solph.OperationalModel
     """
 
-    # Create problem
-    log_memory_usage()
-    logger.info('Create optimization problem...')
-    om = solph.Model(esys)
-
     # solve it
     log_memory_usage()
     logger.info('Solve optimization problem...')
+
     om.solve(solver=solver,
              solve_kwargs={'tee': verbose,
                            'keepfiles': True})
@@ -37,22 +38,26 @@ def simulate(esys, solver='cbc', verbose=True):
     return om
 
 
-def create_oemof_model(cfg, region):
+def create_oemof_model(region, cfg, save_lp=False):
     """Create oemof model using config and data files. An oemof energy system
     is created, nodes are added and parametrized.
 
     Parameters
     ----------
-    cfg : :obj:`dict`
-        Config to be used to create model
     region : :class:`~.model.Region`
         Region object
+    cfg : :obj:`dict`
+        Config to be used to create model
+    save_lp : :obj:`bool`
+        Triggers dump of lp file
 
     Returns
     -------
     oemof.solph.EnergySystem
+    oemof.solph.OperationalModel
     """
     logger.info('Create energy system...')
+
     # create time index
     datetime_index = pd.date_range(start=cfg['date_from'],
                                    end=cfg['date_to'],
@@ -90,7 +95,28 @@ def create_oemof_model(cfg, region):
     #     oobj = str(type(n)).replace("<class 'oemof.solph.", "").replace("'>", "")
     #     print(oobj + ':', n.label)
 
-    return esys
+    # Create problem
+    log_memory_usage()
+    logger.info('Create optimization problem...')
+
+    om = solph.Model(esys)
+
+    # Add electricity import limit
+    el_import_limit = region.cfg['scn_data']['grid']['extgrid'][
+        'imex_lines']['params']['energy_limit']
+    if el_import_limit < 1:
+        imported_electricity_limit(om, limit=el_import_limit)
+
+    # Save .lp file
+    if save_lp:
+        from windnode_abw.tools import config
+        om.write(os.path.join(config.get_data_root_dir(),
+                              config.get('user_dirs',
+                                         'log_dir'),
+                              "windnode_abw.lp"),
+                 io_options={'symbolic_solver_labels': True})
+
+    return esys, om
 
 
 def create_el_model(region=None, datetime_index=None):
@@ -319,14 +345,14 @@ def create_el_model(region=None, datetime_index=None):
                         nominal_value=s_nom *
                                       scn_data['grid']['extgrid'][
                                           'imex_lines']['params'][
-                                          'max_usable_capacity'],
+                                          'power_limit'],
                         **scn_data['grid']['extgrid']['imex_lines']['outflow']
                     ),
                     imex_bus: solph.Flow(
                         nominal_value=s_nom *
                                       scn_data['grid']['extgrid'][
                                           'imex_lines']['params'][
-                                          'max_usable_capacity'],
+                                          'power_limit'],
                         **scn_data['grid']['extgrid']['imex_lines']['outflow']
                     )
                 },
@@ -1218,3 +1244,76 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                 )
 
     return nodes
+
+
+def imported_electricity_limit(om, limit):
+    """
+    Limit the annual imported electricity from national system
+
+    Adds a constraint to the optimization problem that limits imported electricity
+    from the national system to a certain share of total consumed electricity.
+
+    .. math::
+
+        \sum_{tr \in Trafos_{HV/EHV} } \sum_t P_{tr} \left( t \right)
+        \leq limit
+        \cdot \sum_t \left( \sum_{d \in demand_{el}} P_d(t)
+        + \sum_{s \in storages_{el}} P_{loss,s}(t)
+        + \sum_{l \in lines} P_{loss,l}(t)
+        + \sum_{hp \in heat\_pump_{el}} P_{el,hp}(t) \right)
+
+    Parameters
+    ----------
+
+    om : :class:`OperationalModel <oemof.solph.Model>`
+        Instance of oemof.solph operational model
+    limit : float
+        Electricity imports limit from external grid (0..1)
+    """
+    el_demand_labels = ("dem_el", "flex_dsm", "flex_dec_pth", "flex_cen_pth")
+
+    import_flows = [(i, o)
+                    for (i, o) in om.FLOWS
+                    if i.label.startswith("shortage_el")]
+    el_demand_flows = [(i, o)
+                       for (i, o) in om.FLOWS
+                       if o.label.startswith(el_demand_labels)]
+    battery_storage_charge_flows = [(i, o)
+                                    for (i, o) in om.FLOWS
+                                    if o.label.startswith("flex_bat")]
+    battery_storage_discharge_flows = [(i, o)
+                                       for (i, o) in om.FLOWS
+                                       if i.label.startswith("flex_bat")]
+    grid_flows_to_grid = [(i, o)
+                          for (i, o) in om.FLOWS
+                          if isinstance(o, solph.custom.Link)]
+    grid_flows_to_bus = [(i, o)
+                         for (i, o) in om.FLOWS
+                         if isinstance(i, solph.custom.Link)]
+
+    def _import_limit_rule(om):
+        lhs = sum(om.flow[i, o, t]
+                  for (i, o) in import_flows
+                  for t in om.TIMESTEPS)
+        rhs = limit * (sum(om.flow[i, o, t]
+                           for (i, o) in el_demand_flows
+                           for t in om.TIMESTEPS) +
+                       sum(om.flow[i, o, t]
+                           for (i, o) in battery_storage_charge_flows
+                           for t in om.TIMESTEPS) -
+                       sum(om.flow[i, o, t]
+                           for (i, o) in battery_storage_discharge_flows
+                           for t in om.TIMESTEPS) +
+                       sum(om.flow[i, o, t]
+                           for (i, o) in grid_flows_to_grid
+                           for t in om.TIMESTEPS) -
+                       sum(om.flow[i, o, t]
+                           for (i, o) in grid_flows_to_bus
+                           for t in om.TIMESTEPS)
+                       )
+
+        return lhs <= rhs
+
+    el_import_lim = Constraint(rule=_import_limit_rule)
+
+    setattr(om, "el_import_constraint", el_import_lim)
