@@ -281,6 +281,7 @@
     [[flex_dec_pth]]
         [[[enabled]]]
             # CAUTION: thermal demand cannot be covered if pth is disabled
+            # share is defined in DB table
             enabled = 1
         [[[technology]]]
             # share of air-source heat pumps
