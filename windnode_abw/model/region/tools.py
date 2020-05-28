@@ -763,7 +763,7 @@ def calc_available_pv_capacity(region):
     """Calculate available capacity for ground-mounted PV systems
 
     Uses land use and land availability from config and PV potential areas.
-    Return None if areas are None (applies for empty PV scenario).
+    Return None if areas are None (applies for scenario 'SQ').
 
     Parameters
     ----------
@@ -801,7 +801,7 @@ def calc_available_wec_capacity(region):
     """Calculate available capacity for wind turbines
 
     Uses land use and land availability from config and WEC potential areas.
-    Return None if areas are None (applies for empty WEC scenario).
+    Return None if areas are None (applies for scenario 'SQ').
 
     Parameters
     ----------
