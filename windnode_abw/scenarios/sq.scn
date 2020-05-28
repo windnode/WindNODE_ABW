@@ -86,7 +86,7 @@
         #       restrictions apply
         #   H:  Use available areas excluding those where hard
         #       restrictions apply
-        pv_scenario = SQ
+        pv_land_use_scenario = SQ
 
         # max. usable area in ha for PV installations on agricultural areas
         # (1 % of the total area of fields and meadows in ABW)
@@ -108,7 +108,7 @@
         #             settlements, do not use forests
         #   s500f1:   Use available areas resulting from 500 m distance from
         #             settlements, do use forests
-        wec_scenario = SQ
+        wec_land_use_scenario = SQ
 
         # usable area (0..1) for WEC installations
         wec_usable_area = 0.1

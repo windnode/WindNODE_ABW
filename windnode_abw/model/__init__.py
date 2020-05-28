@@ -331,10 +331,10 @@ class Region:
         Return None for empty PV scenario.
         """
         if self._cfg['scn_data']['generation']['re_potentials'][
-                'pv_scenario'] == 'SQ':
+                'pv_land_use_scenario'] == 'SQ':
             return None
         scn = self._cfg['scn_data']['generation'][
-            're_potentials']['pv_scenario']
+            're_potentials']['pv_land_use_scenario']
         return self._pot_areas_pv[
             self._pot_areas_pv.index.get_level_values(level=1).str.endswith(
                 f'_{scn.lower()}')]['area_ha']
@@ -350,10 +350,10 @@ class Region:
         Return None for status quo or empty WEC scenario.
         """
         if self._cfg['scn_data']['generation']['re_potentials'][
-                'wec_scenario'] == 'SQ':
+                'wec_land_use_scenario'] == 'SQ':
             return None
         scn = self._cfg['scn_data']['generation'][
-            're_potentials']['wec_scenario']
+            're_potentials']['wec_land_use_scenario']
         return self._pot_areas_wec[
             self._pot_areas_wec.index.get_level_values(level=1) ==
                 scn.lower()]['area_ha']
