@@ -792,7 +792,7 @@ def calc_available_pv_capacity(region):
             areas.update(areas_agri)
 
     return pd.DataFrame({'gen_count_pv_ground': 0,
-                         'gen_capacity_pv_ground':areas.groupby(
+                         'gen_capacity_pv_ground': areas.groupby(
                              'ags_id').agg('sum') / cfg['pv_land_use']}
                         )
 
