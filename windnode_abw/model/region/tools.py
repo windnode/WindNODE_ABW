@@ -777,7 +777,6 @@ def calc_available_pv_capacity(region):
     """
     cfg = region.cfg['scn_data']['generation']['re_potentials']
 
-
     if region.pot_areas_pv_scn is None:
         return None
 
