@@ -331,7 +331,7 @@ class Region:
         Return None for empty PV scenario.
         """
         if self._cfg['scn_data']['generation']['re_potentials'][
-                'pv_scenario'] == '':
+                'pv_scenario'] == 'SQ':
             return None
         scn = self._cfg['scn_data']['generation'][
             're_potentials']['pv_scenario']
@@ -350,7 +350,7 @@ class Region:
         Return None for status quo or empty WEC scenario.
         """
         if self._cfg['scn_data']['generation']['re_potentials'][
-                'wec_scenario'] == '':
+                'wec_scenario'] == 'SQ':
             return None
         scn = self._cfg['scn_data']['generation'][
             're_potentials']['wec_scenario']

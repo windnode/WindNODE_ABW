@@ -81,7 +81,7 @@
         #####################
         # potential area scenario to be used to build ground mounted pv
         # possible values:
-        #   (leave empty for status quo (existing PV systems only)
+        #   SQ: Status quo (existing PV systems only)
         #   HS: Use available areas excluding those where hard and light
         #       restrictions apply
         #   H:  Use available areas excluding those where hard
@@ -101,7 +101,7 @@
         #################
         # potential area scenario to be used to build wec
         # possible values:
-        #   (leave empty for status quo (existing WEC only)
+        #   SQ: Status quo (existing WEC only)
         #   s1000f1:  Use available areas resulting from 1000 m distance from
         #             settlements, do use forests
         #   s500f0:   Use available areas resulting from 500 m distance from
