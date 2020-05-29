@@ -79,13 +79,26 @@
         #####################
         # GROUND-MOUNTED PV #
         #####################
-        # potential area scenario to be used to build ground mounted pv
+        # installed ground-mounted PV power
         # possible values:
-        #   SQ: Status quo (existing PV systems only)
+        #   SQ:       Status quo (existing PV systems from DB only)
+        #   MAX_AREA: Use avail. areas from param 'pv_land_use_scenario'
+        #   <VALUE>:  Nom. power in MW (if set, param 'pv_land_use_scenario'
+        #             is used to distribute this power to municipalities.
+        #
+        pv_installed_power = MAX_AREA
+
+        # potential area scenario to be used to build ground mounted PV
+        # possible values:
+        #   SQ: Status quo (existing PV systems from DB only)
         #   HS: Use available areas excluding those where hard and light
         #       restrictions apply
         #   H:  Use available areas excluding those where hard
         #       restrictions apply
+        # Note: If 'pv_installed_power' is numeric, it is distributed to
+        # the municipalities proportionally to the potential areas.
+        # See function 'calc_available_pv_capacity()' for a list of
+        # possible combinations.
         pv_land_use_scenario = H
 
         # max. usable area in ha for PV installations on agricultural areas
@@ -99,16 +112,29 @@
         #################
         # WIND TURBINES #
         #################
-        # potential area scenario to be used to build wec
+        # installed WEC power
         # possible values:
-        #   SQ: Status quo (existing WEC only)
+        #   SQ:       Status quo (existing WEC from DB only)
+        #   MAX_AREA: Use avail. areas from param 'wec_land_use_scenario'
+        #   <VALUE>:  Nom. power in MW (if set, param 'wec_land_use_scenario'
+        #             is used to distribute this power to municipalities.
+        #
+        wec_installed_power = MAX_AREA
+
+        # potential area scenario to be used to build WEC
+        # possible values:
+        #   SQ: Status quo (existing WEC from DB only)
         #   s1000f1:  Use available areas resulting from 1000 m distance from
         #             settlements, do use forests
         #   s500f0:   Use available areas resulting from 500 m distance from
         #             settlements, do not use forests
         #   s500f1:   Use available areas resulting from 500 m distance from
         #             settlements, do use forests
-        wec_land_use_scenario = s1000f1
+        # Note: If 'wec_installed_power' is numeric, it is distributed to
+        # the municipalities proportionally to the potential areas.
+        # See function 'calc_available_wec_capacity()' for a list of
+        # possible combinations.
+        wec_land_use_scenario = s500f1
 
         # usable area (0..1) for WEC installations
         wec_usable_area = 0.1
