@@ -814,8 +814,11 @@ def calc_available_pv_capacity(region):
             areas.update(areas_agri)
 
     areas_agg = areas.groupby('ags_id').agg('sum')
+
+    # use all available areas from DB
     if cfg['pv_installed_power'] == 'MAX_AREA':
         gen_capacity_pv_ground = areas_agg / cfg['pv_land_use']
+    # use given power, distribute to muns using available areas from DB
     else:
         gen_capacity_pv_ground = areas_agg / sum(areas_agg) * \
                                  cfg['pv_installed_power']
@@ -857,8 +860,10 @@ def calc_available_pv_roof_capacity(region):
                      region.pot_areas_pv_roof['area_ind_ha'] *
                      cfg['pv_roof_ind_usable_area'])
 
+    # use all available areas from DB
     if cfg['pv_roof_installed_power'] == 'MAX_AREA':
         gen_capacity_pv_roof_large = areas_agg / cfg['pv_roof_land_use']
+    # use given power, distribute to muns using available areas from DB
     else:
         gen_capacity_pv_roof_large = areas_agg / areas_agg.sum() * \
                                      cfg['pv_roof_installed_power']
@@ -921,11 +926,14 @@ def calc_available_wec_capacity(region):
         return None
 
     areas_agg = region.pot_areas_wec_scn.groupby('ags_id').agg('sum')
+
+    # use all available areas from DB
     if cfg['wec_installed_power'] == 'MAX_AREA':
         gen_count_wind = (areas_agg *
                           cfg['wec_usable_area'] /
                           cfg['wec_land_use']).round().astype(int)
         gen_capacity_wind = gen_count_wind * cfg['wec_nom_power']
+    # use given power, distribute to muns using available areas from DB
     else:
         gen_count_wind = (areas_agg / sum(areas_agg) *
                           (cfg['wec_installed_power'] / cfg['wec_nom_power'])
