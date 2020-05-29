@@ -825,6 +825,52 @@ def calc_available_pv_capacity(region):
                         )
 
 
+def calc_available_pv_roof_capacity(region):
+    """Calculate available capacity for roof-mounted PV systems
+    (on residential and industrial roofs)
+
+    Uses land use and usable areas from config and PV roof potential
+    areas. Return None if areas are None (applies for scenario 'SQ').
+
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+
+    Returns
+    -------
+    :pandas:`pandas.DataFrame` or None
+        Installable PV count (zero) and power, muns as index
+
+    Notes
+    -----
+    As there's no information about the ratio of small and large systems,
+    the entire power is assigned to large systems.
+    """
+    cfg = region.cfg['scn_data']['generation']['re_potentials']
+
+    if cfg['pv_roof_installed_power'] == 'SQ':
+        return None
+    else:
+        areas_agg = (region.pot_areas_pv_roof['area_resid_ha'] *
+                     cfg['pv_roof_resid_usable_area'] +
+                     region.pot_areas_pv_roof['area_ind_ha'] *
+                     cfg['pv_roof_ind_usable_area'])
+
+    if cfg['pv_roof_installed_power'] == 'MAX_AREA':
+        gen_capacity_pv_roof_large = areas_agg / cfg['pv_roof_land_use']
+    else:
+        gen_capacity_pv_roof_large = areas_agg / areas_agg.sum() * \
+                                     cfg['pv_roof_installed_power']
+
+    return pd.DataFrame({'gen_count_pv_roof_small': 0,
+                         'gen_capacity_pv_roof_small': 0,
+                         'gen_count_pv_roof_large': 0,
+                         'gen_capacity_pv_roof_large':
+                             gen_capacity_pv_roof_large}
+                        )
+
+
 def calc_available_wec_capacity(region):
     """Calculate available capacity for wind turbines
 

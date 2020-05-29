@@ -12,7 +12,7 @@ from windnode_abw.model.region.tools import \
     prepare_temp_timeseries, preprocess_heating_structure, \
     calc_annuity, distribute_large_battery_capacity, \
     distribute_small_battery_capacity, calc_available_pv_capacity, \
-    calc_available_wec_capacity
+    calc_available_pv_roof_capacity, calc_available_wec_capacity
 
 
 class Region:
@@ -85,6 +85,7 @@ class Region:
 
         # update mun data table using RE potential areas
         self._muns.update(calc_available_pv_capacity(self))
+        self._muns.update(calc_available_pv_roof_capacity(self))
         self._muns.update(calc_available_wec_capacity(self))
 
         self._demography = kwargs.get('demography', None)
