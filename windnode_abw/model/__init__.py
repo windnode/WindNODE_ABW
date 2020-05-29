@@ -80,6 +80,7 @@ class Region:
         self._results_lines = kwargs.get('_results_lines', None)
 
         self._pot_areas_pv = kwargs.get('pot_areas_pv', None)
+        self._pot_areas_pv_roof = kwargs.get('pot_areas_pv_roof', None)
         self._pot_areas_wec = kwargs.get('pot_areas_wec', None)
 
         # update mun data table using RE potential areas
@@ -323,6 +324,10 @@ class Region:
     @property
     def pot_areas_pv(self):
         return self._pot_areas_pv
+
+    @property
+    def pot_areas_pv_roof(self):
+        return self._pot_areas_pv_roof
 
     @property
     def pot_areas_pv_scn(self):
