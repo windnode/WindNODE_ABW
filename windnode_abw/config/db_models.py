@@ -429,6 +429,16 @@ class WnAbwPotentialAreasPv(Base):
     ags = relationship('WnAbwMun')
 
 
+class WnAbwPotentialAreasPvRoof(Base):
+    __tablename__ = 'wn_abw_potential_areas_pv_roof'
+    __table_args__ = {'schema': 'windnode'}
+
+    ags_id = Column(Integer, primary_key=True)
+    area_resid_ha = Column(Float(53))
+    area_ind_ha = Column(Float(53))
+
+    ags = relationship('WnAbwMun')
+
 class WnAbwPotentialAreasWec(Base):
     """Potential areas for wind turbines
 

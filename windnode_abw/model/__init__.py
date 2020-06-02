@@ -12,7 +12,7 @@ from windnode_abw.model.region.tools import \
     prepare_temp_timeseries, preprocess_heating_structure, \
     calc_annuity, distribute_large_battery_capacity, \
     distribute_small_battery_capacity, calc_available_pv_capacity, \
-    calc_available_wec_capacity
+    calc_available_pv_roof_capacity, calc_available_wec_capacity
 
 
 class Region:
@@ -80,10 +80,12 @@ class Region:
         self._results_lines = kwargs.get('_results_lines', None)
 
         self._pot_areas_pv = kwargs.get('pot_areas_pv', None)
+        self._pot_areas_pv_roof = kwargs.get('pot_areas_pv_roof', None)
         self._pot_areas_wec = kwargs.get('pot_areas_wec', None)
 
         # update mun data table using RE potential areas
         self._muns.update(calc_available_pv_capacity(self))
+        self._muns.update(calc_available_pv_roof_capacity(self))
         self._muns.update(calc_available_wec_capacity(self))
 
         self._demography = kwargs.get('demography', None)
@@ -325,16 +327,20 @@ class Region:
         return self._pot_areas_pv
 
     @property
+    def pot_areas_pv_roof(self):
+        return self._pot_areas_pv_roof
+
+    @property
     def pot_areas_pv_scn(self):
         """Return PV potential areas, aggregated by area scenario
 
         Return None for empty PV scenario.
         """
         if self._cfg['scn_data']['generation']['re_potentials'][
-                'pv_scenario'] == '':
+                'pv_land_use_scenario'] == 'SQ':
             return None
         scn = self._cfg['scn_data']['generation'][
-            're_potentials']['pv_scenario']
+            're_potentials']['pv_land_use_scenario']
         return self._pot_areas_pv[
             self._pot_areas_pv.index.get_level_values(level=1).str.endswith(
                 f'_{scn.lower()}')]['area_ha']
@@ -350,10 +356,10 @@ class Region:
         Return None for status quo or empty WEC scenario.
         """
         if self._cfg['scn_data']['generation']['re_potentials'][
-                'wec_scenario'] == '':
+                'wec_land_use_scenario'] == 'SQ':
             return None
         scn = self._cfg['scn_data']['generation'][
-            're_potentials']['wec_scenario']
+            're_potentials']['wec_land_use_scenario']
         return self._pot_areas_wec[
             self._pot_areas_wec.index.get_level_values(level=1) ==
                 scn.lower()]['area_ha']

@@ -22,7 +22,8 @@ from windnode_abw.config.db_models import \
     WnAbwGridHvmvSubstation, WnAbwGridMvGriddistrict, WnAbwGridHvTransformer,\
     WnAbwMun, WnAbwMundata, WnAbwPowerplant, WnAbwRelSubstIdAgsId, WnAbwDsmTs,\
     WnAbwTempTs, WnAbwHeatingStructure, WnAbwTechAssumptions,\
-    WnAbwPotentialAreasPv, WnAbwPotentialAreasWec, WnAbwDemography
+    WnAbwPotentialAreasPv, WnAbwPotentialAreasPvRoof, WnAbwPotentialAreasWec,\
+    WnAbwDemography
 
 
 def db_session(db_section):
@@ -498,6 +499,16 @@ def import_db_data(cfg):
         pot_areas_pv_query.statement,
         session.bind,
         index_col=['ags_id', 'scenario'])
+
+    pot_areas_pv_roof_query = session.query(
+        WnAbwPotentialAreasPvRoof.ags_id,
+        WnAbwPotentialAreasPvRoof.area_resid_ha,
+        WnAbwPotentialAreasPvRoof.area_ind_ha
+    )
+    data['pot_areas_pv_roof'] = pd.read_sql_query(
+        pot_areas_pv_roof_query.statement,
+        session.bind,
+        index_col=['ags_id'])
 
     pot_areas_wec_query = session.query(
         WnAbwPotentialAreasWec.ags_id,
