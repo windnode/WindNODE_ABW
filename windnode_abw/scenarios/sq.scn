@@ -110,6 +110,29 @@
         # land use in ha/MWp
         pv_land_use = 1.5
 
+        ###################
+        # ROOF-MOUNTED PV #
+        ###################
+        # installed roof-mounted PV power
+        # possible values:
+        #   SQ:       Status quo (existing PV systems from DB only)
+        #   MAX_AREA: Use avail. areas from DB
+        #   <VALUE>:  Nom. power in MW (if set, avail. areas from DB are
+        #             used to distribute this power to municipalities.
+        #
+        pv_roof_installed_power = SQ
+
+        # usable area (0..1) for PV installations on residential roofs
+        # due to roof shape, windows etc.
+        pv_roof_resid_usable_area = 0.25
+
+        # usable area (0..1) for PV installations on industrial roofs
+        # due to tilted installation
+        pv_roof_ind_usable_area = 0.5
+
+        # spec. power in ha/MWp
+        pv_roof_land_use = 0.7
+
         #################
         # WIND TURBINES #
         #################
@@ -145,29 +168,6 @@
 
         # nominal power of WEC (E-141)
         wec_nom_power = 4.2
-
-        ###################
-        # ROOF-MOUNTED PV #
-        ###################
-        # installed roof-mounted PV power
-        # possible values:
-        #   SQ:       Status quo (existing PV systems from DB only)
-        #   MAX_AREA: Use avail. areas from DB
-        #   <VALUE>:  Nom. power in MW (if set, avail. areas from DB are
-        #             used to distribute this power to municipalities.
-        #
-        pv_roof_installed_power = SQ
-
-        # usable area (0..1) for PV installations on residential roofs
-        # due to roof shape, windows etc.
-        pv_roof_resid_usable_area = 0.25
-
-        # usable area (0..1) for PV installations on industrial roofs
-        # due to tilted installation
-        pv_roof_ind_usable_area = 0.5
-
-        # spec. power in ha/MWp
-        pv_roof_land_use = 0.7
 
     [[gen_el]]
         # technologies to be included, possible values:
