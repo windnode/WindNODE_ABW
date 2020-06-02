@@ -165,7 +165,7 @@
         pv_roof_ind_usable_area = 0.5
 
         # spec. power in ha/MWp
-        pv_roof_land_use = 1.5
+        pv_roof_land_use = 0.7
 
     [[gen_el]]
         # technologies to be included, possible values:
