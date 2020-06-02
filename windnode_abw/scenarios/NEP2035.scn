@@ -159,9 +159,11 @@
         pv_roof_installed_power = MAX_AREA
 
         # usable area (0..1) for PV installations on residential roofs
+        # due to roof shape, windows etc.
         pv_roof_resid_usable_area = 0.25
 
         # usable area (0..1) for PV installations on industrial roofs
+        # due to tilted installation
         pv_roof_ind_usable_area = 0.5
 
         # spec. power in ha/MWp
