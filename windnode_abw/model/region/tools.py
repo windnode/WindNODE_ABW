@@ -885,29 +885,42 @@ def calc_available_pv_roof_capacity(region):
 
     Notes
     -----
-    As there's no information about the ratio of small and large systems,
-    the entire power is assigned to large systems.
+    It is assumed, that large PV systems are located on industrial,
+    small PV systems on residential roofs which does not necessarily
+    reflect the real situation and distorts the distribution of home
+    storage systems (small batteries) which take place in the function
+    `distribute_small_battery_capacity()`.
     """
     cfg = region.cfg['scn_data']['generation']['re_potentials']
 
     if cfg['pv_roof_installed_power'] == 'SQ':
         return None
     else:
-        areas_agg = (region.pot_areas_pv_roof['area_resid_ha'] *
-                     cfg['pv_roof_resid_usable_area'] +
-                     region.pot_areas_pv_roof['area_ind_ha'] *
-                     cfg['pv_roof_ind_usable_area'])
+        areas_agg = pd.DataFrame({
+            'area_resid_ha': region.pot_areas_pv_roof['area_resid_ha'] *
+                             cfg['pv_roof_resid_usable_area'],
+            'area_ind_ha': region.pot_areas_pv_roof['area_ind_ha'] *
+                           cfg['pv_roof_ind_usable_area']})
 
     # use all available areas from DB
     if cfg['pv_roof_installed_power'] == 'MAX_AREA':
-        gen_capacity_pv_roof_large = areas_agg / cfg['pv_roof_land_use']
+        gen_capacity_pv_roof_small = (areas_agg['area_resid_ha'] /
+                                      cfg['pv_roof_land_use'])
+        gen_capacity_pv_roof_large = (areas_agg['area_ind_ha'] /
+                                      cfg['pv_roof_land_use'])
+
     # use given power, distribute to muns using available areas from DB
     else:
-        gen_capacity_pv_roof_large = areas_agg / areas_agg.sum() * \
-                                     cfg['pv_roof_installed_power']
+        gen_capacity_pv_roof_small = (areas_agg['area_resid_ha'] /
+                                      areas_agg['area_resid_ha'].sum() *
+                                      cfg['pv_roof_installed_power'])
+        gen_capacity_pv_roof_large = (areas_agg['area_ind_ha'] /
+                                      areas_agg['area_ind_ha'].sum() *
+                                      cfg['pv_roof_installed_power'])
 
     return pd.DataFrame({'gen_count_pv_roof_small': 0,
-                         'gen_capacity_pv_roof_small': 0,
+                         'gen_capacity_pv_roof_small':
+                             gen_capacity_pv_roof_small,
                          'gen_count_pv_roof_large': 0,
                          'gen_capacity_pv_roof_large':
                              gen_capacity_pv_roof_large}
