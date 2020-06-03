@@ -311,6 +311,12 @@
     [[flex_bat_large]]
         [[[enabled]]]
             enabled = 0
+        [[[inflow]]]
+            # max. charging power
+            nominal_value = 0
+        [[[outflow]]]
+            # max. discharging power
+            nominal_value = 0
         [[[params]]]
             # cumulative capacity
             nominal_storage_capacity = 0
@@ -323,6 +329,12 @@
     [[flex_bat_small]]
         [[[enabled]]]
             enabled = 0
+        [[[inflow]]]
+            # max. charging power
+            nominal_value = 0
+        [[[outflow]]]
+            # max. discharging power
+            nominal_value = 0
         [[[params]]]
             # cumulative capacity
             nominal_storage_capacity = 0
