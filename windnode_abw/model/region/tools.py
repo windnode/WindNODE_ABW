@@ -671,6 +671,9 @@ def distribute_large_battery_capacity(region, method='re_cap'):
     * proportional to installed RE capacity (default)
       (method='re_cap')
 
+    Also, nominal battery power is assigned by calculating c-rates for
+    charging and discharging using the power set in scenario config.
+
     Parameters
     ----------
     region : :class:`~.model.Region`
@@ -681,13 +684,13 @@ def distribute_large_battery_capacity(region, method='re_cap'):
     Returns
     -------
     :pandas:`pandas.DataFrame` or None
-        Battery capacity per municipality, None if capacity is zero
+        Battery capacity, charge and discharge power per municipality,
+        None if capacity is zero
     """
-    # get batt. capacity and RE technologies
-    batt_cap = region.cfg['scn_data']['flexopt']['flex_bat_large'][
-        'params']['nominal_storage_capacity']
+    batt_params = region.cfg['scn_data']['flexopt']['flex_bat_large']
+    batt_cap_cum = batt_params['params']['nominal_storage_capacity']
 
-    if batt_cap > 0:
+    if batt_cap_cum > 0:
         ee_techs = region.cfg['scn_data']['generation']['gen_el']['technologies']
         dem_el_sectors = ['el_hh', 'el_rca', 'el_ind']
 
@@ -695,13 +698,19 @@ def distribute_large_battery_capacity(region, method='re_cap'):
         ee_cum_cap_per_mun = region.muns[[f'gen_capacity_{tech}'
                                           for tech in ee_techs]].sum(axis=1)
 
+        # calc c-rates
+        c_rate_charge = batt_params['inflow']['nominal_value'] / \
+                        batt_cap_cum
+        c_rate_discharge = batt_params['outflow']['nominal_value'] / \
+                           batt_cap_cum
+
         if method == 're_cap_peak_load':
             re_cap_peak_load_ratio = ee_cum_cap_per_mun /\
                                      region.demand_ts_agg_per_mun(
                                          sectors=dem_el_sectors).max()
-
-            return (re_cap_peak_load_ratio / re_cap_peak_load_ratio.sum() *
-                    batt_cap)
+            batt_cap = (re_cap_peak_load_ratio /
+                        re_cap_peak_load_ratio.sum() *
+                        batt_cap_cum)
 
         elif method == 'residual_peak_load':
             # calc maximum of residual load
@@ -712,12 +721,25 @@ def distribute_large_battery_capacity(region, method='re_cap'):
             # set negative residual load to zero
             residual_peak_load[residual_peak_load < 0] = 0
 
-            return (residual_peak_load / residual_peak_load.sum() *
-                    batt_cap)
+            batt_cap = (residual_peak_load /
+                        residual_peak_load.sum() *
+                        batt_cap_cum)
 
         elif method == 're_cap':
-            return (ee_cum_cap_per_mun / ee_cum_cap_per_mun.sum() *
-                    batt_cap)
+            batt_cap = (ee_cum_cap_per_mun /
+                        ee_cum_cap_per_mun.sum() *
+                        batt_cap_cum)
+
+        else:
+            msg = 'Invalid method, cannot allocate large battery capacity.'
+            logger.error(msg)
+            raise ValueError(msg)
+
+        return pd.DataFrame({
+            'capacity': batt_cap,
+            'power_charge': batt_cap * c_rate_charge,
+            'power_discharge': batt_cap * c_rate_discharge
+        })
 
         # # PLOT: Compare methods
         # results_compare = pd.DataFrame({
@@ -735,6 +757,9 @@ def distribute_small_battery_capacity(region):
     """Distribute cumulative capacity of PV batteries to
     municipalities proportional to installed small-scale rooftop PV capacity.
 
+    Also, nominal battery power is assigned by calculating c-rates for
+    charging and discharging using the power set in scenario config.
+
     Parameters
     ----------
     region : :class:`~.model.Region`
@@ -742,19 +767,32 @@ def distribute_small_battery_capacity(region):
     Returns
     -------
     :pandas:`pandas.DataFrame` or None
-        Battery capacity per municipality, None if capacity is zero
+        Battery capacity, charge and discharge power per municipality,
+        None if capacity is zero
     """
-    # get batt. capacity and RE technologies
-    batt_cap = region.cfg['scn_data']['flexopt']['flex_bat_small'][
-        'params']['nominal_storage_capacity']
+    batt_params = region.cfg['scn_data']['flexopt']['flex_bat_small']
+    batt_cap_cum = batt_params['params']['nominal_storage_capacity']
 
-    if batt_cap > 0:
+    if batt_cap_cum > 0:
         # get cumulated installed small PV cap. per mun
         pv_cum_cap_per_mun = region.muns['gen_capacity_pv_roof_small']
 
+        # calc c-rates
+        c_rate_charge = batt_params['inflow']['nominal_value'] / \
+                        batt_cap_cum
+        c_rate_discharge = batt_params['outflow']['nominal_value'] / \
+                           batt_cap_cum
+
         # distribute prop. to installed cap.
-        return (pv_cum_cap_per_mun / pv_cum_cap_per_mun.sum() *
-                batt_cap)
+        batt_cap = (pv_cum_cap_per_mun /
+                    pv_cum_cap_per_mun.sum() *
+                    batt_cap_cum)
+
+        return pd.DataFrame({
+            'capacity': batt_cap,
+            'power_charge': batt_cap * c_rate_charge,
+            'power_discharge': batt_cap * c_rate_discharge
+        })
 
     return None
 

@@ -314,12 +314,17 @@ class Region:
             self._cfg['scn_data']['general']['year'],
             level='year'
         )
+
     @property
     def batteries_large(self):
+        """Return capacity, charging and discharging power of large-scale
+        batteries per municipality"""
         return self._batteries_large
 
     @property
     def batteries_small(self):
+        """Return capacity, charging and discharging power of PV batteries
+        per municipality"""
         return self._batteries_small
 
     @property
