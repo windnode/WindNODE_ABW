@@ -311,9 +311,15 @@
     [[flex_bat_large]]
         [[[enabled]]]
             enabled = 1
+        [[[inflow]]]
+            # max. charging power
+            nominal_value = 40
+        [[[outflow]]]
+            # max. discharging power
+            nominal_value = 40
         [[[params]]]
             # cumulative capacity
-            nominal_storage_capacity = 50
+            nominal_storage_capacity = 160
             # following params according to DEA stor, S.180
             # conversion factors AC calculated via roundtrip AC/DC
             loss_rate = 0.0042
@@ -323,9 +329,15 @@
     [[flex_bat_small]]
         [[[enabled]]]
             enabled = 1
+        [[[inflow]]]
+            # max. charging power
+            nominal_value = 40
+        [[[outflow]]]
+            # max. discharging power
+            nominal_value = 40
         [[[params]]]
             # cumulative capacity
-            nominal_storage_capacity = 10
+            nominal_storage_capacity = 70
             # following params according to DEA stor, S.180
             # conversion factors AC calculated via roundtrip AC/DC
             loss_rate = 0.0042
