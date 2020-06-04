@@ -307,7 +307,7 @@
 
 # flexibility options
 [flexopt]
-    # batteries
+    # large-scale batteries (values for entire region)
     [[flex_bat_large]]
         [[[enabled]]]
             enabled = 0
@@ -326,6 +326,7 @@
             inflow_conversion_factor = 0.94
             outflow_conversion_factor = 0.93
 
+    # PV batteries in small rooftop solar home systems (values for entire region)
     [[flex_bat_small]]
         [[[enabled]]]
             enabled = 0
