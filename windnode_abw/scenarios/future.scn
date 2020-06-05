@@ -16,7 +16,7 @@
 
 # general options
 [general]
-    id = NEP2035
+    id = future
 
     # the year affects some of the data used by the model:
     #   * to decide on wind time series (2017: wind_sq / other: wind_fs)
