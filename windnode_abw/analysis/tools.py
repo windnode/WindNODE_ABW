@@ -82,6 +82,11 @@ def aggregate_flows(results_raw):
             'pattern': 'dem_el_\d+_b\d+_(\w+)',
             'level': 1
         },
+        'Strombedarf nach Gemeinde': {
+            # Note for HH: only power demand without DSM is included
+            'pattern': 'dem_el_(\d+)_b\d+_\w+',
+            'level': 1
+        },
         'Wärmeerzeugung dezentral nach Technologie': {
             'pattern': 'gen_th_dec_\d+_\w+_(\w+)',
             'level': 0
@@ -92,6 +97,10 @@ def aggregate_flows(results_raw):
         },
         'Wärmebedarf nach Sektor': {
             'pattern': 'dem_th_(?:dec|cen)_\d+_(\w+)',
+            'level': 1
+        },
+        'Wärmebedarf nach Gemeinde': {
+            'pattern': 'dem_th_\w+_(\d+)_\w+',
             'level': 1
         },
         'Wärmeerzeugung Wärmepumpen nach Technologie': {
@@ -279,3 +288,14 @@ def aggregate_parameters(region):
 
     return params
 
+
+def aggregated_results_tables(extracted_results, parameters, region):
+
+    results = {}
+
+    results["Energienachfrage nach Gemeinde"] = pd.concat([
+        extracted_results["Strombedarf nach Gemeinde"].sum().rename("Strombedarf"),
+        extracted_results["Wärmebedarf nach Gemeinde"].sum().rename("Wärmebedarf")],
+        axis=1)
+
+    return results
