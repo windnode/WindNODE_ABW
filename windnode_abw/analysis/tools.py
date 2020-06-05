@@ -202,7 +202,8 @@ def aggregate_flows(results_raw):
     return results
 
 
-def flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname, level_flow_in=0, level_flow_out=1):
+def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname, idx_levels=["timestamp", "ags", "technology"],
+                        level_flow_in=0, level_flow_out=1):
     """
     Extract flows keeping 3 dimensions: time, ags, tech
 
@@ -229,10 +230,10 @@ def flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname, level_
     """
 
     # Get an extract of relevant flows
-    flows_extract = results_raw['flows'].loc[:,
-                    results_raw['flows'].columns.get_level_values(level_flow_in).str.match("_".join([
+    flows_extract = results_raw.loc[:,
+                    results_raw.columns.get_level_values(level_flow_in).str.match("_".join([
                         stubname, node_pattern]))
-                    & results_raw['flows'].columns.get_level_values(level_flow_out).str.match(bus_pattern)]
+                    & results_raw.columns.get_level_values(level_flow_out).str.match(bus_pattern)]
 
     # transform to wide-to-long format while dropping bus column level
     flows_extract = flows_extract.sum(level=level_flow_in, axis=1)
@@ -245,10 +246,10 @@ def flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname, level_
     idx_new = [list(flows_extracted_long.index.get_level_values(0))]
     idx_split = flows_extracted_long.index.get_level_values(1).str.extract(node_pattern)
     [idx_new.append(c[1].tolist()) for c in idx_split.iteritems()]
-    flows_extracted_long.index = pd.MultiIndex.from_arrays(idx_new, names=["timestamp", "ags", "technology"])
+    flows_extracted_long.index = pd.MultiIndex.from_arrays(idx_new, names=idx_levels)
 
     # Sum over buses (aggregation) in one region and unstack technology
-    flows_extracted_long = flows_extracted_long.sum(level=[0, 1, 2])
+    flows_extracted_long = flows_extracted_long.sum(level=list(range(len(idx_new))))
     flows_formatted = flows_extracted_long[stubname].unstack("technology", fill_value=0)
 
     return flows_formatted
