@@ -330,8 +330,8 @@ def create_el_model(region=None, datetime_index=None):
         elif not region.trafos[region.trafos['bus1'] == idx]['s_nom'].empty:
             s_nom = float(region.trafos[region.trafos['bus1'] == idx]['s_nom'])
         else:
-            msg = f'Nominal capacity of connected line '\
-                f'not found for bus {idx}'
+            msg = f'Nominal capacity of connected line ' \
+                  f'not found for bus {idx}'
             logger.error(msg)
             raise ValueError(msg)
 
