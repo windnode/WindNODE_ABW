@@ -1069,11 +1069,12 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                           (1 - region.dist_heating_share_scn.loc[mun.Index])
                 solar_feedin = region.feedin_ts['solar_heat'][mun.Index] * \
                                th_load.sum(axis=0) * \
-                               region.heating_structure_dec_scn.loc[mun.Index][sector].loc['solar']
+                               region.heating_structure_dec_scn.loc[
+                                   mun.Index][sector].loc['solar']
                 th_residual_load_sum, th_residual_load_max = (
                         (th_load - solar_feedin) *
-                        region.heating_structure_dec_scn_wo_solar.loc[mun.Index,
-                                                                      'ambient_heat'][sector]
+                        region.heating_structure_dec_scn_wo_solar.loc[
+                            mun.Index, 'ambient_heat'][sector]
                 )[datetime_index].agg(['sum', 'max'])
                 del th_load, solar_feedin
 
@@ -1082,17 +1083,21 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     bus_th_dec = esys_nodes[f'b_th_dec_{mun.Index}_{sector}']
 
                     # calc th demand and peak load for ASHP+GSHP
-                    th_dec_demand_pth_mun_sec_ashp = th_residual_load_sum * share_ashp
-                    th_dec_peak_pth_mun_sec_ashp = th_residual_load_max * share_ashp
-                    th_dec_demand_pth_mun_sec_gshp = th_residual_load_sum * share_gshp
-                    th_dec_peak_pth_mun_sec_gshp = th_residual_load_max * share_gshp
+                    th_dec_demand_pth_mun_sec_ashp = th_residual_load_sum * \
+                                                     share_ashp
+                    th_dec_peak_pth_mun_sec_ashp = th_residual_load_max * \
+                                                   share_ashp
+                    th_dec_demand_pth_mun_sec_gshp = th_residual_load_sum * \
+                                                     share_gshp
+                    th_dec_peak_pth_mun_sec_gshp = th_residual_load_max * \
+                                                   share_gshp
 
                     ################################
                     # HP systems with heat storage #
                     ################################
                     pth_storage_cfg = scn_data['storage']['th_dec_pth_storage']
-                    if pth_storage_cfg['enabled']['enabled'] == 1 and \
-                            pth_storage_cfg['general']['pth_storage_share'] > 0:
+                    if (pth_storage_cfg['enabled']['enabled'] == 1 and
+                        pth_storage_cfg['general']['pth_storage_share'] > 0):
 
                         # create additional PTH heat bus
                         bus_th_dec_pth = solph.Bus(
@@ -1128,7 +1133,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 },
                                 outputs={bus_th_dec_pth: solph.Flow(
                                     nominal_value=(th_dec_peak_pth_mun_sec_ashp *
-                                                   pth_storage_cfg['general']['pth_storage_share']),
+                                                   pth_storage_cfg['general'][
+                                                       'pth_storage_share']),
                                     variable_costs=region.tech_assumptions_scn.loc[
                                         'heating_ashp']['opex_var'],
                                     emissions=region.tech_assumptions_scn.loc[
@@ -1136,7 +1142,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 )},
                                 conversion_factors={
                                     esys_nodes[f'b_el_{busdata.Index}']:
-                                        [1 / len(mun_buses) / cop for cop in cops_ASHP]
+                                        [1 / len(mun_buses) / cop
+                                         for cop in cops_ASHP]
                                     for busdata in mun_buses.itertuples()
                                 }
                             )
@@ -1152,7 +1159,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 },
                                 outputs={bus_th_dec_pth: solph.Flow(
                                     nominal_value=(th_dec_peak_pth_mun_sec_gshp *
-                                                   pth_storage_cfg['general']['pth_storage_share']),
+                                                   pth_storage_cfg['general'][
+                                                       'pth_storage_share']),
                                     variable_costs=region.tech_assumptions_scn.loc[
                                         'heating_gshp']['opex_var'],
                                     emissions=region.tech_assumptions_scn.loc[
@@ -1160,7 +1168,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 )},
                                 conversion_factors={
                                     esys_nodes[f'b_el_{busdata.Index}']:
-                                        [1 / len(mun_buses) / cop for cop in cops_ASHP]
+                                        [1 / len(mun_buses) / cop
+                                         for cop in cops_ASHP]
                                     for busdata in mun_buses.itertuples()
                                 }
                             )
@@ -1175,7 +1184,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                     nominal_value=(
                                             (th_dec_peak_pth_mun_sec_ashp +
                                              th_dec_peak_pth_mun_sec_gshp) *
-                                            pth_storage_cfg['general']['pth_storage_share']
+                                            pth_storage_cfg['general'][
+                                                'pth_storage_share']
                                     ),
                                     summed_min=(
                                         (th_dec_demand_pth_mun_sec_ashp /
@@ -1201,20 +1211,27 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                         # create ASHP
                         nodes.append(
                             solph.Transformer(
-                                label=f'flex_dec_pth_ASHP_nostor_{mun.Index}_{sector}',
+                                label=f'flex_dec_pth_ASHP_nostor_'
+                                      f'{mun.Index}_{sector}',
                                 inputs={
-                                    esys_nodes[f'b_el_{busdata.Index}']: solph.Flow()
+                                    esys_nodes[f'b_el_{busdata.Index}']:
+                                        solph.Flow()
                                     for busdata in mun_buses.itertuples()
                                 },
                                 outputs={bus_th_dec: solph.Flow(
                                     nominal_value=(
                                             th_dec_peak_pth_mun_sec_ashp *
-                                            (1 - pth_storage_cfg['general']['pth_storage_share'])
+                                            (1 - pth_storage_cfg['general'][
+                                                'pth_storage_share'])
                                     ),
-                                    summed_min=(th_dec_demand_pth_mun_sec_ashp /
-                                                th_dec_peak_pth_mun_sec_ashp),
-                                    summed_max=(th_dec_demand_pth_mun_sec_ashp /
-                                                th_dec_peak_pth_mun_sec_ashp),
+                                    summed_min=(
+                                            th_dec_demand_pth_mun_sec_ashp /
+                                            th_dec_peak_pth_mun_sec_ashp
+                                    ),
+                                    summed_max=(
+                                            th_dec_demand_pth_mun_sec_ashp /
+                                            th_dec_peak_pth_mun_sec_ashp
+                                    ),
                                     variable_costs=region.tech_assumptions_scn.loc[
                                         'heating_ashp']['opex_var'],
                                     emissions=region.tech_assumptions_scn.loc[
@@ -1222,7 +1239,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 )},
                                 conversion_factors={
                                     esys_nodes[f'b_el_{busdata.Index}']:
-                                        [1/len(mun_buses)/cop for cop in cops_ASHP]
+                                        [1/len(mun_buses)/cop
+                                         for cop in cops_ASHP]
                                     for busdata in mun_buses.itertuples()
                                 }
                             )
@@ -1231,20 +1249,27 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                         # create GSHP
                         nodes.append(
                             solph.Transformer(
-                                label=f'flex_dec_pth_GSHP_nostor_{mun.Index}_{sector}',
+                                label=f'flex_dec_pth_GSHP_nostor_'
+                                      f'{mun.Index}_{sector}',
                                 inputs={
-                                    esys_nodes[f'b_el_{busdata.Index}']: solph.Flow()
+                                    esys_nodes[f'b_el_{busdata.Index}']:
+                                        solph.Flow()
                                     for busdata in mun_buses.itertuples()
                                 },
                                 outputs={bus_th_dec: solph.Flow(
                                     nominal_value=(
                                             th_dec_peak_pth_mun_sec_gshp *
-                                            (1 - pth_storage_cfg['general']['pth_storage_share'])
+                                            (1 - pth_storage_cfg['general'][
+                                                'pth_storage_share'])
                                     ),
-                                    summed_min=(th_dec_demand_pth_mun_sec_gshp /
-                                                th_dec_peak_pth_mun_sec_gshp),
-                                    summed_max=(th_dec_demand_pth_mun_sec_gshp /
-                                                th_dec_peak_pth_mun_sec_gshp),
+                                    summed_min=(
+                                            th_dec_demand_pth_mun_sec_gshp /
+                                            th_dec_peak_pth_mun_sec_gshp
+                                    ),
+                                    summed_max=(
+                                            th_dec_demand_pth_mun_sec_gshp /
+                                            th_dec_peak_pth_mun_sec_gshp
+                                    ),
                                     variable_costs=region.tech_assumptions_scn.loc[
                                         'heating_gshp']['opex_var'],
                                     emissions=region.tech_assumptions_scn.loc[
@@ -1252,7 +1277,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 )},
                                 conversion_factors={
                                     esys_nodes[f'b_el_{busdata.Index}']:
-                                        [1/len(mun_buses)/cop for cop in cops_GSHP]
+                                        [1/len(mun_buses)/cop
+                                         for cop in cops_GSHP]
                                     for busdata in mun_buses.itertuples()
                                 }
                             )
@@ -1265,7 +1291,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
         for mun in region.muns.itertuples():
 
             if region.dist_heating_share_scn[mun.Index] > 0:
-                mun_buses = region.buses.loc[region.subst.loc[mun.subst_id].bus_id]
+                mun_buses = region.buses.loc[region.subst.loc[
+                    mun.subst_id].bus_id]
                 bus_out = esys_nodes[f'b_th_cen_in_{mun.Index}']
 
                 nodes.append(
@@ -1287,7 +1314,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                         conversion_factors={
                             esys_nodes[f'b_el_{busdata.Index}']:
                                 1 / len(mun_buses) *
-                                region.tech_assumptions_scn.loc['heating_rod']['sys_eff']
+                                region.tech_assumptions_scn.loc[
+                                    'heating_rod']['sys_eff']
                             for busdata in mun_buses.itertuples()
                         }
                     )
