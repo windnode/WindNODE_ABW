@@ -250,7 +250,7 @@
             # spec. capacity in liter/kW (m^3/MW) installed heat pump power (el.)
             capacity_spec = 60
             # temperature spread
-            delta_temp = 30
+            delta_temp = 40
 
             # c-rates according to DEA stor, S.66
             c_rate_charge = 6.7
