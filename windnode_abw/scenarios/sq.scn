@@ -247,7 +247,6 @@
         [[[inflow]]]
             # prevent charging restrictions
             nominal_value = 1000
-            variable_costs = 1
         [[[outflow]]]
             # prevent discharging restrictions
             nominal_value = 1000
