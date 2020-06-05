@@ -1082,7 +1082,6 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                 del th_load, solar_feedin
 
                 if th_residual_load_sum > 0:
-
                     bus_th_dec = esys_nodes[f'b_th_dec_{mun.Index}_{sector}']
 
                     # calc cum. th demand, th peak load and el peak load
