@@ -750,7 +750,11 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     solph.components.GenericStorage(
                         label=f'stor_th_cen_{ags}',
                         inputs={bus_th_net_in: solph.Flow(
-                            **scn_data['storage']['th_cen_storage']['inflow']
+                            **scn_data['storage']['th_cen_storage']['inflow'],
+                            variable_costs=region.tech_assumptions_scn.loc[
+                                'stor_th_large']['opex_var'],
+                            emissions=region.tech_assumptions_scn.loc[
+                                'stor_th_large']['emissions_var'],
                         )},
                         outputs={bus_th_net_in: solph.Flow(
                             **scn_data['storage']['th_cen_storage']['outflow']
@@ -1101,11 +1105,14 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                             solph.components.GenericStorage(
                                 label=f'stor_th_dec_pth_{mun.Index}_{sector}',
                                 inputs={bus_th_dec_pth: solph.Flow(
-                                    **pth_storage_cfg['inflow']
-                                    #TODO: CHECK COSTS
+                                    **pth_storage_cfg['inflow'],
+                                    variable_costs=region.tech_assumptions_scn.loc[
+                                        'stor_th_small']['opex_var'],
+                                    emissions=region.tech_assumptions_scn.loc[
+                                        'stor_th_small']['emissions_var'],
                                 )},
                                 outputs={bus_th_dec_pth: solph.Flow(
-                                    **pth_storage_cfg['outflow'],
+                                    **pth_storage_cfg['outflow']
                                 )},
                                 **pth_storage_cfg['params']
                             )

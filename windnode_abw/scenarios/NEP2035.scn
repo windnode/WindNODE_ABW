@@ -240,7 +240,7 @@
 # storages
 [storage]
     # decentral heat storages for heat pumps only
-    # TODO: Replace costs, capacity
+    # TODO: Replace capacity
     [[th_dec_pth_storage]]
         [[[enabled]]]
             enabled = 1
@@ -260,13 +260,12 @@
             outflow_conversion_factor = 1
 
     # heat storage for Dessau
-    # TODO: Replace costs, capacity
+    # TODO: Replace capacity
     [[th_cen_storage]]
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]
             nominal_value = 60
-            variable_costs = 1
         [[[outflow]]]
             nominal_value = 60
         [[[params]]]
