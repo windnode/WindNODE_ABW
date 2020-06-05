@@ -325,13 +325,15 @@ def aggregate_parameters(region):
     return params
 
 
-def aggregated_results_tables(extracted_results, parameters, region):
+def results_tables_ags(aggregated_results, extracted_results, parameters, region):
 
     results = {}
 
     results["Energienachfrage nach Gemeinde"] = pd.concat([
-        extracted_results["Strombedarf nach Gemeinde"].sum().rename("Strombedarf"),
-        extracted_results["Wärmebedarf nach Gemeinde"].sum().rename("Wärmebedarf")],
+        aggregated_results["Strombedarf nach Gemeinde"].sum().rename("Strombedarf"),
+        aggregated_results["Wärmebedarf nach Gemeinde"].sum().rename("Wärmebedarf")],
         axis=1)
+    results["Stromerzeugung nach Gemeinde"] = extracted_results["Stromerzeugung"].sum(level="ags")
+    results["Wärmeerzeugung nach Gemeinde"] = extracted_results["Wärmeerzeugung"].sum(level=["level", "ags"])
 
     return results
