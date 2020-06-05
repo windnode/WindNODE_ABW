@@ -193,6 +193,58 @@ def aggregate_flows(results_raw):
     return results
 
 
+def flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname, level_flow_in=0, level_flow_out=1):
+    """
+    Extract flows keeping 3 dimensions: time, ags, tech
+
+    Parameters
+    ----------
+    results_raw: dict of pd.DataFrame
+        Return of :func:`~.results_to_dataframes`
+    node_pattern: str
+        RegEx pattern matching nodes
+    bus_pattern: str
+        RegEx pattern matching buses
+    stubname: str
+        Used in wide-to-long conversion to determine stub of column name that
+        is preserved and which must be common across all nodes
+    level_flow_in: int, optional
+        Level which is treated an going into the flow
+    level_flow_out: int, optional
+        Level which is treated an going out of the flow
+
+    Returns
+    -------
+    :class:`pd.DataFrame`
+        Extracted and reformatted flows
+    """
+
+    # Get an extract of relevant flows
+    flows_extract = results_raw['flows'].loc[:,
+                    results_raw['flows'].columns.get_level_values(level_flow_in).str.match("_".join([
+                        stubname, node_pattern]))
+                    & results_raw['flows'].columns.get_level_values(level_flow_out).str.match(bus_pattern)]
+
+    # transform to wide-to-long format while dropping bus column level
+    flows_extract = flows_extract.sum(level=level_flow_in, axis=1)
+    flows_extract.index.name = "timestamp"
+    flows_extract = flows_extract.reset_index()
+    flows_extracted_long = pd.wide_to_long(flows_extract, stubnames=stubname, i="timestamp", j="ags_tech", sep="_",
+                                           suffix=node_pattern)
+
+    # introduce ags and technology as new index levels
+    idx_new = [list(flows_extracted_long.index.get_level_values(0))]
+    idx_split = flows_extracted_long.index.get_level_values(1).str.extract(node_pattern)
+    [idx_new.append(c[1].tolist()) for c in idx_split.iteritems()]
+    flows_extracted_long.index = pd.MultiIndex.from_arrays(idx_new, names=["timestamp", "ags", "technology"])
+
+    # Sum over buses (aggregation) in one region and unstack technology
+    flows_extracted_long = flows_extracted_long.sum(level=[0, 1, 2])
+    flows_formatted = flows_extracted_long[stubname].unstack("technology", fill_value=0)
+
+    return flows_formatted
+
+
 def aggregate_parameters(region):
 
     params = {}
