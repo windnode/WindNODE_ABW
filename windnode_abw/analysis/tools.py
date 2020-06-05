@@ -1,6 +1,14 @@
 import pandas as pd
 
 
+NAMES = {
+    "stor_battery_large": "flex_bat_large",
+    "stor_battery_small": "flex_bat_small",
+    "stor_th_large": "th_cen_storage",
+    "stor_th_small": "th_dec_pth_storage",
+}
+
+
 def results_to_dataframes(esys):
     """Convert result dict to DataFrames for flows and stationary variables.
 
@@ -183,3 +191,39 @@ def aggregate_flows(results_raw):
                 axis=1).agg('sum')
 
     return results
+
+
+def aggregate_parameters(region):
+
+    params = {}
+
+    # Erzeugungseinheiten
+    params["Erzeuger"] = region.tech_assumptions_scn[
+        ~region.tech_assumptions_scn.index.str.startswith("stor_")]
+
+    # Speicher
+    params["Speicher"] = region.tech_assumptions_scn[
+        region.tech_assumptions_scn.index.str.startswith("stor_")].drop("sys_eff", axis=1)
+    params["Speicher"].rename(index=NAMES, inplace=True)
+
+    # add parameters from config file to Speicher Dataframe
+    additional_stor_params = {}
+    additional_stor_columns = list(region.cfg['scn_data']['storage']['th_dec_pth_storage']["params"].keys())
+    for tech in ["th_cen_storage", "th_dec_pth_storage"]:
+        additional_stor_params[tech] = [
+            region.cfg['scn_data']['storage'][tech]['params'][n] for n in additional_stor_columns]
+    for tech in ['flex_bat_large', 'flex_bat_small']:
+        additional_stor_params[tech] = [region.cfg['scn_data']['flexopt'][tech]['params'][n]
+                                        for n in additional_stor_columns]
+
+    params["Speicher"] = params["Speicher"].join(pd.DataFrame.from_dict(
+        additional_stor_params,
+        orient="index",
+        columns=additional_stor_columns))
+
+    # installed capacity battery storages
+    params["Installierte Kapazität Großbatterien"] = region.batteries_large
+    params["Installierte Kapazität PV-Batteriespeicher"] = region.batteries_small
+
+    return params
+
