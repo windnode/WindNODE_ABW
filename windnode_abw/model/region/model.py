@@ -1153,6 +1153,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 )},
                                 nominal_storage_capacity=stor_capacity,
                                 **pth_storage_cfg['params']
+                                # Note: efficiencies are read from cfg, not tech table
                             )
                         )
 
