@@ -240,21 +240,22 @@
 # storages
 [storage]
     # decentral heat storages for heat pumps only
-    # TODO: Replace capacity
     [[th_dec_pth_storage]]
         [[[enabled]]]
             enabled = 1
         [[[general]]]
             # share of heat pumps equipped with storage (0..1)
-            pth_storage_share = 0.25
-        [[[inflow]]]
-            # prevent charging restrictions
-            nominal_value = 1000
-        [[[outflow]]]
-            # prevent discharging restrictions
-            nominal_value = 1000
+            pth_storage_share = 0.5
+
+            # spec. capacity in liter/kW (m^3/MW) installed heat pump power (el.)
+            capacity_spec = 60
+            # temperature spread
+            delta_temp = 30
+
+            # c-rates according to DEA stor, S.66
+            c_rate_charge = 6.7
+            c_rate_discharge = 6.7
         [[[params]]]
-            nominal_storage_capacity = 100
             loss_rate = 0.021
             inflow_conversion_factor = 1
             outflow_conversion_factor = 1
