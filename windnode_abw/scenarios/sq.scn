@@ -244,6 +244,9 @@
     [[th_dec_pth_storage]]
         [[[enabled]]]
             enabled = 0
+        [[[general]]]
+            # share of heat pumps equipped with storage (0..1)
+            pth_storage_share = 0
         [[[inflow]]]
             # prevent charging restrictions
             nominal_value = 1000
