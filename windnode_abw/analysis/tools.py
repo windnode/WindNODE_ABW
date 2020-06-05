@@ -255,6 +255,41 @@ def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname
     return flows_formatted
 
 
+def flows_timexagsxtech(results_raw):
+    """
+    Organized, extracted flows with dimensions time (x level) x ags x technology
+
+    Parameters
+    ----------
+    results_raw: pd.DataFrame
+        Flows of results_raw
+
+    Returns
+    -------
+    dict of DataFrame
+        Extracted flows
+    """
+
+    # define extraction pattern
+    flow_extractor = {
+        "Stromerzeugung": {
+            "node_pattern": "\w+_(\d+)_?b?\d+?_(\w+)",
+            "stubname": "gen",
+            "bus_pattern": 'b_el_\d+'},
+        "Wärmeerzeugung": {
+            "node_pattern": "th_(\w{3})_(\d+)_\w+_(\w+)",
+            "stubname": "gen",
+            "bus_pattern": 'b_th_\w+_\d+(_\w+)?',
+            "idx_levels": ["timestamp", "level", "ags", "technology"]},
+    }
+
+    flows = {}
+    for name, patterns in flow_extractor.items():
+        flows[name] = extract_flows_timexagsxtech(results_raw, **patterns)
+
+    return flows
+
+
 def aggregate_parameters(region):
 
     params = {}
