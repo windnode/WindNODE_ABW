@@ -277,7 +277,7 @@ def flows_timexagsxtech(results_raw):
             "stubname": "gen",
             "bus_pattern": 'b_el_\d+'},
         "Wärmeerzeugung": {
-            "node_pattern": "th_(\w{3})_(\d+)_\w+_(\w+)",
+            "node_pattern": "th_(\w{3})_(\d+)(?:_hh_efh|_hh_mfh|_rca)?_(\w+)",
             "stubname": "gen",
             "bus_pattern": 'b_th_\w+_\d+(_\w+)?',
             "idx_levels": ["timestamp", "level", "ags", "technology"]},
