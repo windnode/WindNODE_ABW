@@ -311,6 +311,20 @@ def flows_timexagsxtech(results_raw):
             "unstack_col": None,
             "level_flow_in": 1,
             "level_flow_out": 0},
+        "Stromnachfrage": {
+            "node_pattern": "(?P<ags>\d+)_b\d+_(?P<sector>\w+)",
+            "stubname": "dem_el",
+            "bus_pattern": 'b_el_\w+',
+            "unstack_col": "sector",
+            "level_flow_in": 1,
+            "level_flow_out": 0},
+        "Wärmenachfrage": {
+            "node_pattern": "(?P<level>\w+)_(?P<ags>\d+)_(?P<sector>\w+)",
+            "stubname": "dem_th",
+            "bus_pattern": 'b_th_(?:dec|cen_out)_\d+',
+            "unstack_col": "sector",
+            "level_flow_in": 1,
+            "level_flow_out": 0},
     }
 
     flows = {}
@@ -377,7 +391,9 @@ def results_tables_ags(aggregated_results, extracted_results, parameters, region
         aggregated_results["Wärmebedarf nach Gemeinde"].sum().rename("Wärmebedarf")],
         axis=1)
     results["Stromerzeugung nach Gemeinde"] = extracted_results["Stromerzeugung"].sum(level="ags")
+    results["Stromnachfrage nach Gemeinde"] = extracted_results["Stromnachfrage"].sum(level="ags")
     results["Wärmeerzeugung nach Gemeinde"] = extracted_results["Wärmeerzeugung"].sum(level=["level", "ags"])
+    results["Wärmenachfrage nach Gemeinde"] = extracted_results["Wärmenachfrage"].sum(level=["level", "ags"])
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
 
