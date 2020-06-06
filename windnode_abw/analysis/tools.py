@@ -203,7 +203,7 @@ def aggregate_flows(results_raw):
 
 
 def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname,
-                        level_flow_in=0, level_flow_out=1):
+                        level_flow_in=0, level_flow_out=1, unstack_col="technology"):
     """
     Extract flows keeping 3 dimensions: time, ags, tech
 
@@ -251,8 +251,9 @@ def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname
         names=["timestamp"] + list(idx_split.columns))
 
     # Sum over buses (aggregation) in one region and unstack technology
-    flows_extracted_long = flows_extracted_long.sum(level=list(range(len(idx_new))))
-    flows_formatted = flows_extracted_long[stubname].unstack("technology", fill_value=0)
+    flows_formatted = flows_extracted_long.sum(level=list(range(len(idx_new))))
+    if unstack_col:
+        flows_formatted = flows_formatted[stubname].unstack(unstack_col, fill_value=0)
 
     return flows_formatted
 
@@ -286,6 +287,30 @@ def flows_timexagsxtech(results_raw):
             "node_pattern": "(?P<level>\w{3})_(?P<technology>\w+)_(?P<ags>\d+)(?:_hh_efh|_hh_mfh|_rca)?",
             "stubname": "flex",
             "bus_pattern": 'b_th_\w+_\d+(_\w+)?'},
+        "Wärmespeicher discharge": {
+            "node_pattern": "(?P<level>\w{3})(?:_pth)?_(?P<ags>\d+)(?:_hh_efh|_hh_mfh|_rca)?",
+            "stubname": "stor_th",
+            "bus_pattern": 'b_th_\w+_\d+(_\w+)?',
+            "unstack_col": None},
+        "Wärmespeicher charge": {
+            "node_pattern": "(?P<level>\w{3})(?:_pth)?_(?P<ags>\d+)(?:_hh_efh|_hh_mfh|_rca)?",
+            "stubname": "stor_th",
+            "bus_pattern": 'b_th_\w+_\d+(_\w+)?',
+            "unstack_col": None,
+            "level_flow_in": 1,
+            "level_flow_out": 0},
+        "Batteriespeicher discharge": {
+            "node_pattern": "(?P<level>\w+)_(?P<ags>\d+)_b\d+",
+            "stubname": "flex_bat",
+            "bus_pattern": 'b_el_\w+',
+            "unstack_col": None},
+        "Batteriespeicher charge": {
+            "node_pattern": "(?P<level>\w+)_(?P<ags>\d+)_b\d+",
+            "stubname": "flex_bat",
+            "bus_pattern": 'b_el_\w+',
+            "unstack_col": None,
+            "level_flow_in": 1,
+            "level_flow_out": 0},
     }
 
     flows = {}
@@ -295,6 +320,15 @@ def flows_timexagsxtech(results_raw):
     # Join Wärmeerzeugung into one DataFrame
     flows["Wärmeerzeugung"] = flows["Wärmeerzeugung"].join(flows["Wärmeerzeugung PtH"])
     flows.pop("Wärmeerzeugung PtH", None)
+
+    # Join th. storage flows into one DF
+    for stor in ["Wärmespeicher", "Batteriespeicher"]:
+        flows[stor] = flows[stor + " discharge"].join(flows[stor + " charge"],
+                                                      lsuffix="discharge",
+                                                      rsuffix="charge")
+        flows[stor].columns = flows[stor].columns.str.replace(flow_extractor[stor + " charge"]["stubname"], "")
+        flows.pop(stor + " discharge")
+        flows.pop(stor + " charge")
 
     return flows
 
@@ -344,5 +378,7 @@ def results_tables_ags(aggregated_results, extracted_results, parameters, region
         axis=1)
     results["Stromerzeugung nach Gemeinde"] = extracted_results["Stromerzeugung"].sum(level="ags")
     results["Wärmeerzeugung nach Gemeinde"] = extracted_results["Wärmeerzeugung"].sum(level=["level", "ags"])
+    results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
+    results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
 
     return results
