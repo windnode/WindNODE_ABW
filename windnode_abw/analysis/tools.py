@@ -282,11 +282,19 @@ def flows_timexagsxtech(results_raw):
             "node_pattern": "th_(?P<level>\w{3})_(?P<ags>\d+)(?:_hh_efh|_hh_mfh|_rca)?_(?P<technology>\w+)",
             "stubname": "gen",
             "bus_pattern": 'b_th_\w+_\d+(_\w+)?',},
+        "Wärmeerzeugung PtH": {
+            "node_pattern": "(?P<level>\w{3})_(?P<technology>\w+)_(?P<ags>\d+)(?:_hh_efh|_hh_mfh|_rca)?",
+            "stubname": "flex",
+            "bus_pattern": 'b_th_\w+_\d+(_\w+)?'},
     }
 
     flows = {}
     for name, patterns in flow_extractor.items():
         flows[name] = extract_flows_timexagsxtech(results_raw, **patterns)
+
+    # Join Wärmeerzeugung into one DataFrame
+    flows["Wärmeerzeugung"] = flows["Wärmeerzeugung"].join(flows["Wärmeerzeugung PtH"])
+    flows.pop("Wärmeerzeugung PtH", None)
 
     return flows
 
