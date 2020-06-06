@@ -86,7 +86,7 @@
         #   <VALUE>:  Nom. power in MW (if set, param 'pv_land_use_scenario'
         #             is used to distribute this power to municipalities.
         #
-        pv_installed_power = MAX_AREA
+        pv_installed_power = SQ
 
         # potential area scenario to be used to build ground mounted PV
         # possible values:
@@ -99,7 +99,7 @@
         # the municipalities proportionally to the potential areas.
         # See function 'calc_available_pv_capacity()' for a list of
         # possible combinations.
-        pv_land_use_scenario = HS
+        pv_land_use_scenario = SQ
 
         # max. usable area in ha for PV installations on agricultural areas
         # (1 % of the total area of fields and meadows in ABW)
@@ -143,7 +143,7 @@
         #   <VALUE>:  Nom. power in MW (if set, param 'wec_land_use_scenario'
         #             is used to distribute this power to municipalities.
         #
-        wec_installed_power = MAX_AREA
+        wec_installed_power = SQ
 
         # potential area scenario to be used to build WEC
         # possible values:
@@ -158,7 +158,7 @@
         # the municipalities proportionally to the potential areas.
         # See function 'calc_available_wec_capacity()' for a list of
         # possible combinations.
-        wec_land_use_scenario = s1000f1
+        wec_land_use_scenario = SQ
 
         # usable area (0..1) for WEC installations
         wec_usable_area = 0.1
