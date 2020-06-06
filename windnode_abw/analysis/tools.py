@@ -87,7 +87,7 @@ def aggregate_flows(results_raw):
             'level': 1
         },
         'Wärmeerzeugung Wärmepumpen nach Technologie': {
-            'pattern': 'flex_dec_pth_((?:A|G)SHP)_\d+_\w+',
+            'pattern': 'flex_dec_pth_((?:A|G)SHP)_\w+_\d+_\w+',
             'level': 0
         },
         'Wärmeerzeugung Heizstäbe nach Gemeinde': {
