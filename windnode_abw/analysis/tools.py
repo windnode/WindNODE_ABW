@@ -202,7 +202,7 @@ def aggregate_flows(results_raw):
     return results
 
 
-def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname, idx_levels=["timestamp", "ags", "technology"],
+def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname,
                         level_flow_in=0, level_flow_out=1):
     """
     Extract flows keeping 3 dimensions: time, ags, tech
@@ -246,7 +246,9 @@ def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname
     idx_new = [list(flows_extracted_long.index.get_level_values(0))]
     idx_split = flows_extracted_long.index.get_level_values(1).str.extract(node_pattern)
     [idx_new.append(c[1].tolist()) for c in idx_split.iteritems()]
-    flows_extracted_long.index = pd.MultiIndex.from_arrays(idx_new, names=idx_levels)
+    flows_extracted_long.index = pd.MultiIndex.from_arrays(
+        idx_new,
+        names=["timestamp"] + list(idx_split.columns))
 
     # Sum over buses (aggregation) in one region and unstack technology
     flows_extracted_long = flows_extracted_long.sum(level=list(range(len(idx_new))))
@@ -273,14 +275,13 @@ def flows_timexagsxtech(results_raw):
     # define extraction pattern
     flow_extractor = {
         "Stromerzeugung": {
-            "node_pattern": "\w+_(\d+)_?b?\d+?_(\w+)",
+            "node_pattern": "\w+_(?P<ags>\d+)_?b?\d+?_(?P<technology>\w+)",
             "stubname": "gen",
             "bus_pattern": 'b_el_\d+'},
         "Wärmeerzeugung": {
-            "node_pattern": "th_(\w{3})_(\d+)(?:_hh_efh|_hh_mfh|_rca)?_(\w+)",
+            "node_pattern": "th_(?P<level>\w{3})_(?P<ags>\d+)(?:_hh_efh|_hh_mfh|_rca)?_(?P<technology>\w+)",
             "stubname": "gen",
-            "bus_pattern": 'b_th_\w+_\d+(_\w+)?',
-            "idx_levels": ["timestamp", "level", "ags", "technology"]},
+            "bus_pattern": 'b_th_\w+_\d+(_\w+)?',},
     }
 
     flows = {}
