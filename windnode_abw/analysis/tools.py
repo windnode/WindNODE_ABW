@@ -325,6 +325,18 @@ def flows_timexagsxtech(results_raw):
             "unstack_col": "sector",
             "level_flow_in": 1,
             "level_flow_out": 0},
+        "Stromimport": {
+            "node_pattern": "(?P<level>\w+)_(?P<bus>b\d+)",
+            "stubname": "shortage_el",
+            "bus_pattern": 'b_el_\w+',
+            "unstack_col": None},
+        "Stromexport": {
+            "node_pattern": "(?P<level>\w+)_(?P<bus>b\d+)",
+            "stubname": "excess_el",
+            "bus_pattern": 'b_el_\w+',
+            "unstack_col": None,
+            "level_flow_in": 1,
+            "level_flow_out": 0},
     }
 
     flows = {}
