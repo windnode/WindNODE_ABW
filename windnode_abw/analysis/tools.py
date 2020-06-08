@@ -202,6 +202,57 @@ def aggregate_flows(results_raw):
     return results
 
 
+def extract_line_flow(results_raw, region, level_flow_in=0, level_flow_out=1):
+    bus_pattern = 'b_el_\w+'
+    stubname = "line"
+    line_suffix = "(?P<line_id>\d+)_b(?P<bus_from>\d+)_b(?P<bus_to>\d+)"
+    line_bus_suffix = "_".join([line_suffix, "(?P<bus>\d+)"])
+    line_pattern = "_".join([stubname, line_suffix])
+
+    flows_extract = results_raw.loc[:,
+                    results_raw.columns.get_level_values(level_flow_in).str.match(line_pattern)
+                    & results_raw.columns.get_level_values(level_flow_out).str.match(bus_pattern)]
+
+    # include bus id into other column level name
+    if level_flow_in == 0:
+        flows_extract.columns = [i + j.replace("b_el", "") for i, j in flows_extract.columns]
+    else:
+        flows_extract.columns = [j + i.replace("b_el", "") for i, j in flows_extract.columns]
+
+    # format to long
+    flows_extract.index.name = "timestamp"
+    flows_extract = flows_extract.reset_index()
+    flows_extracted_long = pd.wide_to_long(flows_extract,
+                                           stubnames=stubname,
+                                           i="timestamp", j="ags_tech", sep="_",
+                                           suffix=line_bus_suffix)
+
+    # introduce ags and technology as new index levels
+    idx_new = [list(flows_extracted_long.index.get_level_values(0))]
+    idx_split = flows_extracted_long.index.get_level_values(1).str.extract(line_bus_suffix)
+    [idx_new.append(c[1].tolist()) for c in idx_split.iteritems()]
+    flows_extracted_long.index = pd.MultiIndex.from_arrays(
+        idx_new,
+        names=["timestamp"] + list(idx_split.columns))
+
+    # combine to separate flows on same line into one flow. direction is distinguished by sign:
+    # positive: power goes from "from" to "to"; negative: power goes from "to" to "from"
+    positive = flows_extracted_long.loc[
+                flows_extracted_long.index.get_level_values(3 - level_flow_in)
+                == flows_extracted_long.index.get_level_values(4)]
+    positive.index = positive.index.droplevel("bus")
+    negative = flows_extracted_long.loc[
+                flows_extracted_long.index.get_level_values(3 - level_flow_out)
+                == flows_extracted_long.index.get_level_values(4)]
+    negative.index = negative.index.droplevel("bus")
+    line_flows = positive["line"] - negative["line"]
+
+    bus2ags = {str(k): str(int(v)) for k, v in region.buses["ags"].to_dict().items() if not pd.isna(v)}
+    line_flows.rename(index=bus2ags, inplace=True)
+
+    return line_flows
+
+
 def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname,
                         level_flow_in=0, level_flow_out=1, unstack_col="technology"):
     """
@@ -258,7 +309,7 @@ def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname
     return flows_formatted
 
 
-def flows_timexagsxtech(results_raw):
+def flows_timexagsxtech(results_raw, region):
     """
     Organized, extracted flows with dimensions time (x level) x ags x technology
 
@@ -356,6 +407,14 @@ def flows_timexagsxtech(results_raw):
         flows.pop(stor + " discharge")
         flows.pop(stor + " charge")
 
+
+    # Grid lines
+    flows["Stromnetz"] = pd.concat(
+        [extract_line_flow(results_raw, region).rename("out"),
+         extract_line_flow(results_raw, region,
+                           level_flow_in=1, level_flow_out=0
+                           ).rename("in")], axis=1)
+
     return flows
 
 
@@ -408,5 +467,6 @@ def results_tables_ags(aggregated_results, extracted_results, parameters, region
     results["Wärmenachfrage nach Gemeinde"] = extracted_results["Wärmenachfrage"].sum(level=["level", "ags"])
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
+    results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["line_id", "bus_from", "bus_to"])
 
     return results
