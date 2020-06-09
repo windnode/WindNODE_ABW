@@ -545,6 +545,15 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                            th_load.sum(axis=0) *\
                            region.heating_structure_dec_scn.loc[mun.Index][sector].loc['solar']
             th_residual_load = th_load - solar_feedin
+
+            # Reduce solar feedin at times when th. load < solar feedin
+            neg_th_residual_load = th_residual_load[th_residual_load < 0]
+            solar_feedin[neg_th_residual_load.index] = (
+                    solar_feedin[neg_th_residual_load.index] +
+                    neg_th_residual_load
+            )
+            th_residual_load[th_residual_load < 0] = 0
+
             del th_load
 
             for es in region.heating_structure_dec_scn.loc[mun.Index].itertuples():
@@ -1076,6 +1085,10 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                         region.heating_structure_dec_scn_wo_solar.loc[
                             mun.Index, 'ambient_heat'][sector]
                 )[datetime_index]
+
+                # Set residual load = 0 at times when th. load < solar feedin
+                th_residual_load[th_residual_load < 0] = 0
+
                 th_residual_load_sum, th_residual_load_max =\
                     th_residual_load.agg(['sum', 'max'])
 
