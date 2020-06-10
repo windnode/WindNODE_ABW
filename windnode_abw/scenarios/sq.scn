@@ -190,7 +190,7 @@
             pq_coeff = 0.85
             # months of BHKW maintenance (jan=1), leave empty for no maintenance
             #maint_months = 3,9
-            maint_months =
+            maint_months = 0
             # duration of BHKW maintenance in days
             maint_duration = 7
 
