@@ -158,7 +158,7 @@ if __name__ == "__main__":
             # note: dev scenarios have been moved to dev/,
             # use them 'scenario': 'dev/future'
             'scenario': scn_id,
-            'run_timestamp': time.strftime('%y%m%d_%H%M%S'),
+            'run_timestamp': time.strftime('%Y-%m-%d_%H%M%S'),
             'date_from': '2015-01-01 00:00:00',
             'date_to': '2015-12-31 23:00:00',
             'freq': '60min',
