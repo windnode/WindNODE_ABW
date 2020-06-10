@@ -376,18 +376,18 @@ def flows_timexagsxtech(results_raw, region):
             "unstack_col": "sector",
             "level_flow_in": 1,
             "level_flow_out": 0},
-        "Stromimport": {
-            "node_pattern": "(?P<level>\w+)_(?P<bus>b\d+)",
-            "stubname": "shortage_el",
-            "bus_pattern": 'b_el_\w+',
-            "unstack_col": None},
         "Stromexport": {
-            "node_pattern": "(?P<level>\w+)_(?P<bus>b\d+)",
+            "node_pattern": "(?P<level>\w+)_b(?P<bus>\d+)",
             "stubname": "excess_el",
             "bus_pattern": 'b_el_\w+',
-            "unstack_col": None,
+            "unstack_col": "level",
             "level_flow_in": 1,
             "level_flow_out": 0},
+        "Stromimport": {
+            "node_pattern": "(?P<level>\w+)_b(?P<bus>\d+)",
+            "stubname": "shortage_el",
+            "bus_pattern": 'b_el_\w+',
+            "unstack_col": "level"},
     }
 
     flows = {}
@@ -415,9 +415,37 @@ def flows_timexagsxtech(results_raw, region):
                            level_flow_in=1, level_flow_out=0
                            ).rename("in")], axis=1)
 
+    # Assign electricity import/export (shortage/excess) to region's ags
+    # and merge into Erzeugung/Nachfrage
+    for key in ["Stromimport", "Stromexport"]:
+        flows[key].rename(index=lambda b: non_region_bus2ags(b, region), level="bus", inplace=True)
+        flows[key].rename_axis(index={'bus': 'ags'}, inplace=True)
+        flows[key] = flows[key].sum(level=["timestamp", "ags"])
+    flows["Stromerzeugung"]["import"] = flows["Stromimport"].sum(axis=1)
+    flows["Stromnachfrage"]["export"] = flows["Stromexport"].sum(axis=1)
+    flows["Stromerzeugung"] = flows["Stromerzeugung"].fillna(0)
+    flows["Stromnachfrage"] = flows["Stromnachfrage"].fillna(0)
+
+
     return flows
 
 
+def non_region_bus2ags(bus_id, region):
+
+    bus_id = int(bus_id)
+
+    # Try to translate directly to ags code (only applicable for EHV buses)
+    ags = region.buses.loc[bus_id, "ags"]
+
+    # For HV buses, the translation needs the intermediate step via the line
+    if pd.isna(ags):
+        region_bus = region.lines.loc[region.lines["bus0"] == bus_id, "bus1"]
+        if region_bus.empty:
+            region_bus = region.lines.loc[region.lines["bus1"] == bus_id, "bus0"]
+
+        ags = region.buses.loc[region_bus, "ags"]
+
+    return str(int(ags))
 def aggregate_parameters(region):
 
     params = {}
