@@ -3,7 +3,9 @@ from windnode_abw.tools.logger import setup_logger, log_memory_usage
 logger = setup_logger()
 
 import os
+import argparse
 
+from windnode_abw import __path__ as wn_path
 from windnode_abw.model import Region
 from windnode_abw.model.region.model import simulate, create_oemof_model
 from windnode_abw.model.region.tools import calc_line_loading
@@ -130,28 +132,49 @@ def run_scenario(cfg):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='WindNODE ABW energy system.')
+    parser.add_argument('scn', metavar='SCENARIO', type=str, nargs='*',
+                        default='dev/future',
+                        help='ID of scenario to be run, e.g. \'ISE2050\'. '
+                             'You may pass multiple, e.g. \'dev/sq ISE2050\'. '
+                             'Use \'all\' for all scenarios. '
+                             'If nothing is given, it defaults to scenario '
+                             'dev/future.')
+    args = parser.parse_args()
 
-    # configuration
-    cfg = {
-        # note: dev scenarios have been moved to dev/,
-        # use them 'scenario': 'dev/future'
-        'scenario': 'dev/future',
-        'date_from': '2015-01-01 00:00:00',
-        'date_to': '2015-01-04 23:00:00',
-        'freq': '60min',
-        'solver': 'gurobi',
-        'verbose': True,
-        'save_lp': False,
-        'dump_esys': False,
-        'load_esys': False,
-        'dump_results': True
-    }
+    if args.scn == ['all']:
+        scenarios = [file.split('.')[0]
+                     for file in os.listdir(os.path.join(wn_path[0],
+                                                         'scenarios'))
+                     if file.endswith(".scn")]
+    else:
+        scenarios = [args.scn]
 
-    cfg['scn_data'] = load_scenario_cfg(cfg['scenario'])
+    logger.info(f'Running scenarios: {str(scenarios)}')
 
-    esys, region = run_scenario(cfg=cfg)
+    for scn_id in scenarios:
+        cfg = {
+            # note: dev scenarios have been moved to dev/,
+            # use them 'scenario': 'dev/future'
+            'scenario': scn_id,
+            'date_from': '2015-01-01 00:00:00',
+            'date_to': '2015-01-01 23:00:00',
+            'freq': '60min',
+            'solver': 'gurobi',
+            'verbose': True,
+            'save_lp': False,
+            'dump_esys': False,
+            'load_esys': False,
+            'dump_results': True
+        }
 
-    debug_plot_results(esys=esys,
-                       region=region)
+        cfg['scn_data'] = load_scenario_cfg(cfg['scenario'])
 
-    logger.info('Done!')
+        esys, region = run_scenario(cfg=cfg)
+
+        logger.info(f'===== Scenario {scn_id} done! =====')
+
+    # debug_plot_results(esys=esys,
+    #                    region=region)
+
+    logger.info('===== All done! =====')
