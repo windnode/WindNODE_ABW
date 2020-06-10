@@ -1,4 +1,4 @@
-# Convert parameter structure from scenario file to CSV file
+# Convert parameter structure from scenario file (.scn) to CSV file
 # (used to avoid manual creation of export sheet in scenario table)
 
 import os
@@ -14,6 +14,7 @@ if __name__ == "__main__":
     # out file
     csv_file = 'scenario_header.csv'
     # number of value rows to be created
+    # (all filled with identical data from scenario above)
     row_count = 39
     # =========================================
 
