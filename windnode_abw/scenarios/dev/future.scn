@@ -190,7 +190,7 @@
             pq_coeff = 0.85
             # months of BHKW maintenance (jan=1), leave empty for no maintenance
             #maint_months = 3,9
-            maint_months =
+            maint_months = 0
             # duration of BHKW maintenance in days
             maint_duration = 7
 
@@ -387,4 +387,4 @@
             method = interval
             shift_interval = 24
             delay_time = 12
-            mode = 'flex_min'
+            mode = flex_min
