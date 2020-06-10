@@ -133,7 +133,9 @@ if __name__ == "__main__":
 
     # configuration
     cfg = {
-        'scenario': 'future',
+        # note: dev scenarios have been moved to dev/,
+        # use them 'scenario': 'dev/future'
+        'scenario': 'dev/future',
         'date_from': '2015-01-01 00:00:00',
         'date_to': '2015-01-04 23:00:00',
         'freq': '60min',
