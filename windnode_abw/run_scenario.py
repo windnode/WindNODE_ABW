@@ -154,9 +154,6 @@ if __name__ == "__main__":
 
     esys, region = run_scenario(cfg=cfg)
 
-    # calc_line_loading(esys=esys,
-    #                   region=region)
-
     debug_plot_results(esys=esys,
                        region=region)
 
