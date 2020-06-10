@@ -141,7 +141,7 @@ if __name__ == "__main__":
         'freq': '60min',
         'solver': 'gurobi',
         'verbose': True,
-        'save_lp': True,
+        'save_lp': False,
         'dump_esys': False,
         'load_esys': False,
         'dump_results': True
