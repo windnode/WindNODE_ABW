@@ -153,6 +153,7 @@ if __name__ == "__main__":
 
     logger.info(f'Running scenarios: {str(scenarios)}')
     run_timestamp = time.strftime('%Y-%m-%d_%H%M%S')
+    logger.info(f'Run timestamp: {run_timestamp}')
 
     for scn_id in scenarios:
         cfg = {
@@ -170,7 +171,6 @@ if __name__ == "__main__":
             'load_esys': False,
             'dump_results': True
         }
-        logger.info(f'Run timestamp: {run_timestamp}')
 
         cfg['scn_data'] = load_scenario_cfg(cfg['scenario'])
 
