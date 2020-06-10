@@ -581,13 +581,16 @@ def oemof_nodes_from_excel(filename, header_lines=0):
     return nodes_data
 
 
-def load_scenario_cfg(scn_name=None):
+def load_scenario_cfg(scn_name=None, template=False):
     """Load scenario from ConfigObj file
 
     Parameters
     ----------
     scn_name : :obj:`str`
         Name of scenario
+    template : :obj:`bool`
+        Indicates if scenario is a template (file extension
+        .scnt is used instead of .scn)
     """
 
     def convert2numeric(conf_dict):
@@ -607,9 +610,10 @@ def load_scenario_cfg(scn_name=None):
     if scn_name is not None:
         import windnode_abw
 
+        file_ext = '.scnt' if template else '.scn'
         path = os.path.join(windnode_abw.__path__[0],
                             'scenarios',
-                            scn_name + '.scn')
+                            scn_name + file_ext)
 
         if not os.path.isfile(path):
             msg = f'Scenario file {path} does not exist, aborting'
