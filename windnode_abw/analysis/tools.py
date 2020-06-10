@@ -388,6 +388,20 @@ def flows_timexagsxtech(results_raw, region):
             "stubname": "shortage_el",
             "bus_pattern": 'b_el_\w+',
             "unstack_col": "level"},
+        "Stromnachfrage Heizstab": {
+            "node_pattern": "th_(?P<level>\w{3})_(?P<ags>\d+)(?:_hh_efh|_hh_mfh|_rca)?_(?P<technology>\w+)",
+            "stubname": "gen",
+            "bus_pattern": 'b_el_\w+',
+            "unstack_col": "technology",
+            "level_flow_in": 1,
+            "level_flow_out": 0},
+        "Stromnachfrage PtH": {
+            "node_pattern": "(?P<level>\w{3})_(?P<technology>\w+)_(?P<ags>\d+)(?:_hh_efh|_hh_mfh|_rca)?",
+            "stubname": "flex",
+            "bus_pattern": 'b_el_\w+',
+            "unstack_col": "technology",
+            "level_flow_in": 1,
+            "level_flow_out": 0},
     }
 
     flows = {}
@@ -426,6 +440,12 @@ def flows_timexagsxtech(results_raw, region):
     flows["Stromerzeugung"] = flows["Stromerzeugung"].fillna(0)
     flows["Stromnachfrage"] = flows["Stromnachfrage"].fillna(0)
 
+    # Electricity demand serving thermal demand
+    flows["Stromnachfrage Wärme"] = pd.concat(
+        [flows["Stromnachfrage Heizstab"], flows["Stromnachfrage PtH"]],
+        axis=1).fillna(0)
+    flows.pop("Stromnachfrage Heizstab")
+    flows.pop("Stromnachfrage PtH")
 
     return flows
 
