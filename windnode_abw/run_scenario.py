@@ -4,6 +4,7 @@ logger = setup_logger()
 
 import os
 import argparse
+import time
 
 from windnode_abw import __path__ as wn_path
 from windnode_abw.model import Region
@@ -157,6 +158,7 @@ if __name__ == "__main__":
             # note: dev scenarios have been moved to dev/,
             # use them 'scenario': 'dev/future'
             'scenario': scn_id,
+            'run_timestamp': time.strftime('%y%m%d_%H%M%S'),
             'date_from': '2015-01-01 00:00:00',
             'date_to': '2015-12-31 23:00:00',
             'freq': '60min',
@@ -167,6 +169,7 @@ if __name__ == "__main__":
             'load_esys': False,
             'dump_results': True
         }
+        logger.info(f'Run timestamp: {cfg["run_timestamp"]}')
 
         cfg['scn_data'] = load_scenario_cfg(cfg['scenario'])
 

@@ -7,7 +7,6 @@ import os
 import requests
 import pandas as pd
 import keyring
-import time
 import json
 
 from sqlalchemy.orm import sessionmaker
@@ -643,8 +642,7 @@ def export_results(results, cfg, solver_meta):
                              config.get('user_dirs',
                                         'results_dir')
                              )
-    results_subdir = time.strftime('%y%m%d_%H%M%S')
-    results_path = os.path.join(base_path, results_subdir, scenario_id)
+    results_path = os.path.join(base_path, cfg['run_timestamp'], scenario_id)
     os.makedirs(results_path)
 
     logger.info(f'Exporting results to {results_path} ...')
