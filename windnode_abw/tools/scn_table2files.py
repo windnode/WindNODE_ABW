@@ -68,7 +68,6 @@ if __name__ == "__main__":
         # write file
         scn_configobj.filename = os.path.join(windnode_abw.__path__[0],
                                               'scenarios',
-                                              'test',
                                               f'{scn_id}.scn')
         scn_configobj.write()
 
