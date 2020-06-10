@@ -16,7 +16,7 @@
 
 # general options
 [general]
-    id = NEP2035
+    id = future
 
     # the year affects some of the data used by the model:
     #   * to decide on wind time series (2017: wind_sq / other: wind_fs)
@@ -86,7 +86,7 @@
         #   <VALUE>:  Nom. power in MW (if set, param 'pv_land_use_scenario'
         #             is used to distribute this power to municipalities.
         #
-        pv_installed_power = MAX_AREA
+        pv_installed_power = SQ
 
         # potential area scenario to be used to build ground mounted PV
         # possible values:
@@ -99,7 +99,7 @@
         # the municipalities proportionally to the potential areas.
         # See function 'calc_available_pv_capacity()' for a list of
         # possible combinations.
-        pv_land_use_scenario = H
+        pv_land_use_scenario = SQ
 
         # max. usable area in ha for PV installations on agricultural areas
         # (1 % of the total area of fields and meadows in ABW)
@@ -143,7 +143,7 @@
         #   <VALUE>:  Nom. power in MW (if set, param 'wec_land_use_scenario'
         #             is used to distribute this power to municipalities.
         #
-        wec_installed_power = MAX_AREA
+        wec_installed_power = SQ
 
         # potential area scenario to be used to build WEC
         # possible values:
@@ -158,7 +158,7 @@
         # the municipalities proportionally to the potential areas.
         # See function 'calc_available_wec_capacity()' for a list of
         # possible combinations.
-        wec_land_use_scenario = s500f1
+        wec_land_use_scenario = SQ
 
         # usable area (0..1) for WEC installations
         wec_usable_area = 0.1
@@ -204,8 +204,8 @@
             nom_th_power = 60
             # minimal th. energy share provided by GuD in relation to demand
             # TODO: Set back to 0.8 for annual optimization
-            #min_th_energy_share = 0.8
-            min_th_energy_share = 0
+            min_th_energy_share = 0.8
+            #min_th_energy_share = 0
             # cb-coefficient/back-pressure coefficient (Stromkennzahl/P-Q ratio)
             cb_coeff = 1.2
             # cv-coefficient/beta (Stromverlustkenziffer)
@@ -240,31 +240,33 @@
 # storages
 [storage]
     # decentral heat storages for heat pumps only
-    # TODO: Replace costs, capacity
     [[th_dec_pth_storage]]
         [[[enabled]]]
             enabled = 1
-        [[[inflow]]]
-            # prevent charging restrictions
-            nominal_value = 1000
-            variable_costs = 1
-        [[[outflow]]]
-            # prevent discharging restrictions
-            nominal_value = 1000
+        [[[general]]]
+            # share of heat pumps equipped with storage (0..1)
+            pth_storage_share = 0.5
+
+            # spec. capacity in liter/kW (m^3/MW) installed heat pump power (el.)
+            capacity_spec = 60
+            # temperature spread
+            delta_temp = 40
+
+            # c-rates according to DEA stor, S.66
+            c_rate_charge = 6.7
+            c_rate_discharge = 6.7
         [[[params]]]
-            nominal_storage_capacity = 100
             loss_rate = 0.021
             inflow_conversion_factor = 1
             outflow_conversion_factor = 1
 
     # heat storage for Dessau
-    # TODO: Replace costs, capacity
+    # TODO: Replace capacity
     [[th_cen_storage]]
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]
             nominal_value = 60
-            variable_costs = 1
         [[[outflow]]]
             nominal_value = 60
         [[[params]]]
@@ -307,7 +309,7 @@
 
 # flexibility options
 [flexopt]
-    # batteries
+    # large-scale batteries (values for entire region)
     [[flex_bat_large]]
         [[[enabled]]]
             enabled = 1
@@ -326,6 +328,7 @@
             inflow_conversion_factor = 0.94
             outflow_conversion_factor = 0.93
 
+    # PV batteries in small rooftop solar home systems (values for entire region)
     [[flex_bat_small]]
         [[[enabled]]]
             enabled = 1
