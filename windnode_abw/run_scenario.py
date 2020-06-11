@@ -149,7 +149,7 @@ if __name__ == "__main__":
                                                          'scenarios'))
                      if file.endswith(".scn")]
     else:
-        scenarios = [args.scn]
+        scenarios = args.scn
 
     logger.info(f'Running scenarios: {str(scenarios)}')
     run_timestamp = time.strftime('%Y-%m-%d_%H%M%S')
