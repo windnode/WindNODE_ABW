@@ -534,11 +534,11 @@ def highlevel_results(results_tables):
     highlevel["Stromimport"] = results_tables["Stromerzeugung nach Gemeinde"]["import"].sum()
     highlevel["Stromexport"] = results_tables["Stromnachfrage nach Gemeinde"]["export"].sum()
     highlevel["Stromimport %-Nachfrage"] = results_tables["Stromerzeugung nach Gemeinde"]["import"].sum() / (highlevel[
-        "Stromnachfrage Wärme"] + highlevel["Stromnachfrage Wärme"]) * 1e2
+        "Stromnachfrage"] + highlevel["Stromnachfrage Wärme"]) * 1e2
     highlevel["Stromexport %-Nachfrage"] = results_tables["Stromnachfrage nach Gemeinde"]["export"].sum() / (highlevel[
-        "Stromnachfrage Wärme"] + highlevel["Stromnachfrage Wärme"]) * 1e2
+        "Stromnachfrage"] + highlevel["Stromnachfrage Wärme"]) * 1e2
     highlevel["Strombilanz"] = highlevel["Stromimport"] - highlevel["Stromexport"]
     highlevel["Eigenversorgung bilanziell"] = 1 - (
-        highlevel["Stromimport"] / (highlevel["Stromnachfrage Wärme"] + highlevel["Stromnachfrage Wärme"]) * 100)
+        highlevel["Stromimport"] / (highlevel["Stromnachfrage"] + highlevel["Stromnachfrage Wärme"]) * 100)
 
     return highlevel
