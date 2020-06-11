@@ -100,7 +100,8 @@ def run_scenario(cfg):
 
     om = simulate(om=om,
                   solver=cfg['solver'],
-                  verbose=cfg['verbose'])
+                  verbose=cfg['solver_verbose'],
+                  keepfiles=cfg['solver_keepfiles'])
 
     log_memory_usage()
     logger.info('Processing results...')
@@ -201,7 +202,8 @@ if __name__ == "__main__":
         'date_to': '2015-12-31 23:00:00',
         'freq': '60min',
         'solver': 'gurobi',
-        'verbose': True,
+        'solver_verbose': True,
+        'solver_keepfiles': False,
         'save_lp': False,
         'dump_esys': False,
         'load_esys': False,
