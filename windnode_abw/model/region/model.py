@@ -11,7 +11,7 @@ from windnode_abw.model.region.tools import calc_heat_pump_cops, \
     calc_dsm_cap_down, calc_dsm_cap_up, create_maintenance_timeseries
 
 
-def simulate(om, solver='cbc', verbose=True):
+def simulate(om, solver='cbc', verbose=True, keepfiles=False):
     """Optimize energy system
 
     Parameters
@@ -21,6 +21,8 @@ def simulate(om, solver='cbc', verbose=True):
         Solver which is used
     verbose : :obj:`bool`
         If set, be verbose
+    keepfiles : :obj:`bool`
+        If set, temporary solver files will be kept in /tmp/
 
     Returns
     -------
@@ -33,7 +35,7 @@ def simulate(om, solver='cbc', verbose=True):
 
     om.solve(solver=solver,
              solve_kwargs={'tee': verbose,
-                           'keepfiles': True})
+                           'keepfiles': keepfiles})
 
     return om
 
