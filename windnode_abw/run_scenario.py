@@ -135,7 +135,7 @@ def run_scenario(cfg):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='WindNODE ABW energy system.')
     parser.add_argument('scn', metavar='SCENARIO', type=str, nargs='*',
-                        default='dev/future',
+                        default=['dev/future'],
                         help='ID of scenario to be run, e.g. \'ISE2050\'. '
                              'You may pass multiple, e.g. \'dev/sq ISE2050\'. '
                              'Use \'all\' for all scenarios. '
