@@ -162,7 +162,9 @@ if __name__ == "__main__":
                         dest='proc_count', default=1,
                         help='Number of processes to be used by '
                              'multiprocessing. If values is 1 or not '
-                             'provided, program is executed without MP.')
+                             'provided, program is executed without MP. '
+                             'If value exceeds number of scenarios, number of '
+                             'scenarios is used.')
     args = parser.parse_args()
 
     # check if sufficient CPU cores
