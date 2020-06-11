@@ -521,6 +521,14 @@ def aggregate_parameters(region):
     params["Installierte Kapazität Großbatterien"] = region.batteries_large
     params["Installierte Kapazität PV-Batteriespeicher"] = region.batteries_small
 
+    # Installed capacity electricity supply
+    params["Installed capacity electricity supply"] = \
+        region.muns.loc[:, region.muns.columns.str.startswith("gen_capacity")]
+    params["Installed capacity electricity supply"].columns = \
+        params["Installed capacity electricity supply"].columns.str.replace("gen_capacity_", "")
+    params["Installed capacity electricity supply"].drop(
+        ["sewage_landfill_gas", "conventional_large", "conventional_small", "solar_heat"],
+        axis=1, inplace=True)
     return params
 
 
