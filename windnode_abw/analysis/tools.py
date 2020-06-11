@@ -522,7 +522,7 @@ def results_tables_ags(aggregated_results, extracted_results, parameters, region
     return results
 
 
-def highlevel_results(results_tables):
+def highlevel_results(results_tables, results_txaxt):
     """Aggregate results to scalar values for each scenario"""
 
     highlevel = {}
@@ -540,5 +540,9 @@ def highlevel_results(results_tables):
     highlevel["Strombilanz"] = highlevel["Stromimport"] - highlevel["Stromexport"]
     highlevel["Eigenversorgung bilanziell"] = 1 - (
         highlevel["Stromimport"] / (highlevel["Stromnachfrage"] + highlevel["Stromnachfrage Wärme"]) * 100)
+    highlevel["Eigenversorgung zeitlich"] = 1 - (
+            results_txaxt["Stromimport"].sum(level="timestamp").sum(axis=1) / (
+            results_txaxt["Stromnachfrage"].sum(level="timestamp").sum(axis=1) +
+            results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)) * 100).mean()
 
     return highlevel
