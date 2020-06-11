@@ -214,6 +214,7 @@ if __name__ == "__main__":
         cfgs = [dict(**c, **{'scenario': s})
                 for c, s in zip([cfg] * len(scenarios), scenarios)]
         pool.map(run_scenario, cfgs)
+        pool.close()
 
     # do not use MP
     else:
