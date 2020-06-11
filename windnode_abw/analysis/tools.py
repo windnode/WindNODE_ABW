@@ -541,4 +541,4 @@ def highlevel_results(results_tables, results_txaxt):
             results_txaxt["Stromnachfrage"].sum(level="timestamp").sum(axis=1) +
             results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)))) * 100).mean()
 
-    return highlevel
+    return pd.Series(highlevel)
