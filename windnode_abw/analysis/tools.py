@@ -502,14 +502,10 @@ def aggregate_parameters(region):
     return params
 
 
-def results_tables_ags(aggregated_results, extracted_results, parameters, region):
+def results_tables_ags(extracted_results, parameters, region):
 
     results = {}
 
-    results["Energienachfrage nach Gemeinde"] = pd.concat([
-        aggregated_results["Strombedarf nach Gemeinde"].sum().rename("Strombedarf"),
-        aggregated_results["Wärmebedarf nach Gemeinde"].sum().rename("Wärmebedarf")],
-        axis=1)
     results["Stromerzeugung nach Gemeinde"] = extracted_results["Stromerzeugung"].sum(level="ags")
     results["Stromnachfrage nach Gemeinde"] = extracted_results["Stromnachfrage"].sum(level="ags")
     results["Stromnachfrage Wärme nach Gemeinde"] = extracted_results["Stromnachfrage Wärme"].sum(level="ags")
@@ -538,11 +534,11 @@ def highlevel_results(results_tables, results_txaxt):
     highlevel["Stromexport %-Nachfrage"] = results_tables["Stromnachfrage nach Gemeinde"]["export"].sum() / (highlevel[
         "Stromnachfrage"] + highlevel["Stromnachfrage Wärme"]) * 1e2
     highlevel["Strombilanz"] = highlevel["Stromimport"] - highlevel["Stromexport"]
-    highlevel["Eigenversorgung bilanziell"] = 1 - (
-        highlevel["Stromimport"] / (highlevel["Stromnachfrage"] + highlevel["Stromnachfrage Wärme"]) * 100)
-    highlevel["Eigenversorgung zeitlich"] = 1 - (
+    highlevel["Eigenversorgung bilanziell"] = (1 - (
+        highlevel["Stromimport"] / (highlevel["Stromnachfrage"] + highlevel["Stromnachfrage Wärme"]))) * 100
+    highlevel["Eigenversorgung zeitlich"] = ((1 - (
             results_txaxt["Stromimport"].sum(level="timestamp").sum(axis=1) / (
             results_txaxt["Stromnachfrage"].sum(level="timestamp").sum(axis=1) +
-            results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)) * 100).mean()
+            results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)))) * 100).mean()
 
     return highlevel
