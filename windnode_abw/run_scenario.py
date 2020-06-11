@@ -132,7 +132,7 @@ def run_scenario(cfg):
                        cfg=cfg,
                        solver_meta=esys.results['meta'])
 
-    logger.info(f'===== Scenario {scn_id} done! =====')
+    logger.info(f'===== Scenario {cfg["scenario"]} done! =====')
 
     return esys, region
 
