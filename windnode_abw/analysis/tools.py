@@ -1,11 +1,24 @@
 import pandas as pd
 
 
-NAMES = {
+INTERNAL_NAMES = {
     "stor_battery_large": "flex_bat_large",
     "stor_battery_small": "flex_bat_small",
     "stor_th_large": "th_cen_storage",
     "stor_th_small": "th_dec_pth_storage",
+}
+
+PRINT_NAMES = {
+    'bhkw': "Small CHP",
+    'bio': "Biomass",
+    'gas': "Open-cycle gas turbine",
+    'gud': "Combined-cycle gas turbine",
+    'hydro': "Hydro",
+    'pv_ground': "PV ground-mounted",
+    'pv_roof_large': "PV roof top (large)",
+    'pv_roof_small': "PV roof top (small)",
+    'wind': "Wind",
+    'import': "Electricity imports (national grid)"
 }
 
 
@@ -478,7 +491,7 @@ def aggregate_parameters(region):
     # Speicher
     params["Speicher"] = region.tech_assumptions_scn[
         region.tech_assumptions_scn.index.str.startswith("stor_")].drop("sys_eff", axis=1)
-    params["Speicher"].rename(index=NAMES, inplace=True)
+    params["Speicher"].rename(index=INTERNAL_NAMES, inplace=True)
 
     # add parameters from config file to Speicher Dataframe
     additional_stor_params = {}
@@ -542,5 +555,9 @@ def highlevel_results(results_tables, results_txaxt):
             results_txaxt["Stromimport"].sum(level="timestamp").sum(axis=1) / (
             results_txaxt["Stromnachfrage"].sum(level="timestamp").sum(axis=1) +
             results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)))) * 100).mean()
+
+    for col in results_tables["Stromerzeugung nach Gemeinde"].columns:
+        if col not in ["import", "export"]:
+            highlevel[PRINT_NAMES[col]] = results_tables["Stromerzeugung nach Gemeinde"][col].sum()
 
     return pd.Series(highlevel)
