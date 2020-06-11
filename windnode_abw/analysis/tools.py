@@ -466,6 +466,7 @@ def non_region_bus2ags(bus_id, region):
         ags = region.buses.loc[region_bus, "ags"]
 
     return str(int(ags))
+
 def aggregate_parameters(region):
 
     params = {}
@@ -511,6 +512,7 @@ def results_tables_ags(aggregated_results, extracted_results, parameters, region
         axis=1)
     results["Stromerzeugung nach Gemeinde"] = extracted_results["Stromerzeugung"].sum(level="ags")
     results["Stromnachfrage nach Gemeinde"] = extracted_results["Stromnachfrage"].sum(level="ags")
+    results["Stromnachfrage Wärme nach Gemeinde"] = extracted_results["Stromnachfrage Wärme"].sum(level="ags")
     results["Wärmeerzeugung nach Gemeinde"] = extracted_results["Wärmeerzeugung"].sum(level=["level", "ags"])
     results["Wärmenachfrage nach Gemeinde"] = extracted_results["Wärmenachfrage"].sum(level=["level", "ags"])
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
@@ -518,3 +520,25 @@ def results_tables_ags(aggregated_results, extracted_results, parameters, region
     results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["line_id", "bus_from", "bus_to"])
 
     return results
+
+
+def highlevel_results(results_tables):
+    """Aggregate results to scalar values for each scenario"""
+
+    highlevel = {}
+
+    # TODO: Netzverluste af IMEX lines fehlen, müssen aber berücksichtigt werden, da sie bei Stromimport/-export anfallen
+    highlevel["Netzverluste"] = (results_tables["Stromnetzleitungen"]["in"] - results_tables["Stromnetzleitungen"]["out"]).abs().sum()
+    highlevel["Stromnachfrage"] = results_tables["Stromnachfrage nach Gemeinde"].sum().sum()
+    highlevel["Stromnachfrage Wärme"] = results_tables["Stromnachfrage Wärme nach Gemeinde"].sum().sum()
+    highlevel["Stromimport"] = results_tables["Stromerzeugung nach Gemeinde"]["import"].sum()
+    highlevel["Stromexport"] = results_tables["Stromnachfrage nach Gemeinde"]["export"].sum()
+    highlevel["Stromimport %-Nachfrage"] = results_tables["Stromerzeugung nach Gemeinde"]["import"].sum() / (highlevel[
+        "Stromnachfrage Wärme"] + highlevel["Stromnachfrage Wärme"]) * 1e2
+    highlevel["Stromexport %-Nachfrage"] = results_tables["Stromnachfrage nach Gemeinde"]["export"].sum() / (highlevel[
+        "Stromnachfrage Wärme"] + highlevel["Stromnachfrage Wärme"]) * 1e2
+    highlevel["Strombilanz"] = highlevel["Stromimport"] - highlevel["Stromexport"]
+    highlevel["Eigenversorgung bilanziell"] = 1 - (
+        highlevel["Stromimport"] / (highlevel["Stromnachfrage Wärme"] + highlevel["Stromnachfrage Wärme"]) * 100)
+
+    return highlevel
