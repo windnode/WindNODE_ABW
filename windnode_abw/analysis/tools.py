@@ -331,6 +331,40 @@ def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname
     return flows_formatted
 
 
+def extract_flow_params(flow_params_raw, node_pattern, bus_pattern, stubname,
+                        level_flow_in=0, level_flow_out=1, params=None):
+    # Get an extract of relevant flows
+    params_extract = flow_params_raw.loc[params,
+                    flow_params_raw.columns.get_level_values(level_flow_in).str.match("_".join([
+                        stubname, node_pattern]))
+                    & flow_params_raw.columns.get_level_values(level_flow_out).str.match(bus_pattern)].astype(float)
+
+    # transform to wide-to-long format while dropping bus column level
+    params_extract = params_extract.sum(level=level_flow_in, axis=1).T
+    params_extract.index = pd.MultiIndex.from_frame(params_extract.index.str.extract(node_pattern))
+
+    return params_extract
+
+
+def flow_params_agsxtech(results_raw):
+
+    # define extraction pattern
+    param_extractor = {
+        "Stromerzeugung": {
+            "node_pattern": "(?P<ags>\d+)_(?P<technology>\w+)",
+            "stubname": "gen_th_cen",
+            "bus_pattern": 'b_el_\d+',
+            "params": ["emissions", "nominal_value", "variable_costs"]},
+    }
+
+
+    params = {}
+    for name, patterns in param_extractor.items():
+        params[name] = extract_flow_params(results_raw, **patterns)
+
+    return params
+
+
 def flows_timexagsxtech(results_raw, region):
     """
     Organized, extracted flows with dimensions time (x level) x ags x technology
@@ -489,7 +523,9 @@ def non_region_bus2ags(bus_id, region):
 
     return str(int(ags))
 
-def aggregate_parameters(region):
+def aggregate_parameters(region, results_raw):
+
+    flows_params = flow_params_agsxtech(results_raw["params_flows"])
 
     params = {}
 
@@ -529,6 +565,13 @@ def aggregate_parameters(region):
     params["Installed capacity electricity supply"].drop(
         ["sewage_landfill_gas", "conventional_large", "conventional_small", "solar_heat"],
         axis=1, inplace=True)
+
+    # Installed capacity from model results (include pre-calculations)
+    capacity_sepcial = flows_params["Stromerzeugung"]["nominal_value"].unstack("technology").fillna(0)
+    capacity_sepcial.index = capacity_sepcial.index.astype(int)
+    params["Installed capacity electricity supply"] = \
+        params["Installed capacity electricity supply"].join(capacity_sepcial).fillna(0)
+
     return params
 
 
@@ -558,7 +601,6 @@ def results_tech(results_axlxt):
             el_generation_tmp[PRINT_NAMES[col]] = results_axlxt["Stromerzeugung nach Gemeinde"][col].sum()
     results["Electricity generation"] = pd.Series(el_generation_tmp)
 
-    el_generation_tmp = {}
     results["Heat generation"] = results_axlxt['Wärmeerzeugung nach Gemeinde'].sum().rename(PRINT_NAMES)
 
     return results
