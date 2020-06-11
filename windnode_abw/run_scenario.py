@@ -134,7 +134,8 @@ def run_scenario(cfg):
 
     logger.info(f'===== Scenario {cfg["scenario"]} done! =====')
 
-    return esys, region
+    # debug_plot_results(esys=esys,
+    #                    region=region)
 
 
 if __name__ == "__main__":
@@ -219,8 +220,5 @@ if __name__ == "__main__":
         for scn_id in scenarios:
             cfg['scenario'] = scn_id
             esys, region = run_scenario(cfg=cfg)
-
-            # debug_plot_results(esys=esys,
-            #                    region=region)
 
     logger.info('===== All done! =====')
