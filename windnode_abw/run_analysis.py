@@ -8,7 +8,7 @@ config.load_config('config_data.cfg')
 config.load_config('config_misc.cfg')
 from windnode_abw.tools.data_io import load_results
 from windnode_abw.analysis.tools import aggregate_flows, aggregate_parameters, flows_timexagsxtech, \
-    results_tables_ags, highlevel_results
+    results_agsxlevelxtech, highlevel_results, results_tech
 from windnode_abw.model import Region
 from windnode_abw.tools.draw import sample_plots
 
@@ -36,10 +36,13 @@ if __name__ == "__main__":
     flows_timexagsxtech = flows_timexagsxtech(results_raw["flows"], region)
 
     # Aggregation of results to region level (dimensions: ags code (region) x technology)
-    results_tables = results_tables_ags(flows_timexagsxtech, parameters, region)
+    results_axlxt = results_agsxlevelxtech(flows_timexagsxtech, parameters, region)
+
+    # Further aggregation and post-analysis calculations
+    results = results_tech(results_axlxt)
 
     # Aggregation to scalar result values
-    highlevel_results = highlevel_results(results_tables, flows_timexagsxtech)
+    highlevel_results = highlevel_results(results_axlxt, flows_timexagsxtech)
 
     sample_plots(region=region,
                  results=results)

@@ -18,7 +18,16 @@ PRINT_NAMES = {
     'pv_roof_large': "PV roof top (large)",
     'pv_roof_small': "PV roof top (small)",
     'wind': "Wind",
-    'import': "Electricity imports (national grid)"
+    'import': "Electricity imports (national grid)",
+    "elenergy": "Direct electric heating",
+    "fuel_oil": "Oil heating",
+    "gas_boiler": "Gas (district heating)",
+    "natural_gas": "Gas heating",
+    "solar": "Solar thermal heating",
+    "wood": "Wood heating",
+    "pth": "Power-to-heat (district heaing)",
+    "pth_ASHP": "Air source heat pump",
+    "pth_GSHP": "Ground source heat pump",
 }
 
 
@@ -515,7 +524,7 @@ def aggregate_parameters(region):
     return params
 
 
-def results_tables_ags(extracted_results, parameters, region):
+def results_agsxlevelxtech(extracted_results, parameters, region):
 
     results = {}
 
@@ -527,6 +536,22 @@ def results_tables_ags(extracted_results, parameters, region):
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
     results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["line_id", "bus_from", "bus_to"])
+
+    return results
+
+
+def results_tech(results_axlxt):
+    """Derived results aggregated to entire region for individual technologies considered"""
+    results = {}
+
+    el_generation_tmp = {}
+    for col in results_axlxt["Stromerzeugung nach Gemeinde"].columns:
+        if col not in ["import", "export"]:
+            el_generation_tmp[PRINT_NAMES[col]] = results_axlxt["Stromerzeugung nach Gemeinde"][col].sum()
+    results["Electricity generation"] = pd.Series(el_generation_tmp)
+
+    el_generation_tmp = {}
+    results["Heat generation"] = results_axlxt['Wärmeerzeugung nach Gemeinde'].sum().rename(PRINT_NAMES)
 
     return results
 
@@ -556,8 +581,6 @@ def highlevel_results(results_tables, results_txaxt):
             results_txaxt["Stromnachfrage"].sum(level="timestamp").sum(axis=1) +
             results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)))) * 100).mean()
 
-    for col in results_tables["Stromerzeugung nach Gemeinde"].columns:
-        if col not in ["import", "export"]:
-            highlevel[PRINT_NAMES[col]] = results_tables["Stromerzeugung nach Gemeinde"][col].sum()
+
 
     return pd.Series(highlevel)
