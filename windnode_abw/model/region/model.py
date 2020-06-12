@@ -271,8 +271,17 @@ def create_el_model(region=None, datetime_index=None):
                 label=f'trafo_{idx}_b{row["bus0"]}_b{row["bus1"]}',
                 inputs={bus0: solph.Flow(),
                         bus1: solph.Flow()},
-                outputs={bus0: solph.Flow(nominal_value=row['s_nom']),
-                         bus1: solph.Flow(nominal_value=row['s_nom'])},
+                outputs={bus0: solph.Flow(
+                            #nominal_value=row['s_nom'],
+                            investment=solph.Investment(ep_costs=0.0001,
+                                                        existing=row['s_nom'])
+                         ),
+                         bus1: solph.Flow(
+                            #nominal_value=row['s_nom'],
+                            investment=solph.Investment(ep_costs=0.0001,
+                                                        existing=row['s_nom'])
+                         )
+                },
                 # TODO: Revise efficiencies
                 conversion_factors={
                     (bus0, bus1): scn_data['grid']['trafos']['params']['conversion_factor'],
@@ -344,18 +353,29 @@ def create_el_model(region=None, datetime_index=None):
                         imex_bus: solph.Flow()},
                 outputs={
                     bus: solph.Flow(
-                        nominal_value=s_nom *
-                                      scn_data['grid']['extgrid'][
-                                          'imex_lines']['params'][
-                                          'power_limit_bypass'],
-                        **scn_data['grid']['extgrid']['imex_lines']['outflow']
+                        # nominal_value=s_nom *
+                        #               scn_data['grid']['extgrid'][
+                        #                   'imex_lines']['params'][
+                        #                   'power_limit_bypass'],
+                        **scn_data['grid']['extgrid']['imex_lines']['outflow'],
+                        investment=solph.Investment(ep_costs=0.0001,
+                                                    existing=s_nom *
+                                                             scn_data['grid']['extgrid'][
+                                                                 'imex_lines']['params'][
+                                                                 'power_limit_bypass'])
                     ),
                     imex_bus: solph.Flow(
-                        nominal_value=s_nom *
-                                      scn_data['grid']['extgrid'][
-                                          'imex_lines']['params'][
-                                          'power_limit_bypass'],
-                        **scn_data['grid']['extgrid']['imex_lines']['outflow']
+                        # nominal_value=s_nom *
+                        #               scn_data['grid']['extgrid'][
+                        #                   'imex_lines']['params'][
+                        #                   'power_limit_bypass'],
+                        **scn_data['grid']['extgrid']['imex_lines']['outflow'],
+                        investment=solph.Investment(ep_costs=0.0001,
+                                                    existing=s_nom *
+                                                             scn_data['grid']['extgrid'][
+                                                                 'imex_lines']['params'][
+                                                                 'power_limit_bypass']
+                                                    )
                     )
                 },
                 # TODO: Revise efficiencies
@@ -383,12 +403,16 @@ def create_el_model(region=None, datetime_index=None):
                         bus1: solph.Flow()},
                 outputs={
                     bus0: solph.Flow(
-                        nominal_value=float(row['s_nom']),
-                        **scn_data['grid']['lines']['outflow']
+                        #nominal_value=float(row['s_nom']),
+                        **scn_data['grid']['lines']['outflow'],
+                        investment=solph.Investment(ep_costs=0.0001,
+                                                    existing=float(row['s_nom']))
                     ),
                     bus1: solph.Flow(
-                        nominal_value=float(row['s_nom']),
-                        **scn_data['grid']['lines']['outflow']
+                        #nominal_value=float(row['s_nom']),
+                        **scn_data['grid']['lines']['outflow'],
+                        investment=solph.Investment(ep_costs=0.0001,
+                                                    existing=float(row['s_nom']))
                     )
                 },
                 # TODO: Revise efficiencies
