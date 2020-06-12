@@ -105,7 +105,7 @@ def create_oemof_model(region, cfg, save_lp=False):
 
     # Add electricity import limit
     el_import_limit = region.cfg['scn_data']['grid']['extgrid'][
-        'imex_lines']['params']['energy_limit']
+        'import']['energy_limit']
     if el_import_limit < 1:
         imported_electricity_limit(om, limit=el_import_limit)
 
@@ -347,14 +347,14 @@ def create_el_model(region=None, datetime_index=None):
                         nominal_value=s_nom *
                                       scn_data['grid']['extgrid'][
                                           'imex_lines']['params'][
-                                          'power_limit'],
+                                          'power_limit_bypass'],
                         **scn_data['grid']['extgrid']['imex_lines']['outflow']
                     ),
                     imex_bus: solph.Flow(
                         nominal_value=s_nom *
                                       scn_data['grid']['extgrid'][
                                           'imex_lines']['params'][
-                                          'power_limit'],
+                                          'power_limit_bypass'],
                         **scn_data['grid']['extgrid']['imex_lines']['outflow']
                     )
                 },

@@ -35,9 +35,6 @@
     # Note: methane needs to be in commodity list above
     methane_share = 0
 
-[economics]
-    wacc = 0.06
-
 # electrical and heat demand
 # (parametrized via DB table)
 [demand]
@@ -296,16 +293,19 @@
             [[[[params]]]]
                 # conversion_factor: efficiency
                 conversion_factor = 0.988
+
                 # power_limit: 0..1
-                # usable cap. of external grid
+                # usable power of external grid - to transmit power between
+                # different region nodes via ext. grid (bypass)
                 # (rel. to nominal power)
-                power_limit = 1
-                # energy_limit: 0..1, set to 1 to deactivate
-                # limiting electricity imports from external grid
-                # (annual amount rel. to el. demand)
-                energy_limit = .25
+                power_limit_bypass = 1
             [[[[outflow]]]]
                 variable_costs = 0.0001
+        [[[import]]]
+            # energy_limit: 0..1, set to 1 to deactivate
+            # limiting electricity imports from external grid
+            # (annual amount rel. to el. demand)
+            energy_limit = 0.9
 
 # flexibility options
 [flexopt]
