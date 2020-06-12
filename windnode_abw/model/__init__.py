@@ -305,6 +305,7 @@ class Region:
 
     @property
     def tech_assumptions(self):
+        """Return technical assumptions for all years"""
         return self._tech_assumptions
 
     @property
