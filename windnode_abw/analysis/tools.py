@@ -342,6 +342,7 @@ def extract_flow_params(flow_params_raw, node_pattern, bus_pattern, stubname,
     # transform to wide-to-long format while dropping bus column level
     params_extract = params_extract.sum(level=level_flow_in, axis=1).T
     params_extract.index = pd.MultiIndex.from_frame(params_extract.index.str.extract(node_pattern))
+    params_extract = params_extract.sum(level=list(range(params_extract.index.nlevels)))
 
     return params_extract
 
@@ -351,8 +352,8 @@ def flow_params_agsxtech(results_raw):
     # define extraction pattern
     param_extractor = {
         "Stromerzeugung": {
-            "node_pattern": "(?P<ags>\d+)_(?P<technology>\w+)",
-            "stubname": "gen_th_cen",
+            "node_pattern": "\w+_(?P<ags>\d+)_?b?\d+?_(?P<technology>\w+)",
+            "stubname": "gen",
             "bus_pattern": 'b_el_\d+',
             "params": ["emissions", "nominal_value", "variable_costs"]},
     }
@@ -566,11 +567,12 @@ def aggregate_parameters(region, results_raw):
         ["sewage_landfill_gas", "conventional_large", "conventional_small", "solar_heat"],
         axis=1, inplace=True)
 
-    # Installed capacity from model results (include pre-calculations)
-    capacity_sepcial = flows_params["Stromerzeugung"]["nominal_value"].unstack("technology").fillna(0)
+    # Installed capacity from model results (include pre-calculations) gud, bhkw, gas
+    capacity_sepcial = flows_params["Stromerzeugung"]["nominal_value"].unstack("technology").fillna(0)[
+        ["bhkw", "gas", "gud"]]
     capacity_sepcial.index = capacity_sepcial.index.astype(int)
     params["Installed capacity electricity supply"] = \
-        params["Installed capacity electricity supply"].join(capacity_sepcial).fillna(0)
+        params["Installed capacity electricity supply"].join(capacity_sepcial, how="outer").fillna(0)
 
     return params
 
@@ -587,6 +589,16 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
     results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["line_id", "bus_from", "bus_to"])
+
+    # Area requried by wind and PV
+    re_params = region.cfg['scn_data']['generation']['re_potentials']
+    results["Area required"] = pd.concat([
+        parameters["Installed capacity electricity supply"]["pv_roof_small"] * re_params["pv_roof_land_use"],
+        parameters["Installed capacity electricity supply"]["pv_roof_large"] * re_params["pv_roof_land_use"],
+        parameters["Installed capacity electricity supply"]["pv_ground"] * re_params["pv_land_use"],
+        parameters["Installed capacity electricity supply"]["wind"] * re_params["wec_land_use"] / re_params[
+            "wec_nom_power"],
+    ], axis=1)
 
     return results
 
@@ -630,6 +642,8 @@ def highlevel_results(results_tables, results_txaxt):
             results_txaxt["Stromimport"].sum(level="timestamp").sum(axis=1) / (
             results_txaxt["Stromnachfrage"].sum(level="timestamp").sum(axis=1) +
             results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)))) * 100).mean()
+    for re in results_tables["Area required"].columns:
+        highlevel["Area required " + re] = results_tables["Area required"][re].sum()
 
 
 
