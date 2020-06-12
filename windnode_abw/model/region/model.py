@@ -272,18 +272,28 @@ def create_el_model(region=None, datetime_index=None):
                 inputs={bus0: solph.Flow(),
                         bus1: solph.Flow()},
                 outputs={bus0: solph.Flow(
-                            investment=solph.Investment(ep_costs=0.0001,
-                                                        existing=row['s_nom'])
-                         ),
-                         bus1: solph.Flow(
-                            investment=solph.Investment(ep_costs=0.0001,
-                                                        existing=row['s_nom'])
-                         )
-                },
+                    variable_costs=region.tech_assumptions_scn.loc[
+                        'trafo']['opex_var'],
+                    emissions=region.tech_assumptions_scn.loc[
+                        'trafo']['emissions_var'],
+                    investment=solph.Investment(ep_costs=0.0001,
+                                                existing=row['s_nom'])
+                ),
+                bus1: solph.Flow(
+                    variable_costs=region.tech_assumptions_scn.loc[
+                        'trafo']['opex_var'],
+                    emissions=region.tech_assumptions_scn.loc[
+                        'trafo']['emissions_var'],
+                    investment=solph.Investment(ep_costs=0.0001,
+                                                existing=row['s_nom'])
+                )},
                 # TODO: Revise efficiencies
                 conversion_factors={
-                    (bus0, bus1): scn_data['grid']['trafos']['params']['conversion_factor'],
-                    (bus1, bus0): scn_data['grid']['trafos']['params']['conversion_factor']})
+                    (bus0, bus1): region.tech_assumptions_scn.loc[
+                        'trafo']['sys_eff'],
+                    (bus1, bus0): region.tech_assumptions_scn.loc[
+                        'trafo']['sys_eff']
+                })
         )
 
     #################
@@ -355,22 +365,28 @@ def create_el_model(region=None, datetime_index=None):
                                       scn_data['grid']['extgrid'][
                                           'imex_lines']['params'][
                                           'power_limit_bypass'],
-                        **scn_data['grid']['extgrid']['imex_lines']['outflow']
+                        variable_costs=region.tech_assumptions_scn.loc[
+                            'line']['opex_var'],
+                        emissions=region.tech_assumptions_scn.loc[
+                            'line']['emissions_var']
                     ),
                     imex_bus: solph.Flow(
                         nominal_value=s_nom *
                                       scn_data['grid']['extgrid'][
                                           'imex_lines']['params'][
                                           'power_limit_bypass'],
-                        **scn_data['grid']['extgrid']['imex_lines']['outflow']
+                        variable_costs=region.tech_assumptions_scn.loc[
+                            'line']['opex_var'],
+                        emissions=region.tech_assumptions_scn.loc[
+                            'line']['emissions_var']
                     )
                 },
                 # TODO: Revise efficiencies
                 conversion_factors={
-                    (bus, imex_bus): scn_data['grid']['extgrid'][
-                        'imex_lines']['params']['conversion_factor'],
-                    (imex_bus, bus): scn_data['grid']['extgrid'][
-                        'imex_lines']['params']['conversion_factor']
+                    (bus, imex_bus): region.tech_assumptions_scn.loc[
+                        'line']['sys_eff'],
+                    (imex_bus, bus): region.tech_assumptions_scn.loc[
+                        'line']['sys_eff'],
                 }
             )
         )
@@ -390,20 +406,28 @@ def create_el_model(region=None, datetime_index=None):
                         bus1: solph.Flow()},
                 outputs={
                     bus0: solph.Flow(
-                        **scn_data['grid']['lines']['outflow'],
+                        variable_costs=region.tech_assumptions_scn.loc[
+                            'line']['opex_var'],
+                        emissions=region.tech_assumptions_scn.loc[
+                            'line']['emissions_var'],
                         investment=solph.Investment(ep_costs=0.0001,
                                                     existing=float(row['s_nom']))
                     ),
                     bus1: solph.Flow(
-                        **scn_data['grid']['lines']['outflow'],
+                        variable_costs=region.tech_assumptions_scn.loc[
+                            'line']['opex_var'],
+                        emissions=region.tech_assumptions_scn.loc[
+                            'line']['emissions_var'],
                         investment=solph.Investment(ep_costs=0.0001,
                                                     existing=float(row['s_nom']))
                     )
                 },
                 # TODO: Revise efficiencies
                 conversion_factors={
-                    (bus0, bus1): scn_data['grid']['lines']['params']['conversion_factor'],
-                    (bus1, bus0): scn_data['grid']['lines']['params']['conversion_factor']
+                    (bus0, bus1): region.tech_assumptions_scn.loc[
+                        'line']['sys_eff'],
+                    (bus1, bus0): region.tech_assumptions_scn.loc[
+                        'line']['sys_eff'],
                 }
             )
         )
