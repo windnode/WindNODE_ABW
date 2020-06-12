@@ -35,9 +35,6 @@
     # Note: methane needs to be in commodity list above
     methane_share = 0
 
-[economics]
-    wacc = 0.06
-
 # electrical and heat demand
 # (parametrized via DB table)
 [demand]
