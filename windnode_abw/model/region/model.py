@@ -303,7 +303,7 @@ def create_el_model(region=None, datetime_index=None):
                     v_level='hv' if row['v_nom'] == 110 else 'ehv'
                 ),
                 inputs={bus: solph.Flow(
-                    variable_costs=region.tech_assumptions_scn.loc[
+                    variable_costs=-region.tech_assumptions_scn.loc[
                         'elenergy']['capex']
                 )})
         )
