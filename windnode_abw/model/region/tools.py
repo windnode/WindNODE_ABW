@@ -654,7 +654,7 @@ def calc_annuity(cfg, tech_assumptions):
     tech_assumptions['annuity'] = tech_assumptions.replace(0, nan).apply(
         lambda row: annuity(row['capex'],
                             row['lifespan'],
-                            cfg['scn_data']['economics']['wacc']),
+                            row['wacc']),
         axis=1)
 
     return tech_assumptions

@@ -470,13 +470,15 @@ def import_db_data(cfg):
     tech_assumptions_query = session.query(
         WnAbwTechAssumptions.technology,
         WnAbwTechAssumptions.year,
+        WnAbwTechAssumptions.technology_name,
         (WnAbwTechAssumptions.capex * 1000).label('capex'),
         (WnAbwTechAssumptions.opex_fix * 1000).label('opex_fix'),
         (WnAbwTechAssumptions.opex_var * 1000).label('opex_var'),
         WnAbwTechAssumptions.lifespan,
         WnAbwTechAssumptions.emissions_fix,
         WnAbwTechAssumptions.emissions_var,
-        (WnAbwTechAssumptions.sys_eff / 100).label('sys_eff')
+        (WnAbwTechAssumptions.sys_eff / 100).label('sys_eff'),
+        (WnAbwTechAssumptions.wacc / 100).label('wacc')
     )
     data['tech_assumptions'] = pd.read_sql_query(
         tech_assumptions_query.statement,
