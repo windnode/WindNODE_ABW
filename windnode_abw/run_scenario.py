@@ -222,6 +222,6 @@ if __name__ == "__main__":
     else:
         for scn_id in scenarios:
             cfg['scenario'] = scn_id
-            esys, region = run_scenario(cfg=cfg)
+            run_scenario(cfg=cfg)
 
     logger.info('===== All done! =====')
