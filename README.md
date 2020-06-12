@@ -44,6 +44,7 @@ Do the following steps to import the scenario data to your database
    ```
    pg_restore -U windnode -d windnode_abw -h localhost -p 54321 -W --no-owner --no-privileges --no-tablespace -1  </path/to/windnode_db_200612.backup>
    ```
+   To overwrite existing tables, you may use the `--clean` argument.
 
 ## Setup database connection config file
 
