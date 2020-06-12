@@ -1,6 +1,6 @@
+import os
 import pandas as pd
 import oemof.solph as solph
-import os
 from pyomo.environ import Constraint
 from windnode_abw.tools.logger import log_memory_usage
 import logging
@@ -276,16 +276,20 @@ def create_el_model(region=None, datetime_index=None):
                         'trafo']['opex_var'],
                     emissions=region.tech_assumptions_scn.loc[
                         'trafo']['emissions_var'],
-                    investment=solph.Investment(ep_costs=0.0001,
-                                                existing=row['s_nom'])
+                    investment=solph.Investment(
+                        ep_costs=region.tech_assumptions_scn.loc[
+                            'trafo']['annuity'],
+                        existing=row['s_nom'])
                 ),
                 bus1: solph.Flow(
                     variable_costs=region.tech_assumptions_scn.loc[
                         'trafo']['opex_var'],
                     emissions=region.tech_assumptions_scn.loc[
                         'trafo']['emissions_var'],
-                    investment=solph.Investment(ep_costs=0.0001,
-                                                existing=row['s_nom'])
+                    investment=solph.Investment(
+                        ep_costs=region.tech_assumptions_scn.loc[
+                            'trafo']['annuity'],
+                        existing=row['s_nom'])
                 )},
                 # TODO: Revise efficiencies
                 conversion_factors={
@@ -408,16 +412,22 @@ def create_el_model(region=None, datetime_index=None):
                             'line']['opex_var'],
                         emissions=region.tech_assumptions_scn.loc[
                             'line']['emissions_var'],
-                        investment=solph.Investment(ep_costs=0.0001,
-                                                    existing=float(row['s_nom']))
+                        investment=solph.Investment(
+                            ep_costs=region.tech_assumptions_scn.loc[
+                                         'line']['annuity'] * row['length'],
+                            existing=float(row['s_nom'])
+                        )
                     ),
                     bus1: solph.Flow(
                         variable_costs=region.tech_assumptions_scn.loc[
                             'line']['opex_var'],
                         emissions=region.tech_assumptions_scn.loc[
                             'line']['emissions_var'],
-                        investment=solph.Investment(ep_costs=0.0001,
-                                                    existing=float(row['s_nom']))
+                        investment=solph.Investment(
+                            ep_costs=region.tech_assumptions_scn.loc[
+                                         'line']['annuity'] * row['length'],
+                            existing=float(row['s_nom'])
+                        )
                     )
                 },
                 # TODO: Revise efficiencies
