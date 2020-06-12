@@ -363,8 +363,7 @@ def create_el_model(region=None, datetime_index=None):
                     bus: solph.Flow(
                         nominal_value=s_nom *
                                       scn_data['grid']['extgrid'][
-                                          'imex_lines']['params'][
-                                          'power_limit_bypass'],
+                                          'imex_lines']['power_limit_bypass'],
                         variable_costs=region.tech_assumptions_scn.loc[
                             'line']['opex_var'],
                         emissions=region.tech_assumptions_scn.loc[
@@ -373,8 +372,7 @@ def create_el_model(region=None, datetime_index=None):
                     imex_bus: solph.Flow(
                         nominal_value=s_nom *
                                       scn_data['grid']['extgrid'][
-                                          'imex_lines']['params'][
-                                          'power_limit_bypass'],
+                                          'imex_lines']['power_limit_bypass'],
                         variable_costs=region.tech_assumptions_scn.loc[
                             'line']['opex_var'],
                         emissions=region.tech_assumptions_scn.loc[

@@ -272,35 +272,17 @@
             inflow_conversion_factor = 1
             outflow_conversion_factor = 1
 
-# regional and external el. grid
+# external el. grid
 [grid]
-    # regional lines
-    [[lines]]
-        [[[params]]]
-            # conversion_factor: efficiency
-            conversion_factor = 0.988
-        [[[outflow]]]
-            variable_costs = 0.0001
-
-    [[trafos]]
-        [[[params]]]
-            # conversion_factor: efficiency
-            conversion_factor = 0.997
-
     # external grid
     [[extgrid]]
         [[[imex_lines]]]
-            [[[[params]]]]
-                # conversion_factor: efficiency
-                conversion_factor = 0.988
+            # power_limit: 0..1
+            # usable power of external grid - to transmit power between
+            # different region nodes via ext. grid (bypass)
+            # (rel. to nominal power)
+            power_limit_bypass = 1
 
-                # power_limit: 0..1
-                # usable power of external grid - to transmit power between
-                # different region nodes via ext. grid (bypass)
-                # (rel. to nominal power)
-                power_limit_bypass = 1
-            [[[[outflow]]]]
-                variable_costs = 0.0001
         [[[import]]]
             # energy_limit: 0..1, set to 1 to deactivate
             # limiting electricity imports from external grid
