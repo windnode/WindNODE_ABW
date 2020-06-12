@@ -351,23 +351,18 @@ def create_el_model(region=None, datetime_index=None):
                         imex_bus: solph.Flow()},
                 outputs={
                     bus: solph.Flow(
-                        **scn_data['grid']['extgrid']['imex_lines']['outflow'],
-                        investment=solph.Investment(
-                            ep_costs=0.0001,
-                            existing=s_nom *
-                                     scn_data['grid']['extgrid'][
-                                         'imex_lines']['params'][
-                                         'power_limit_bypass'])
+                        nominal_value=s_nom *
+                                      scn_data['grid']['extgrid'][
+                                          'imex_lines']['params'][
+                                          'power_limit_bypass'],
+                        **scn_data['grid']['extgrid']['imex_lines']['outflow']
                     ),
                     imex_bus: solph.Flow(
-                        **scn_data['grid']['extgrid']['imex_lines']['outflow'],
-                        investment=solph.Investment(
-                            ep_costs=0.0001,
-                            existing=s_nom *
-                                     scn_data['grid']['extgrid'][
-                                         'imex_lines']['params'][
-                                         'power_limit_bypass']
-                        )
+                        nominal_value=s_nom *
+                                      scn_data['grid']['extgrid'][
+                                          'imex_lines']['params'][
+                                          'power_limit_bypass'],
+                        **scn_data['grid']['extgrid']['imex_lines']['outflow']
                     )
                 },
                 # TODO: Revise efficiencies
