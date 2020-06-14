@@ -636,6 +636,16 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
             "wec_nom_power"],
     ], axis=1)
 
+    # CO2 emissions
+    with_commodity = parameters["Electricity generators"][
+        parameters["Electricity generators"]["emissions_var_comm"] > 0]
+    results["CO2 emissions el. var"] = (
+       results["Stromerzeugung nach Gemeinde"] * parameters['Electricity generators']["emissions_var"]
+       + (results["Stromerzeugung nach Gemeinde"] * parameters['Electricity generators']["emissions_var_comm"] /
+          parameters['Electricity generators']["sys_eff"]).fillna(0)) / 1e3
+    results["CO2 emissions el. fix"] = (parameters["Installed capacity electricity supply"] * \
+                                       parameters['Electricity generators']["emissions_fix"]).fillna(0) / 1e3
+    results["CO2 emissions el. total"] = results["CO2 emissions el. fix"] + results["CO2 emissions el. var"]
     return results
 
 
