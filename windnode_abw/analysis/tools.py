@@ -58,6 +58,45 @@ GEN_EL_NAMES = {
         "params_comm": "elenergy"}
 }
 
+GEN_TH_NAMES = {
+    "elenergy": {
+        "params": None,
+        "params_comm": "elenergy"},
+    "fuel_oil": {
+        "params": "heating_fuel_oil",
+        "params_comm": "comm_fuel_oil"},
+    "gas_boiler": {
+        "params": "pp_natural_gas_boiler",
+        "params_comm": "comm_natural_gas"},
+    "gud": {
+        "params": "pp_natural_gas_cc",
+        "params_comm": "comm_natural_gas"},
+    "bhkw": {
+        "params": "pp_bhkw",
+        "params_comm": "comm_natural_gas"},
+    "natural_gas": {
+        "params": "heating_natural_gas",
+        "params_comm": "comm_natural_gas"},
+    "solar": {
+        "params": "heating_solar"},
+    "wood": {
+        "params": "heating_wood",
+        "params_comm": "comm_wood"},
+    "coal": {
+        "params": "heating_coal",
+        "params_comm": "comm_coal"},
+    "pth": {
+        "params": "heating_rod",
+        "params_comm": "elenergy"},
+    "pth_ASHP": {
+        "params": "heating_ashp",
+        "params_comm": "elenergy"},
+    "pth_GSHP": {
+        "params": "heating_gshp",
+        "params_comm": "elenergy"},
+}
+
+
 def results_to_dataframes(esys):
     """Convert result dict to DataFrames for flows and stationary variables.
 
