@@ -564,20 +564,26 @@ def non_region_bus2ags(bus_id, region):
 
 def aggregate_parameters(region, results_raw):
 
+    def _extract_tech_params(NAMES):
+        gen_keys = [v["params"] for k, v in NAMES.items() if v["params"] is not None]
+        df = region.tech_assumptions_scn.loc[gen_keys].rename(
+            index={v["params"]: k for k, v in NAMES.items()})
+        mapped_commodity = pd.DataFrame.from_dict(
+            {k: region.tech_assumptions_scn.loc[v["params_comm"], ["capex", "emissions_var"]].rename(
+                {"capex": "opex_var_comm", "emissions_var": "emissions_var_comm"})
+                for k, v in NAMES.items() if "params_comm" in v}, orient="index")
+        df = df.join(mapped_commodity,
+                     how="outer").fillna(0).replace({'sys_eff': {0: 1}})
+
+        return df
+
     flows_params = flow_params_agsxtech(results_raw["params_flows"])
     flows = flows_timexagsxtech(results_raw["flows"], region)
 
     params = {}
 
     # Electricity generators
-    gen_keys = [v["params"] for k, v in GEN_EL_NAMES.items() if v["params"] is not None]
-    params["Parameters el. generators"] = region.tech_assumptions_scn.loc[gen_keys].rename(
-        index={v["params"]: k for k, v in GEN_EL_NAMES.items()})
-    mapped_commodity = pd.DataFrame.from_dict(
-        {k: region.tech_assumptions_scn.loc[v["params_comm"], ["capex", "emissions_var"]].rename(
-            {"capex": "opex_var_comm", "emissions_var": "emissions_var_comm"})
-            for k, v in GEN_EL_NAMES.items() if "params_comm" in v}, orient="index")
-    params["Parameters el. generators"] = params["Parameters el. generators"].join(mapped_commodity, how="outer").fillna(0).replace({'sys_eff': {0: 1}})
+    params["Parameters el. generators"] = _extract_tech_params(GEN_EL_NAMES)
 
 
     # Speicher
