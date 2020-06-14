@@ -30,6 +30,33 @@ PRINT_NAMES = {
     "pth_GSHP": "Ground source heat pump",
 }
 
+GEN_EL_NAMES = {
+    "gud": {
+        "params": "pp_natural_gas_cc",
+        "params_comm": "comm_natural_gas"},
+    "gas": {
+        "params": "pp_natural_gas_sc",
+        "params_comm": "comm_natural_gas"},
+    "bhkw": {
+        "params": "pp_bhkw",
+        "params_comm": "comm_natural_gas"},
+    'hydro': {
+        "params": "hydro"},
+    'pv_ground': {
+        "params": "pv_ground"},
+    'pv_roof_large': {
+        "params": "pv_roof_large"},
+    'pv_roof_small': {
+        "params": "pv_roof_small"},
+    'wind': {
+        "params": "wind"},
+    "bio": {
+        "params": "bio",
+        "params_comm": "comm_biogas"},
+    'import': {
+        "params": None,
+        "params_comm": "elenergy"}
+}
 
 def results_to_dataframes(esys):
     """Convert result dict to DataFrames for flows and stationary variables.
@@ -531,8 +558,15 @@ def aggregate_parameters(region, results_raw):
     params = {}
 
     # Erzeugungseinheiten
-    params["Erzeuger"] = region.tech_assumptions_scn[
-        ~region.tech_assumptions_scn.index.str.startswith("stor_")]
+    gen_keys = [v["params"] for k, v in GEN_EL_NAMES.items() if v["params"] is not None]
+    params["Electricity generators"] = region.tech_assumptions_scn.loc[gen_keys].rename(
+        index={v["params"]: k for k, v in GEN_EL_NAMES.items()})
+    mapped_commodity = pd.DataFrame.from_dict(
+        {k: region.tech_assumptions_scn.loc[v["params_comm"], ["capex", "emissions_var"]].rename(
+            {"capex": "opex_var_comm", "emissions_var": "emissions_var_comm"})
+            for k, v in GEN_EL_NAMES.items() if "params_comm" in v}, orient="index")
+    params["Electricity generators"] = params["Electricity generators"].join(mapped_commodity, how="outer").fillna(0).replace({'sys_eff': {0: 1}})
+
 
     # Speicher
     params["Speicher"] = region.tech_assumptions_scn[
@@ -573,6 +607,8 @@ def aggregate_parameters(region, results_raw):
     capacity_sepcial.index = capacity_sepcial.index.astype(int)
     params["Installed capacity electricity supply"] = \
         params["Installed capacity electricity supply"].join(capacity_sepcial, how="outer").fillna(0)
+    params["Installed capacity electricity supply"].index = params[
+        "Installed capacity electricity supply"].index.astype(int)
 
     return params
 
