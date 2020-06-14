@@ -618,6 +618,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results = {}
 
     results["Stromerzeugung nach Gemeinde"] = extracted_results["Stromerzeugung"].sum(level="ags")
+    results["Stromerzeugung nach Gemeinde"].index = results["Stromerzeugung nach Gemeinde"].index.astype(int)
     results["Stromnachfrage nach Gemeinde"] = extracted_results["Stromnachfrage"].sum(level="ags")
     results["Stromnachfrage Wärme nach Gemeinde"] = extracted_results["Stromnachfrage Wärme"].sum(level="ags")
     results["Wärmeerzeugung nach Gemeinde"] = extracted_results["Wärmeerzeugung"].sum(level=["level", "ags"])
@@ -643,8 +644,10 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
        results["Stromerzeugung nach Gemeinde"] * parameters['Electricity generators']["emissions_var"]
        + (results["Stromerzeugung nach Gemeinde"] * parameters['Electricity generators']["emissions_var_comm"] /
           parameters['Electricity generators']["sys_eff"]).fillna(0)) / 1e3
-    results["CO2 emissions el. fix"] = (parameters["Installed capacity electricity supply"] * \
-                                       parameters['Electricity generators']["emissions_fix"]).fillna(0) / 1e3
+    results["CO2 emissions el. fix"] = (parameters["Installed capacity electricity supply"] *
+                                        parameters['Electricity generators']["emissions_fix"] /
+                                        parameters['Electricity generators']["lifespan"]
+                                        ).fillna(0) / 1e3
     results["CO2 emissions el. total"] = results["CO2 emissions el. fix"] + results["CO2 emissions el. var"]
     return results
 
