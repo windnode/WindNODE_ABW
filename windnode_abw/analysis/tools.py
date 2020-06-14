@@ -399,6 +399,7 @@ def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname
 
 def extract_flow_params(flow_params_raw, node_pattern, bus_pattern, stubname,
                         level_flow_in=0, level_flow_out=1, params=None):
+
     pattern = "_".join([stubname, node_pattern])
 
     # Get an extract of relevant flows
@@ -720,8 +721,6 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     ], axis=1)
 
     # CO2 emissions electricity
-    with_commodity = parameters["Parameters el. generators"][
-        parameters["Parameters el. generators"]["emissions_var_comm"] > 0]
     results["CO2 emissions el. var"] = (
        results["Stromerzeugung nach Gemeinde"] * parameters["Parameters el. generators"]["emissions_var"]
        + (results["Stromerzeugung nach Gemeinde"] * parameters["Parameters el. generators"]["emissions_var_comm"] /
@@ -731,6 +730,20 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
                                         parameters["Parameters el. generators"]["lifespan"]
                                         ).fillna(0) / 1e3
     results["CO2 emissions el. total"] = results["CO2 emissions el. fix"] + results["CO2 emissions el. var"]
+
+    # CO2 emissions heat
+    heat_generation = results["Wärmeerzeugung nach Gemeinde"].sum(level="ags")
+    heat_generation.index = heat_generation.index.astype(int)
+    results["CO2 emissions th. var"] = (
+       heat_generation * parameters["Parameters th. generators"]["emissions_var"]
+       + (heat_generation * parameters["Parameters th. generators"]["emissions_var_comm"] /
+          parameters["Parameters th. generators"]["sys_eff"])).fillna(0) / 1e3
+    results["CO2 emissions th. fix"] = (parameters["Installed capacity heat supply"] *
+                                        parameters["Parameters th. generators"]["emissions_fix"] /
+                                        parameters["Parameters th. generators"]["lifespan"]
+                                        ).fillna(0) / 1e3
+    results["CO2 emissions th. total"] = results["CO2 emissions th. fix"] + results["CO2 emissions th. var"]
+
     return results
 
 
