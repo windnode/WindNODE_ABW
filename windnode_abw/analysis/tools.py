@@ -434,6 +434,11 @@ def flow_params_agsxtech(results_raw):
             "stubname": "flex",
             "bus_pattern": 'b_th_\w+_\d+(_\w+)?',
             "params": ["emissions", "nominal_value", "variable_costs"]},
+        "Wärmespeicher": {
+            "node_pattern": "(?P<level>\w{3})(?:_pth)?_(?P<ags>\d+)(?:_hh_efh|_hh_mfh|_rca)?",
+            "stubname": "stor_th",
+            "bus_pattern": 'b_th_\w+_\d+(_\w+)?',
+            "params": ["emissions", "nominal_value", "variable_costs"]},
     }
 
 
@@ -658,6 +663,12 @@ def aggregate_parameters(region, results_raw):
     # installed capacity battery storages
     params["Installierte Kapazität Großbatterien"] = region.batteries_large
     params["Installierte Kapazität PV-Batteriespeicher"] = region.batteries_small
+
+    # Installed capacity heat storage
+    params["Installed capacity heat storage"] = flows_params["Wärmespeicher"][
+        "nominal_value"].unstack("level").fillna(0).rename(columns={
+        "cen": "stor_th_large", "dec": "stor_th_small"})
+    params["Installed capacity heat storage"].index = params["Installed capacity heat storage"].index.astype(int)
 
     # Installed capacity electricity supply
     params["Installed capacity electricity supply"] = \
