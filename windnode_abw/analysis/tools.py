@@ -569,15 +569,15 @@ def aggregate_parameters(region, results_raw):
 
     params = {}
 
-    # Erzeugungseinheiten
+    # Electricity generators
     gen_keys = [v["params"] for k, v in GEN_EL_NAMES.items() if v["params"] is not None]
-    params["Electricity generators"] = region.tech_assumptions_scn.loc[gen_keys].rename(
+    params["Parameters el. generators"] = region.tech_assumptions_scn.loc[gen_keys].rename(
         index={v["params"]: k for k, v in GEN_EL_NAMES.items()})
     mapped_commodity = pd.DataFrame.from_dict(
         {k: region.tech_assumptions_scn.loc[v["params_comm"], ["capex", "emissions_var"]].rename(
             {"capex": "opex_var_comm", "emissions_var": "emissions_var_comm"})
             for k, v in GEN_EL_NAMES.items() if "params_comm" in v}, orient="index")
-    params["Electricity generators"] = params["Electricity generators"].join(mapped_commodity, how="outer").fillna(0).replace({'sys_eff': {0: 1}})
+    params["Parameters el. generators"] = params["Parameters el. generators"].join(mapped_commodity, how="outer").fillna(0).replace({'sys_eff': {0: 1}})
 
 
     # Speicher
@@ -665,16 +665,16 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
             "wec_nom_power"],
     ], axis=1)
 
-    # CO2 emissions
-    with_commodity = parameters["Electricity generators"][
-        parameters["Electricity generators"]["emissions_var_comm"] > 0]
+    # CO2 emissions electricity
+    with_commodity = parameters["Parameters el. generators"][
+        parameters["Parameters el. generators"]["emissions_var_comm"] > 0]
     results["CO2 emissions el. var"] = (
-       results["Stromerzeugung nach Gemeinde"] * parameters['Electricity generators']["emissions_var"]
-       + (results["Stromerzeugung nach Gemeinde"] * parameters['Electricity generators']["emissions_var_comm"] /
-          parameters['Electricity generators']["sys_eff"]).fillna(0)) / 1e3
+       results["Stromerzeugung nach Gemeinde"] * parameters["Parameters el. generators"]["emissions_var"]
+       + (results["Stromerzeugung nach Gemeinde"] * parameters["Parameters el. generators"]["emissions_var_comm"] /
+          parameters["Parameters el. generators"]["sys_eff"]).fillna(0)) / 1e3
     results["CO2 emissions el. fix"] = (parameters["Installed capacity electricity supply"] *
-                                        parameters['Electricity generators']["emissions_fix"] /
-                                        parameters['Electricity generators']["lifespan"]
+                                        parameters["Parameters el. generators"]["emissions_fix"] /
+                                        parameters["Parameters el. generators"]["lifespan"]
                                         ).fillna(0) / 1e3
     results["CO2 emissions el. total"] = results["CO2 emissions el. fix"] + results["CO2 emissions el. var"]
     return results
