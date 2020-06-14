@@ -597,9 +597,9 @@ def aggregate_parameters(region, results_raw):
         region.muns.loc[:, region.muns.columns.str.startswith("gen_capacity")]
     params["Installed capacity electricity supply"].columns = \
         params["Installed capacity electricity supply"].columns.str.replace("gen_capacity_", "")
-    params["Installed capacity electricity supply"].drop(
+    params["Installed capacity electricity supply"] = params["Installed capacity electricity supply"].drop(
         ["sewage_landfill_gas", "conventional_large", "conventional_small", "solar_heat"],
-        axis=1, inplace=True)
+        axis=1)
 
     # Installed capacity from model results (include pre-calculations) gud, bhkw, gas
     capacity_sepcial = flows_params["Stromerzeugung"]["nominal_value"].unstack("technology").fillna(0)[
