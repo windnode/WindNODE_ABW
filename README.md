@@ -13,6 +13,10 @@ Install requirements manually in your venv, **egoio** should be the last.
 Install it without dependencies by using `pip install --no-dependencies
 egoio`.
 
+To run the model, you also need a solver to be installed such as CBC or Gurobi.
+On Linux, you can install CBC with `apt install coinor-cbc`. Make sure the
+solver is set in the run configuration dict in `run_scenario.py`.
+
 ### Setup postgres database with docker (optional)
 
 **Note** You don't have to necessarily use docker to create a Postgres database. Using a native installtion works as well
