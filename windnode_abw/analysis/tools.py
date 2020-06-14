@@ -360,15 +360,16 @@ def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname
 
 def extract_flow_params(flow_params_raw, node_pattern, bus_pattern, stubname,
                         level_flow_in=0, level_flow_out=1, params=None):
+    pattern = "_".join([stubname, node_pattern])
+
     # Get an extract of relevant flows
     params_extract = flow_params_raw.loc[params,
-                    flow_params_raw.columns.get_level_values(level_flow_in).str.match("_".join([
-                        stubname, node_pattern]))
+                    flow_params_raw.columns.get_level_values(level_flow_in).str.match(pattern)
                     & flow_params_raw.columns.get_level_values(level_flow_out).str.match(bus_pattern)].astype(float)
 
     # transform to wide-to-long format while dropping bus column level
     params_extract = params_extract.sum(level=level_flow_in, axis=1).T
-    params_extract.index = pd.MultiIndex.from_frame(params_extract.index.str.extract(node_pattern))
+    params_extract.index = pd.MultiIndex.from_frame(params_extract.index.str.extract(pattern))
     params_extract = params_extract.sum(level=list(range(params_extract.index.nlevels)))
 
     return params_extract
@@ -382,6 +383,16 @@ def flow_params_agsxtech(results_raw):
             "node_pattern": "\w+_(?P<ags>\d+)_?b?\d+?_(?P<technology>\w+)",
             "stubname": "gen",
             "bus_pattern": 'b_el_\d+',
+            "params": ["emissions", "nominal_value", "variable_costs"]},
+        "Wärmeerzeugung": {
+            "node_pattern": "th_(?P<level>\w{3})_(?P<ags>\d+)(?:_hh_efh|_hh_mfh|_rca)?_(?P<technology>\w+)",
+            "stubname": "gen",
+            "bus_pattern": 'b_th_\w+_\d+(_\w+)?',
+            "params": ["emissions", "nominal_value", "variable_costs"]},
+        "Wärmeerzeugung PtH": {
+            "node_pattern": "(?P<level>\w{3})_(?P<technology>\w+)_(?P<ags>\d+)(?:_hh_efh|_hh_mfh|_rca)?",
+            "stubname": "flex",
+            "bus_pattern": 'b_th_\w+_\d+(_\w+)?',
             "params": ["emissions", "nominal_value", "variable_costs"]},
     }
 
@@ -554,6 +565,7 @@ def non_region_bus2ags(bus_id, region):
 def aggregate_parameters(region, results_raw):
 
     flows_params = flow_params_agsxtech(results_raw["params_flows"])
+    flows = flows_timexagsxtech(results_raw["flows"], region)
 
     params = {}
 
@@ -602,13 +614,29 @@ def aggregate_parameters(region, results_raw):
         axis=1)
 
     # Installed capacity from model results (include pre-calculations) gud, bhkw, gas
-    capacity_sepcial = flows_params["Stromerzeugung"]["nominal_value"].unstack("technology").fillna(0)[
+    capacity_special = flows_params["Stromerzeugung"]["nominal_value"].unstack("technology").fillna(0)[
         ["bhkw", "gas", "gud"]]
-    capacity_sepcial.index = capacity_sepcial.index.astype(int)
+    capacity_special.index = capacity_special.index.astype(int)
     params["Installed capacity electricity supply"] = \
-        params["Installed capacity electricity supply"].join(capacity_sepcial, how="outer").fillna(0)
+        params["Installed capacity electricity supply"].join(capacity_special, how="outer").fillna(0)
     params["Installed capacity electricity supply"].index = params[
         "Installed capacity electricity supply"].index.astype(int)
+
+    # Installed capacity from model results (include pre-calculations) gud, bhkw, gas
+    capacity_special = flows_params["Wärmeerzeugung"]["nominal_value"].sum(
+        level=["ags", "technology"]).unstack("technology").fillna(0)[
+        ["bhkw", "gas_boiler", "gud"]]
+    capacity_special.index = capacity_special.index.astype(int)
+    capacity_special_pth = flows_params["Wärmeerzeugung PtH"]["nominal_value"].sum(
+        level=["ags", "technology"]).unstack("technology").fillna(0)
+    capacity_special_pth.index = capacity_special_pth.index.astype(int)
+    idx = pd.IndexSlice
+    capacity_special_heating = flows['Wärmeerzeugung'].loc[
+        idx[:, "dec", :], ["fuel_oil", "natural_gas", "elenergy", "solar", "wood"]].max(level="ags")
+    capacity_special_heating.index = capacity_special_heating.index.astype(int)
+
+    params["Installed capacity heat supply"] = pd.concat(
+        [capacity_special, capacity_special_pth, capacity_special_heating], axis=1)
 
     return params
 
