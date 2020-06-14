@@ -624,6 +624,15 @@ def aggregate_parameters(region, results_raw):
     # Electricity generators
     params["Parameters el. generators"] = _extract_tech_params(GEN_EL_NAMES)
 
+    # Heat generators
+    params["Parameters th. generators"] = _extract_tech_params(GEN_TH_NAMES)
+
+    # overwrite gud efficiencies by one calculated as in model.py
+    gud_cfg = region.cfg['scn_data']['generation']['gen_th_cen']['gud_dessau']
+    th_eff_max_ex = gud_cfg['efficiency_full_cond'] / (gud_cfg['cb_coeff'] + gud_cfg['cv_coeff'])
+    el_eff_max_ex = gud_cfg['cb_coeff'] * th_eff_max_ex
+    params["Parameters el. generators"].loc["gud", "sys_eff"] = el_eff_max_ex
+    params["Parameters th. generators"].loc["gud", "sys_eff"] = th_eff_max_ex
 
     # Speicher
     params["Speicher"] = region.tech_assumptions_scn[
