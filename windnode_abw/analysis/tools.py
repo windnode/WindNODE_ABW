@@ -658,6 +658,10 @@ def aggregate_parameters(region, results_raw):
         params["Parameters th. generators"].loc["bhkw", "sys_eff"] / \
         region.cfg['scn_data']['generation']['gen_th_cen']['bhkw']['pq_coeff']
 
+    # overwrite emissions_fix in th. parameters for GuD and BHKW to 0
+    # we account in the electricity sector for these emissions only
+    params["Parameters th. generators"].loc[["gud", "bhkw"], "emissions_fix"] = 0
+
     # Speicher
     params["Parameters storages"] = region.tech_assumptions_scn[
         region.tech_assumptions_scn.index.str.startswith("stor_")].drop("sys_eff", axis=1)
