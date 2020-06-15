@@ -39,10 +39,10 @@ if __name__ == "__main__":
     results_axlxt = results_agsxlevelxtech(flows_timexagsxtech, parameters, region)
 
     # Further aggregation and post-analysis calculations
-    results = results_tech(results_axlxt)
+    results_t = results_tech(results_axlxt)
 
     # Aggregation to scalar result values
-    highlevel_results = highlevel_results(results_axlxt, flows_timexagsxtech)
+    highlevel_results = highlevel_results(results_axlxt, results_t, flows_timexagsxtech)
 
     sample_plots(region=region,
                  results=results)

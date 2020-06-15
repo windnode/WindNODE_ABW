@@ -9,8 +9,8 @@ INTERNAL_NAMES = {
 }
 
 PRINT_NAMES = {
-    'bhkw': "Small CHP",
-    'bio': "Biomass",
+    'bhkw': "Large-scale CHP",
+    'bio': "Biogas",
     'gas': "Open-cycle gas turbine",
     'gud': "Combined-cycle gas turbine",
     'hydro': "Hydro",
@@ -25,9 +25,14 @@ PRINT_NAMES = {
     "natural_gas": "Gas heating",
     "solar": "Solar thermal heating",
     "wood": "Wood heating",
-    "pth": "Power-to-heat (district heaing)",
+    "coal": "Coal heating",
+    "pth": "Power-to-heat (district heating)",
     "pth_ASHP": "Air source heat pump",
     "pth_GSHP": "Ground source heat pump",
+    "stor_th_large": "Thermal storage (district heating)",
+    "stor_th_small": "Thermal storage",
+    "flex_bat_large": "Large-scale battery storage",
+    "flex_bat_small": "PV system battery storage",
 }
 
 GEN_EL_NAMES = {
@@ -805,11 +810,13 @@ def results_tech(results_axlxt):
     results["Electricity generation"] = pd.Series(el_generation_tmp)
 
     results["Heat generation"] = results_axlxt['Wärmeerzeugung nach Gemeinde'].sum().rename(PRINT_NAMES)
+    results["CO2 emissions th. total"] = pd.concat([results_axlxt["CO2 emissions th. total"].sum(), results_axlxt["CO2 emissions stor th. total"].sum()]).rename(PRINT_NAMES)
+    results["CO2 emissions el. total"] = pd.concat([results_axlxt["CO2 emissions el. total"].sum(), results_axlxt["CO2 emissions stor el. total"].sum()]).rename(PRINT_NAMES)
 
     return results
 
 
-def highlevel_results(results_tables, results_txaxt):
+def highlevel_results(results_tables, results_t, results_txaxt):
     """Aggregate results to scalar values for each scenario"""
 
     highlevel = {}
@@ -835,7 +842,7 @@ def highlevel_results(results_tables, results_txaxt):
             results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)))) * 100).mean()
     for re in results_tables["Area required"].columns:
         highlevel["Area required " + re] = results_tables["Area required"][re].sum()
-
-
+    highlevel["CO2 emissions el."] = results_t["CO2 emissions el. total"].sum()
+    highlevel["CO2 emissions th."] = results_t["CO2 emissions th. total"].sum()
 
     return pd.Series(highlevel)
