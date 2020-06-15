@@ -751,19 +751,45 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     ], axis=1)
 
     # CO2 emissions electricity
-    results_tmp = _calculate_co2_emissions("el.", results["Stromerzeugung nach Gemeinde"],
+    results_tmp_el = _calculate_co2_emissions("el.", results["Stromerzeugung nach Gemeinde"],
                                            parameters["Installed capacity electricity supply"],
                                            parameters["Parameters el. generators"])
-    results.update(results_tmp)
+    results.update(results_tmp_el)
+
+    # CO2 emissions attributed to battery energy storages
+    inst_cap_bat_tmp = pd.concat([
+        parameters['Installierte Kapazität Großbatterien']["capacity"].rename("flex_bat_large"),
+        parameters['Installierte Kapazität PV-Batteriespeicher']["capacity"].rename("flex_bat_small")], axis=1)
+    discharge_stor_th_tmp = results['Batteriespeicher nach Gemeinde']["discharge"].unstack("level").rename(
+        columns={"large": "flex_bat_large", "small": "flex_bat_small"})
+    discharge_stor_th_tmp.index = discharge_stor_th_tmp.index.astype(int)
+    results_tmp_stor_el = _calculate_co2_emissions(
+        "stor el.",
+        discharge_stor_th_tmp,
+        inst_cap_bat_tmp,
+        parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("flex_bat"), :])
+    results.update(results_tmp_stor_el)
+
 
     # CO2 emissions heat
     heat_generation = results["Wärmeerzeugung nach Gemeinde"].sum(level="ags")
     heat_generation.index = heat_generation.index.astype(int)
-    results_tmp = _calculate_co2_emissions("th.",
+    results_tmp_th = _calculate_co2_emissions("th.",
                                            heat_generation,
                                            parameters["Installed capacity heat supply"],
                                            parameters["Parameters th. generators"])
-    results.update(results_tmp)
+    results.update(results_tmp_th)
+
+    # CO2 emissions attributed to heat storages
+    discharge_stor_th_tmp = results['Wärmespeicher nach Gemeinde']["discharge"].unstack("level").rename(
+        columns={"cen": "stor_th_large", "dec": "stor_th_small"})
+    discharge_stor_th_tmp.index = discharge_stor_th_tmp.index.astype(int)
+    results_tmp_stor_th = _calculate_co2_emissions(
+        "stor th.",
+        discharge_stor_th_tmp,
+        parameters['Installed capacity heat storage'],
+        parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("stor_th"), :])
+    results.update(results_tmp_stor_th)
 
     return results
 
