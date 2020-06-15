@@ -709,6 +709,25 @@ def aggregate_parameters(region, results_raw):
 
 def results_agsxlevelxtech(extracted_results, parameters, region):
 
+    def _calculate_co2_emissions(name_part, generation, capacity, params):
+        results_tmp = {}
+        results_tmp["CO2 emissions {} var".format(name_part)] = ((
+            generation * params["emissions_var"]).fillna( 0)) / 1e3
+
+        if "emissions_var_comm" in params and "sys_eff" in params:
+            emissions_commodity = (generation * params["emissions_var_comm"] / params["sys_eff"]).fillna(0) / 1e3
+            results_tmp["CO2 emissions {} var".format(name_part)] = (
+                        results_tmp["CO2 emissions {} var".format(name_part)] + emissions_commodity)
+        results_tmp["CO2 emissions {} fix".format(name_part)] = (capacity *
+                                                params["emissions_fix"] /
+                                                params["lifespan"]
+                                                ).fillna(0) / 1e3
+        results_tmp["CO2 emissions {} total".format(name_part)] = \
+            results_tmp["CO2 emissions {} fix".format(name_part)] + \
+            results_tmp["CO2 emissions {} var".format(name_part)]
+
+        return results_tmp
+
     results = {}
 
     results["Stromerzeugung nach Gemeinde"] = extracted_results["Stromerzeugung"].sum(level="ags")
@@ -732,28 +751,19 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     ], axis=1)
 
     # CO2 emissions electricity
-    results["CO2 emissions el. var"] = (
-       results["Stromerzeugung nach Gemeinde"] * parameters["Parameters el. generators"]["emissions_var"]
-       + (results["Stromerzeugung nach Gemeinde"] * parameters["Parameters el. generators"]["emissions_var_comm"] /
-          parameters["Parameters el. generators"]["sys_eff"]).fillna(0)) / 1e3
-    results["CO2 emissions el. fix"] = (parameters["Installed capacity electricity supply"] *
-                                        parameters["Parameters el. generators"]["emissions_fix"] /
-                                        parameters["Parameters el. generators"]["lifespan"]
-                                        ).fillna(0) / 1e3
-    results["CO2 emissions el. total"] = results["CO2 emissions el. fix"] + results["CO2 emissions el. var"]
+    results_tmp = _calculate_co2_emissions("el.", results["Stromerzeugung nach Gemeinde"],
+                                           parameters["Installed capacity electricity supply"],
+                                           parameters["Parameters el. generators"])
+    results.update(results_tmp)
 
     # CO2 emissions heat
     heat_generation = results["Wärmeerzeugung nach Gemeinde"].sum(level="ags")
     heat_generation.index = heat_generation.index.astype(int)
-    results["CO2 emissions th. var"] = (
-       heat_generation * parameters["Parameters th. generators"]["emissions_var"]
-       + (heat_generation * parameters["Parameters th. generators"]["emissions_var_comm"] /
-          parameters["Parameters th. generators"]["sys_eff"])).fillna(0) / 1e3
-    results["CO2 emissions th. fix"] = (parameters["Installed capacity heat supply"] *
-                                        parameters["Parameters th. generators"]["emissions_fix"] /
-                                        parameters["Parameters th. generators"]["lifespan"]
-                                        ).fillna(0) / 1e3
-    results["CO2 emissions th. total"] = results["CO2 emissions th. fix"] + results["CO2 emissions th. var"]
+    results_tmp = _calculate_co2_emissions("th.",
+                                           heat_generation,
+                                           parameters["Installed capacity heat supply"],
+                                           parameters["Parameters th. generators"])
+    results.update(results_tmp)
 
     return results
 
