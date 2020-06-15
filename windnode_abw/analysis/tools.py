@@ -645,6 +645,11 @@ def aggregate_parameters(region, results_raw):
     params["Parameters el. generators"].loc["gud", "sys_eff"] = el_eff_max_ex
     params["Parameters th. generators"].loc["gud", "sys_eff"] = th_eff_max_ex
 
+    # overwrite bhkw efficiencies by one calculated as in model.py
+    params["Parameters th. generators"].loc["bhkw", "sys_eff"] = \
+        params["Parameters th. generators"].loc["bhkw", "sys_eff"] / \
+        region.cfg['scn_data']['generation']['gen_th_cen']['bhkw']['pq_coeff']
+
     # Speicher
     params["Parameters storages"] = region.tech_assumptions_scn[
         region.tech_assumptions_scn.index.str.startswith("stor_")].drop("sys_eff", axis=1)
