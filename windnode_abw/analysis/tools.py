@@ -641,9 +641,9 @@ def aggregate_parameters(region, results_raw):
     params["Parameters th. generators"].loc["gud", "sys_eff"] = th_eff_max_ex
 
     # Speicher
-    params["Speicher"] = region.tech_assumptions_scn[
+    params["Parameters storages"] = region.tech_assumptions_scn[
         region.tech_assumptions_scn.index.str.startswith("stor_")].drop("sys_eff", axis=1)
-    params["Speicher"].rename(index=INTERNAL_NAMES, inplace=True)
+    params["Parameters storages"].rename(index=INTERNAL_NAMES, inplace=True)
 
     # add parameters from config file to Speicher Dataframe
     additional_stor_params = {}
@@ -655,7 +655,7 @@ def aggregate_parameters(region, results_raw):
         additional_stor_params[tech] = [region.cfg['scn_data']['flexopt'][tech]['params'][n]
                                         for n in additional_stor_columns]
 
-    params["Speicher"] = params["Speicher"].join(pd.DataFrame.from_dict(
+    params["Parameters storages"] = params["Parameters storages"].join(pd.DataFrame.from_dict(
         additional_stor_params,
         orient="index",
         columns=additional_stor_columns))
