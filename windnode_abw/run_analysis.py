@@ -15,8 +15,8 @@ from windnode_abw.tools.draw import sample_plots
 
 if __name__ == "__main__":
     # specify what to import (in path ~/.windnode_abw/)
-    timestamp = '200604_144728'
-    scenario = 'NEP'
+    timestamp = '2020-06-14_132223'
+    scenario = 'future'
 
     # load raw results
     results_raw = load_results(timestamp=timestamp,
