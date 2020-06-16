@@ -30,7 +30,7 @@ if __name__ == "__main__":
     results = aggregate_flows(results_raw)
 
     # Retrieve parameters from database and config file
-    parameters = aggregate_parameters(region)
+    parameters = aggregate_parameters(region, results_raw)
 
     # Flows extracted to dimension time, ags code, technology (and sometimes more dimensions)
     flows_timexagsxtech = flows_timexagsxtech(results_raw["flows"], region)
