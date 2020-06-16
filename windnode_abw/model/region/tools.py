@@ -631,7 +631,7 @@ def create_maintenance_timeseries(datetime_index, months, duration):
     :obj:`list` of :obj:`int` (1 or 0)
         List of (de)activation times
     """
-    if months == '':
+    if months in ['', 0]:
         mask = [True] * len(datetime_index)
     else:
         if not isinstance(months, list):
@@ -654,7 +654,7 @@ def calc_annuity(cfg, tech_assumptions):
     tech_assumptions['annuity'] = tech_assumptions.replace(0, nan).apply(
         lambda row: annuity(row['capex'],
                             row['lifespan'],
-                            cfg['scn_data']['economics']['wacc']),
+                            row['wacc']),
         axis=1)
 
     return tech_assumptions

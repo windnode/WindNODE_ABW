@@ -35,9 +35,6 @@
     # Note: methane needs to be in commodity list above
     methane_share = 0
 
-[economics]
-    wacc = 0.06
-
 # electrical and heat demand
 # (parametrized via DB table)
 [demand]
@@ -190,7 +187,7 @@
             pq_coeff = 0.85
             # months of BHKW maintenance (jan=1), leave empty for no maintenance
             #maint_months = 3,9
-            maint_months =
+            maint_months = 0
             # duration of BHKW maintenance in days
             maint_duration = 7
 
@@ -275,37 +272,22 @@
             inflow_conversion_factor = 1
             outflow_conversion_factor = 1
 
-# regional and external el. grid
+# external el. grid
 [grid]
-    # regional lines
-    [[lines]]
-        [[[params]]]
-            # conversion_factor: efficiency
-            conversion_factor = 0.988
-        [[[outflow]]]
-            variable_costs = 0.0001
-
-    [[trafos]]
-        [[[params]]]
-            # conversion_factor: efficiency
-            conversion_factor = 0.997
-
     # external grid
     [[extgrid]]
         [[[imex_lines]]]
-            [[[[params]]]]
-                # conversion_factor: efficiency
-                conversion_factor = 0.988
-                # power_limit: 0..1
-                # usable cap. of external grid
-                # (rel. to nominal power)
-                power_limit = 1
-                # energy_limit: 0..1, set to 1 to deactivate
-                # limiting electricity imports from external grid
-                # (annual amount rel. to el. demand)
-                energy_limit = .25
-            [[[[outflow]]]]
-                variable_costs = 0.0001
+            # power_limit: 0..1
+            # usable power of external grid - to transmit power between
+            # different region nodes via ext. grid (bypass)
+            # (rel. to nominal power)
+            power_limit_bypass = 1
+
+        [[[import]]]
+            # energy_limit: 0..1, set to 1 to deactivate
+            # limiting electricity imports from external grid
+            # (annual amount rel. to el. demand)
+            energy_limit = 0.9
 
 # flexibility options
 [flexopt]
@@ -387,4 +369,4 @@
             method = interval
             shift_interval = 24
             delay_time = 12
-            mode = 'flex_min'
+            mode = flex_min

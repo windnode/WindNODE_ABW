@@ -387,6 +387,8 @@ class WnAbwTechAssumptions(Base):
         Fixed (power-specific) supply chain emissions in kg/MW
     sys_eff : :class:`sqlalchemy.sql.schema.Column`
         Annual system efficiency, apples to systems only
+    wacc : :class:`sqlalchemy.sql.schema.Column`
+        Weighted Average Cost of Capital
     """
     __tablename__ = 'wn_abw_tech_assumptions'
     __table_args__ = {'schema': 'windnode'}
@@ -401,6 +403,7 @@ class WnAbwTechAssumptions(Base):
     emissions_var = Column(Float(53))
     emissions_fix = Column(Float(53))
     sys_eff = Column(Float(53))
+    wacc = Column(Float(53))
 
 
 class WnAbwPotentialAreasPv(Base):
