@@ -479,14 +479,16 @@ def prepare_temp_timeseries(region):
 
 
 def calc_heat_pump_cops(t_high, t_low, quality_grade, consider_icing=False,
-                        temp_icing=None, factor_icing=None):
-    """Calculate temperature-dependent COP of heat pumps
+                        temp_icing=None, factor_icing=None, spf=None, year=2017):
+    """Calculate temperature-dependent COP of heat pumps including efficiency
+    gain over time.
 
-    Code was taken from oemof-thermal:
+    COP-Code was adapted from oemof-thermal:
     https://github.com/oemof/oemof-thermal/blob/features/cmpr_heatpumps_and_chillers/src/oemof/thermal/compression_heatpumps_and_chillers.py
     Related issue: https://github.com/oemof/oemof/issues/591
 
-    
+    Efficiency corrections are based upon increase of seasonal performance
+    factor (SPF) for scenario year as set in cfg since 2017 (SQ).
     """
 
     # Expand length of lists with temperatures and convert unit to Kelvin.
@@ -514,6 +516,10 @@ def calc_heat_pump_cops(t_high, t_low, quality_grade, consider_icing=False,
                 cops = cops + [factor_icing*quality_grade * t_h/(t_h-t_l)]
             if t_l >= temp_icing + 273.15:
                 cops = cops + [quality_grade * t_h / (t_h - t_l)]
+
+    # Efficiency gain for scenario year
+    if year != 2017 and spf is not None:
+        cops = [_ * spf[int(year)]/spf[2017] for _ in cops]
 
     return cops
 

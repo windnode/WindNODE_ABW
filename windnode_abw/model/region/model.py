@@ -1107,7 +1107,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                 quality_grade=params['quality_grade_ASHP'],
                 consider_icing=True,
                 temp_icing=params['icing_temp'],
-                factor_icing=params['icing_factor']
+                factor_icing=params['icing_factor'],
+                spf=region.tech_assumptions.loc['heating_ashp']['sys_eff'],
+                year=scn_data['general']['year']
             )
             cops_GSHP = calc_heat_pump_cops(
                 t_high=[params['heating_temp']],
@@ -1115,7 +1117,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     (region.temp_ts['soil_temp'][mun.Index]
                     )[datetime_index]
                 ),
-                quality_grade=params['quality_grade_GSHP']
+                quality_grade=params['quality_grade_GSHP'],
+                spf=region.tech_assumptions.loc['heating_gshp']['sys_eff'],
+                year=scn_data['general']['year']
             )
 
             for sector in th_sectors:
