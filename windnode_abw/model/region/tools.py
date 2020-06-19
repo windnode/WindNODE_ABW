@@ -486,7 +486,7 @@ def calc_heat_pump_cops(t_high, t_low, quality_grade, consider_icing=False,
     https://github.com/oemof/oemof-thermal/blob/features/cmpr_heatpumps_and_chillers/src/oemof/thermal/compression_heatpumps_and_chillers.py
     Related issue: https://github.com/oemof/oemof/issues/591
 
-    ToDo: Import function as soon as available on master/dev
+    
     """
 
     # Expand length of lists with temperatures and convert unit to Kelvin.
