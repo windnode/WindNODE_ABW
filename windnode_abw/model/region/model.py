@@ -867,8 +867,10 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     inputs={b_gas: solph.Flow()},
                     outputs={bus_el: solph.Flow(
                         nominal_value=gas_cfg['nom_el_power'],
-                        summed_min=len(datetime_index) / gas_cfg['annual_flh'],
-                        summed_max=len(datetime_index) / gas_cfg['annual_flh'],
+                        summed_min=(len(datetime_index)/8760) *
+                                   gas_cfg['annual_flh'],
+                        summed_max=(len(datetime_index)/8760) *
+                                   gas_cfg['annual_flh'],
                         variable_costs=region.tech_assumptions_scn.loc[
                             'pp_natural_gas_sc']['opex_var'],
                         emissions=region.tech_assumptions_scn.loc[
