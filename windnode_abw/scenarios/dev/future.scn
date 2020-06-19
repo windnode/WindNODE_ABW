@@ -230,7 +230,7 @@
     # Simple cycle gas plant Wolfen
     [[gas_bw]]
         # nominal electric power
-        nom_el_power = 40
+        nom_el_power = 0
         # annual full load hours
         annual_flh = 1250
 
