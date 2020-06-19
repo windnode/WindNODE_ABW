@@ -859,7 +859,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             )
 
             # Simple cycle (peak power) gas plant Wolfen
-            gas_cfg = scn_data['generation']['gen_th_cen']['gas_bw']
+            gas_cfg = scn_data['generation']['gas_bw']
             bus_el = esys_nodes['b_el_27910']
             nodes.append(
                 solph.Transformer(
