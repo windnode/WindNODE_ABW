@@ -101,6 +101,26 @@ GEN_TH_NAMES = {
         "params_comm": "elenergy"},
 }
 
+UNITS = {
+    'Grid losses' : 'kWh',
+    'Electricity demand' : 'kWh',
+    'Electricity demand for heating' : 'kWh',
+    'Electricity demand total' : 'kWh',
+    'Heating demand' : 'kWh',
+    'Electricity imports' : 'kWh',
+    'Electricity exports' : 'kWh',
+    'Electricity imports % of demand' : '%',
+    'Electricity exports % of demand' : '%',
+    'Balance' : '?', #?
+    'Self-consumption annual' : 'kWh',
+    'Self-consumption hourly' : 'kWh',
+    'Area required pv_roof_small' : 'm^2', #?
+    'Area required pv_roof_large' : 'm^2',
+    'Area required pv_ground' : 'm^2',
+    'Area required wind' : 'm^2',
+    'CO2 emissions el.' : 'tCO2', #?
+    'CO2 emissions th.' : 'tCO2'
+}
 
 def results_to_dataframes(esys):
     """Convert result dict to DataFrames for flows and stationary variables.
@@ -862,4 +882,12 @@ def highlevel_results(results_tables, results_t, results_txaxt):
     highlevel["CO2 emissions el."] = results_t["CO2 emissions el. total"].sum()
     highlevel["CO2 emissions th."] = results_t["CO2 emissions th. total"].sum()
 
-    return pd.Series(highlevel)
+    # add multiindex including units to output
+    mindex = [highlevel.keys(),
+          [UNITS.get(item, '?') for item in highlevel.keys()]]
+    mindex = list(zip(*mindex))
+    mindex = pd.MultiIndex.from_tuples(mindex, names=['variable', 'unit'])
+    highlevel = pd.Series(highlevel)
+    highlevel.index= mindex
+    
+    return highlevel
