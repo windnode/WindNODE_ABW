@@ -492,7 +492,7 @@ def flows_timexagsxtech(results_raw, region):
     # define extraction pattern
     flow_extractor = {
         "Stromerzeugung": {
-            "node_pattern": "\w+_(?P<ags>\d+)_?b?\d+?_(?P<technology>\w+)",
+            "node_pattern": "\w+_(?P<ags>\d+)_b\d+_(?P<technology>\w+)",
             "stubname": "gen",
             "bus_pattern": 'b_el_\d+'},
         "Wärmeerzeugung": {
