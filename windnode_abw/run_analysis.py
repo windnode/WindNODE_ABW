@@ -33,16 +33,16 @@ if __name__ == "__main__":
     parameters = aggregate_parameters(region, results_raw)
 
     # Flows extracted to dimension time, ags code, technology (and sometimes more dimensions)
-    flows_timexagsxtech = flows_timexagsxtech(results_raw["flows"], region)
+    flows_txaxt = flows_timexagsxtech(results_raw["flows"], region)
 
     # Aggregation of results to region level (dimensions: ags code (region) x technology)
-    results_axlxt = results_agsxlevelxtech(flows_timexagsxtech, parameters, region)
+    results_axlxt = results_agsxlevelxtech(flows_txaxt, parameters, region)
 
     # Further aggregation and post-analysis calculations
     results_t = results_tech(results_axlxt)
 
     # Aggregation to scalar result values
-    highlevel_results = highlevel_results(results_axlxt, results_t, flows_timexagsxtech)
+    highlevel_results = highlevel_results(results_axlxt, results_t, flows_txaxt)
 
     sample_plots(region=region,
                  results=results)
