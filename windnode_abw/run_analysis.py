@@ -48,7 +48,7 @@ if __name__ == "__main__":
                                    scenario=scn_id)
 
         if results_raw is None:
-            logger.error(f'Scenario {scn_id} not found, skipping...')
+            logger.warning(f'Scenario {scn_id} not found, skipping...')
         else:
             results_scns[scn_id] = {}
             # import region using cfg from results meta
