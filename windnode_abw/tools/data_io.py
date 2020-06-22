@@ -696,17 +696,21 @@ def load_results(timestamp, scenario):
     se_files = ['params_stat']
 
     results = {}
-    for file in df_files:
-        results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
-                                    index_col=0,
-                                    header=[0, 1])
-    for file in se_files:
-        results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
-                                    index_col=[0, 1],
-                                    header=None,
-                                    squeeze=True)
+    try:
+        for file in df_files:
+            results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
+                                        index_col=0,
+                                        header=[0, 1])
+        for file in se_files:
+            results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
+                                        index_col=[0, 1],
+                                        header=None,
+                                        squeeze=True)
 
-    with open(os.path.join(results_path, 'meta.json')) as file:
-        results['meta'] = json.load(file)
+        with open(os.path.join(results_path, 'meta.json')) as file:
+            results['meta'] = json.load(file)
+
+    except FileNotFoundError:
+        return None
 
     return results
