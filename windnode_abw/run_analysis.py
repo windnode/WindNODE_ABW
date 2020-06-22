@@ -2,6 +2,8 @@
 from windnode_abw.tools.logger import setup_logger
 logger = setup_logger()
 
+import os
+
 # load configs
 from windnode_abw.tools import config
 config.load_config('config_data.cfg')
@@ -14,36 +16,71 @@ from windnode_abw.tools.draw import sample_plots
 
 
 if __name__ == "__main__":
+    # TODO: Nice-to-have: argparse
+
     # specify what to import (in path ~/.windnode_abw/)
-    timestamp = '2020-06-17_125728_1month'
-    scenario = 'future'
+    run_timestamp = '2020-06-17_125728_1month'
 
-    # load raw results
-    results_raw = load_results(timestamp=timestamp,
-                               scenario=scenario)
+    # select multiple scenarios manually or use ['ALL'] to analyze all
+    # scenarios found in directory
+    #scenarios = ['future', 'sq']
+    scenarios = ['ALL']
 
-    # import region using cfg from results meta
-    cfg = results_raw['meta']['config']
-    region = Region.import_data(cfg)
+    # read available scenarios if 'ALL' requested
+    if scenarios == ['ALL']:
+        scenarios = [
+            file.split('.')[0]
+            for file in os.listdir(os.path.join(
+                config.get_data_root_dir(),
+                config.get('user_dirs',
+                           'results_dir'),
+                run_timestamp
+            ))]
 
-    # Aggregate flow results along different dimensions (outdated, see #29)
-    results = aggregate_flows(results_raw)
+    logger.info(f'Analyzing {len(scenarios)} scenarios...')
 
-    # Retrieve parameters from database and config file
-    parameters = aggregate_parameters(region, results_raw)
+    results_scns = {}
+    for scn_id in scenarios:
+        logger.info(f'Analyzing scenario: {scn_id}...')
 
-    # Flows extracted to dimension time, ags code, technology (and sometimes more dimensions)
-    flows_txaxt = flows_timexagsxtech(results_raw["flows"], region)
+        # load raw results
+        results_raw = load_results(timestamp=run_timestamp,
+                                   scenario=scn_id)
 
-    # Aggregation of results to region level (dimensions: ags code (region) x technology)
-    results_axlxt = results_agsxlevelxtech(flows_txaxt, parameters, region)
+        if results_raw is None:
+            logger.error(f'Scenario {scn_id} not found, skipping...')
+        else:
+            results_scns[scn_id] = {}
+            # import region using cfg from results meta
+            cfg = results_raw['meta']['config']
+            region = Region.import_data(cfg)
 
-    # Further aggregation and post-analysis calculations
-    results_t = results_tech(results_axlxt)
+            # Aggregate flow results along different dimensions (outdated, see #29)
+            #results = aggregate_flows(results_raw)
 
-    # Aggregation to scalar result values
-    highlevel_results = highlevel_results(results_axlxt, results_t, flows_txaxt)
+            # Retrieve parameters from database and config file
+            parameters = aggregate_parameters(region, results_raw)
+            results_scns[scn_id]['parameters'] = parameters
 
-    sample_plots(region=region,
-                 results=results)
+            # Flows extracted to dimension time, ags code, technology (and sometimes more dimensions)
+            flows_txaxt = flows_timexagsxtech(results_raw["flows"], region)
+            results_scns[scn_id]['flows_txaxt'] = flows_txaxt
 
+            # Aggregation of results to region level (dimensions: ags code (region) x technology)
+            results_axlxt = results_agsxlevelxtech(flows_txaxt, parameters, region)
+            results_scns[scn_id]['results_axlxt'] = results_axlxt
+
+            # Further aggregation and post-analysis calculations
+            results_t = results_tech(results_axlxt)
+            results_scns[scn_id]['results_t'] = results_t
+
+            # Aggregation to scalar result values
+            highlevel_results = highlevel_results(results_axlxt, results_t, flows_txaxt)
+            results_scns[scn_id]['highlevel_results'] = highlevel_results
+
+            # sample_plots(region=region,
+            #              results=results)
+
+    logger.info('===== All done! =====')
+
+    # DO STUFF WITH RESULTS (dict results_scns) HERE
