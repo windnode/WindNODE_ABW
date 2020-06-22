@@ -40,6 +40,8 @@ if __name__ == "__main__":
     logger.info(f'Analyzing {len(scenarios)} scenarios...')
 
     results_scns = {}
+    timerange = None
+
     for scn_id in scenarios:
         logger.info(f'Analyzing scenario: {scn_id}...')
 
@@ -53,6 +55,17 @@ if __name__ == "__main__":
             results_scns[scn_id] = {}
             # import region using cfg from results meta
             cfg = results_raw['meta']['config']
+
+            # extract timerange and check consistency across multiple scenarios
+            if timerange is None:
+                timerange = [cfg.get('date_from'), cfg.get('date_to')]
+            else:
+                if timerange != [cfg.get('date_from'), cfg.get('date_to')]:
+                    msg = 'Simulation timeranges of different scenarios do ' \
+                          'not match!'
+                    logger.error(msg)
+                    raise ValueError(msg)
+
             region = Region.import_data(cfg)
 
             # Aggregate flow results along different dimensions (outdated, see #29)
