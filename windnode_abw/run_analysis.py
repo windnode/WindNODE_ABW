@@ -35,7 +35,8 @@ if __name__ == "__main__":
                 config.get('user_dirs',
                            'results_dir'),
                 run_timestamp
-            ))]
+            )) if not file.startswith('.')
+        ]
 
     logger.info(f'Analyzing {len(scenarios)} scenarios...')
 
