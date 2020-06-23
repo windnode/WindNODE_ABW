@@ -689,9 +689,8 @@ def distribute_large_battery_capacity(region, method='re_cap'):
 
     Returns
     -------
-    :pandas:`pandas.DataFrame` or None
-        Battery capacity, charge and discharge power per municipality,
-        None if capacity is zero
+    :pandas:`pandas.DataFrame`
+        Battery capacity, charge and discharge power per municipality
     """
     batt_params = region.cfg['scn_data']['flexopt']['flex_bat_large']
     batt_cap_cum = batt_params['params']['nominal_storage_capacity']
@@ -756,7 +755,11 @@ def distribute_large_battery_capacity(region, method='re_cap'):
         # )
         # results_compare.plot.bar(title='Ergebnisvergleich verschiedener Verteilungsmethoden für Großbatterien')
 
-    return None
+    return pd.DataFrame({
+        'capacity': 0,
+        'power_charge': 0,
+        'power_discharge': 0
+    }, index=region.muns.index)
 
 
 def distribute_small_battery_capacity(region):
@@ -772,9 +775,8 @@ def distribute_small_battery_capacity(region):
 
     Returns
     -------
-    :pandas:`pandas.DataFrame` or None
-        Battery capacity, charge and discharge power per municipality,
-        None if capacity is zero
+    :pandas:`pandas.DataFrame`
+        Battery capacity, charge and discharge power per municipality
     """
     batt_params = region.cfg['scn_data']['flexopt']['flex_bat_small']
     batt_cap_cum = batt_params['params']['nominal_storage_capacity']
@@ -800,7 +802,11 @@ def distribute_small_battery_capacity(region):
             'power_discharge': batt_cap * c_rate_discharge
         })
 
-    return None
+    return pd.DataFrame({
+        'capacity': 0,
+        'power_charge': 0,
+        'power_discharge': 0
+    }, index=region.muns.index)
 
 
 def calc_available_pv_capacity(region):

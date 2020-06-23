@@ -1018,8 +1018,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     # BATTERIES #
     #############
     # large scale batteries
-    if scn_data['flexopt']['flex_bat_large']['enabled']['enabled'] == 1 and \
-            region.batteries_large is not None:
+    if scn_data['flexopt']['flex_bat_large']['enabled']['enabled'] == 1:
         batt_params = scn_data['flexopt']['flex_bat_large']
 
         for mun in region.muns.itertuples():
@@ -1051,8 +1050,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     )
 
     # PV batteries in small rooftop solar home systems
-    if scn_data['flexopt']['flex_bat_small']['enabled']['enabled'] == 1 and \
-            region.batteries_small is not None:
+    if scn_data['flexopt']['flex_bat_small']['enabled']['enabled'] == 1:
         batt_params = scn_data['flexopt']['flex_bat_small']
 
         for mun in region.muns.itertuples():
