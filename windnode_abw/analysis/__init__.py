@@ -53,6 +53,8 @@ def analysis(run_timestamp, scenarios='ALL'):
     logger.info(f'Analyzing {len(scenarios)} scenarios...')
 
     results_scns = {}
+    regions_scns = {}
+    
     timerange = None
 
     for scn_id in scenarios:
@@ -79,21 +81,21 @@ def analysis(run_timestamp, scenarios='ALL'):
                     logger.error(msg)
                     raise ValueError(msg)
 
-            region = Region.import_data(cfg)
+            regions_scns[scn_id] = Region.import_data(cfg)
 
             # Aggregate flow results along different dimensions (outdated, see #29)
             #results = aggregate_flows(results_raw)
 
             # Retrieve parameters from database and config file
-            parameters = aggregate_parameters(region, results_raw)
+            parameters = aggregate_parameters(regions_scns[scn_id], results_raw)
             results_scns[scn_id]['parameters'] = parameters
 
             # Flows extracted to dimension time, ags code, technology (and sometimes more dimensions)
-            flows_txaxt = flows_timexagsxtech(results_raw["flows"], region)
+            flows_txaxt = flows_timexagsxtech(results_raw["flows"], regions_scns[scn_id])
             results_scns[scn_id]['flows_txaxt'] = flows_txaxt
 
             # Aggregation of results to region level (dimensions: ags code (region) x technology)
-            results_axlxt = results_agsxlevelxtech(flows_txaxt, parameters, region)
+            results_axlxt = results_agsxlevelxtech(flows_txaxt, parameters, regions_scns[scn_id])
             results_scns[scn_id]['results_axlxt'] = results_axlxt
 
             # Further aggregation and post-analysis calculations
@@ -104,4 +106,4 @@ def analysis(run_timestamp, scenarios='ALL'):
             highlevel_results = create_highlevel_results(results_axlxt, results_t, flows_txaxt)
             results_scns[scn_id]['highlevel_results'] = highlevel_results
 
-    return results_scns
+    return regions_scns, results_scns

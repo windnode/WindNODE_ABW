@@ -21,7 +21,7 @@ if __name__ == "__main__":
     #scenarios = ['future', 'sq']
     scenarios = ['ALL']
 
-    results = analysis(run_timestamp=run_timestamp,
+    regions_scns, results_scns = analysis(run_timestamp=run_timestamp,
                        scenarios=scenarios)
 
     logger.info('===== All done! =====')
