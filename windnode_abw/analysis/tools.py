@@ -888,7 +888,7 @@ def results_tech(results_axlxt):
     return results
 
 
-def highlevel_results(results_tables, results_t, results_txaxt):
+def create_highlevel_results(results_tables, results_t, results_txaxt):
     """Aggregate results to scalar values for each scenario"""
 
     highlevel = {}
