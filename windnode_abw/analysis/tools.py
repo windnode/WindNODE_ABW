@@ -116,9 +116,9 @@ UNITS = {
     'Balance' : '?', #?
     'Self-consumption annual' : 'kWh',
     'Self-consumption hourly' : 'kWh',
-    'Area required pv_roof_small' : 'm^2', #?
-    'Area required pv_roof_large' : 'm^2',
-    'Area required pv_ground' : 'm^2',
+    'Area required pv_roof_small' : 'ha', #?
+    'Area required pv_roof_large' : 'ha',
+    'Area required pv_ground' : 'ha',
     'Area required wind' : 'm^2',
     'CO2 emissions el.' : 'tCO2', #?
     'CO2 emissions th.' : 'tCO2'
