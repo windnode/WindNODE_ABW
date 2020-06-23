@@ -573,6 +573,8 @@ def flows_timexagsxtech(results_raw, region):
 
     flows = {}
     for name, patterns in flow_extractor.items():
+        # HOTFIX: create zero-filled DFs if results cannot be extracted
+        # cf. https://github.com/windnode/WindNODE_ABW/pull/40
         try:
             flows[name] = extract_flows_timexagsxtech(results_raw, **patterns)
         except:
