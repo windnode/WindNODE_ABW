@@ -15,7 +15,7 @@ from windnode_abw.analysis.tools import aggregate_flows, aggregate_parameters, f
     results_agsxlevelxtech, create_highlevel_results, results_tech
 
 
-def analysis(run_timestamp, scenarios):
+def analysis(run_timestamp, scenarios='ALL'):
     """
     Start analysis for single or multiple scenarios
 
@@ -27,7 +27,7 @@ def analysis(run_timestamp, scenarios):
     scenarios : (:obj:`str`) OR (:obj:`list` of :obj:`str`)
         Scenarios - select single or multiple scenarios manually (e.g.
         'sq' or ['future', 'sq']) or use 'ALL' to analyze all scenarios
-        found in directory.
+        found in directory. Default: 'ALL'
 
     Returns
     -------
