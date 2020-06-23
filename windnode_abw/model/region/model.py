@@ -859,7 +859,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             )
 
             # Simple cycle (peak power) gas plant Wolfen
-            gas_cfg = scn_data['generation']['gen_th_cen']['gas_bw']
+            gas_cfg = scn_data['generation']['gas_bw']
             bus_el = esys_nodes['b_el_27910']
             nodes.append(
                 solph.Transformer(
@@ -867,8 +867,10 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     inputs={b_gas: solph.Flow()},
                     outputs={bus_el: solph.Flow(
                         nominal_value=gas_cfg['nom_el_power'],
-                        summed_min=len(datetime_index) / gas_cfg['annual_flh'],
-                        summed_max=len(datetime_index) / gas_cfg['annual_flh'],
+                        summed_min=(len(datetime_index)/8760) *
+                                   gas_cfg['annual_flh'],
+                        summed_max=(len(datetime_index)/8760) *
+                                   gas_cfg['annual_flh'],
                         variable_costs=region.tech_assumptions_scn.loc[
                             'pp_natural_gas_sc']['opex_var'],
                         emissions=region.tech_assumptions_scn.loc[
@@ -1016,8 +1018,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     # BATTERIES #
     #############
     # large scale batteries
-    if scn_data['flexopt']['flex_bat_large']['enabled']['enabled'] == 1 and \
-            region.batteries_large is not None:
+    if scn_data['flexopt']['flex_bat_large']['enabled']['enabled'] == 1:
         batt_params = scn_data['flexopt']['flex_bat_large']
 
         for mun in region.muns.itertuples():
@@ -1049,8 +1050,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     )
 
     # PV batteries in small rooftop solar home systems
-    if scn_data['flexopt']['flex_bat_small']['enabled']['enabled'] == 1 and \
-            region.batteries_small is not None:
+    if scn_data['flexopt']['flex_bat_small']['enabled']['enabled'] == 1:
         batt_params = scn_data['flexopt']['flex_bat_small']
 
         for mun in region.muns.itertuples():
@@ -1105,7 +1105,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                 quality_grade=params['quality_grade_ASHP'],
                 consider_icing=True,
                 temp_icing=params['icing_temp'],
-                factor_icing=params['icing_factor']
+                factor_icing=params['icing_factor'],
+                spf=region.tech_assumptions.loc['heating_ashp']['sys_eff'],
+                year=scn_data['general']['year']
             )
             cops_GSHP = calc_heat_pump_cops(
                 t_high=[params['heating_temp']],
@@ -1113,7 +1115,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     (region.temp_ts['soil_temp'][mun.Index]
                     )[datetime_index]
                 ),
-                quality_grade=params['quality_grade_GSHP']
+                quality_grade=params['quality_grade_GSHP'],
+                spf=region.tech_assumptions.loc['heating_gshp']['sys_eff'],
+                year=scn_data['general']['year']
             )
 
             for sector in th_sectors:
