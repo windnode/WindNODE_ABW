@@ -1,5 +1,7 @@
 import pandas as pd
 
+import logging
+logger = logging.getLogger('windnode_abw')
 
 INTERNAL_NAMES = {
     "stor_battery_large": "flex_bat_large",
@@ -571,7 +573,40 @@ def flows_timexagsxtech(results_raw, region):
 
     flows = {}
     for name, patterns in flow_extractor.items():
-        flows[name] = extract_flows_timexagsxtech(results_raw, **patterns)
+        try:
+            flows[name] = extract_flows_timexagsxtech(results_raw, **patterns)
+        except:
+            logger.warning(f"Could not extract flows of '{name}' as it's not "
+                           f"contained in the scenario results! Creating "
+                           f"empty dataframe..")
+
+            # create zero-filled DF for el. storages
+            if name in ["Batteriespeicher charge",
+                        "Batteriespeicher discharge"]:
+                flows[name] = pd.DataFrame(
+                    {'flex_bat': 0},
+                    index=pd.MultiIndex.from_product(
+                        [results_raw.index,
+                         ['large', 'small'],
+                         region.muns.index], names=['timestamp',
+                                                    'level',
+                                                    'ags'])
+                )
+
+            # create zero-filled DF for th. storages
+            elif name in ["Wärmespeicher charge",
+                          "Wärmespeicher discharge"]:
+                flows[name] = pd.DataFrame(
+                    {'stor_th': 0},
+                    index=pd.MultiIndex.from_product(
+                        [results_raw.index,
+                         ['cen', 'dec'],
+                         region.muns.index], names=['timestamp',
+                                                    'level',
+                                                    'ags'])
+                )
+
+            pass
 
     # Join Wärmeerzeugung into one DataFrame
     flows["Wärmeerzeugung"] = flows["Wärmeerzeugung"].join(flows["Wärmeerzeugung PtH"])
