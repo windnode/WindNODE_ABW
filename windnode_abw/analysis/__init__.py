@@ -82,6 +82,7 @@ def analysis(run_timestamp, scenarios='ALL'):
                     raise ValueError(msg)
 
             regions_scns[scn_id] = Region.import_data(cfg)
+            results_scns[scn_id] = results_raw
 
             # Aggregate flow results along different dimensions (outdated, see #29)
             #results = aggregate_flows(results_raw)
