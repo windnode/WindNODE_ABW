@@ -447,7 +447,7 @@ def flow_params_agsxtech(results_raw):
     # define extraction pattern
     param_extractor = {
         "Stromerzeugung": {
-            "node_pattern": "\w+_(?P<ags>\d+)_?b?\d+?_(?P<technology>\w+)",
+            "node_pattern": "\w+_(?P<ags>\d+)_?b?\d*?_(?P<technology>\w+)",
             "stubname": "gen",
             "bus_pattern": 'b_el_\d+',
             "params": ["emissions", "nominal_value", "variable_costs"]},
