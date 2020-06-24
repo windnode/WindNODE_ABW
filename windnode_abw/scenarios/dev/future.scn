@@ -242,7 +242,7 @@
             enabled = 1
         [[[general]]]
             # share of heat pumps equipped with storage (0..1)
-            pth_storage_share = 0.5
+            pth_storage_share = 1
 
             # spec. capacity in liter/kW (m^3/MW) installed heat pump power (el.)
             capacity_spec = 60
