@@ -1398,7 +1398,6 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                             for busdata in mun_buses.itertuples()
                         },
                         outputs={bus_out: solph.Flow(
-                            # TODO: get from DB table?
                             nominal_value=scn_data['flexopt'][
                                 'flex_cen_pth']['outflow']['nominal_value'],
                             variable_costs=region.tech_assumptions_scn.loc[
