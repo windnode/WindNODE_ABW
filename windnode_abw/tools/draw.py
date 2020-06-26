@@ -6,10 +6,20 @@ rcParams['font.sans-serif'] = 'Roboto'
 rcParams['font.weight'] = 'normal'
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.ticker import ScalarFormatter
 
 import pandas as pd
 import geopandas as gpd
 import os
+
+import seaborn as sns
+# set seaborn style
+sns.set()
+
+import plotly.express as px
+import plotly.io as pio
+import plotly.graph_objs as go
+import plotly.offline as pltly
 
 from oemof.outputlib import views
 from oemof.graph import create_nx_graph
@@ -386,7 +396,7 @@ def sample_plots(region, results):
     plt.legend()
     plt.show()
 
-    def plot_geoplots(region, df_data, plot_kwds):
+def plot_geoplots(region, df_data, plot_kwds):
     """Define node colors
 
     Parameters
@@ -403,8 +413,8 @@ def sample_plots(region, results):
     	'legend_label'
     	'cmap'
     """
-    gdf_region = gpd.GeoDataFrame(regions_scns[scenario].muns.loc[:,['gen', 'geom']], geometry='geom')
-    gdf_region = gdf_region.join(df_rel_area, how='inner')
+    gdf_region = gpd.GeoDataFrame(region.muns.loc[:,['gen', 'geom']], geometry='geom')
+    gdf_region = gdf_region.join(df_data, how='inner')
     
     fig, axs = plt.subplots(plot_kwds['nrows'],
                             plot_kwds['ncols'],
@@ -439,11 +449,11 @@ def sample_plots(region, results):
     plt.show()
 
 
-    def plot_balance_bar(df_generation, df_demand):
+def plot_balance_bar(region, df_generation, df_demand):
     """"""    
     fig = go.Figure()
     for tech, data in df_generation.iteritems():
-        fig.add_trace(go.Bar(x=regions_scns[scenario].muns['gen'],
+        fig.add_trace(go.Bar(x=region.muns['gen'],
                              y=data,
                              name=NAMES[tech],
                              marker_color=COLORS[tech]))
@@ -451,7 +461,7 @@ def sample_plots(region, results):
 
 
     for tech, data in df_demand.iteritems():
-        fig.add_trace(go.Bar(x=regions_scns[scenario].muns['gen'],
+        fig.add_trace(go.Bar(x=region.muns['gen'],
                              y=-data,
                              name=NAMES[tech],
                              marker_color=COLORS[tech],
