@@ -712,7 +712,8 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 label=f'network_th_cen_{ags}',
                 inputs={bus_th_net_in: solph.Flow()},
                 outputs={bus_th_net_out: solph.Flow(
-                    variable_costs=1
+                    variable_costs=region.tech_assumptions_scn.loc[
+                        'district_heating']['opex_var']
                 )
                 },
                 conversion_factors={
