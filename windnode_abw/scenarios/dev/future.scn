@@ -257,8 +257,24 @@
             inflow_conversion_factor = 1
             outflow_conversion_factor = 1
 
-    # heat storage for Dessau
+    # heat storage for district heating (except Dessau)
     [[th_cen_storage]]
+        [[[enabled]]]
+            enabled = 1
+        [[[general]]]
+            # spec. capacity in MWh/MW_th_peak (derived from Dessau)
+            capacity_spec = 5
+
+            # c-rates (derived from Dessau)
+            c_rate_charge = 0.1
+            c_rate_discharge = 0.1
+        [[[params]]]
+            loss_rate = 0.001
+            inflow_conversion_factor = 1
+            outflow_conversion_factor = 1
+
+    # heat storage for Dessau
+    [[th_cen_storage_dessau]]
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]

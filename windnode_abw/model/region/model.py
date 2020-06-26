@@ -797,21 +797,25 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             )
 
             # storage
-            if scn_data['storage']['th_cen_storage']['enabled']['enabled'] == 1:
+            if scn_data['storage']['th_cen_storage_dessau'][
+                    'enabled']['enabled'] == 1:
                 nodes.append(
                     solph.components.GenericStorage(
                         label=f'stor_th_cen_{ags}',
                         inputs={bus_th_net_in: solph.Flow(
-                            **scn_data['storage']['th_cen_storage']['inflow'],
+                            **scn_data['storage']['th_cen_storage_dessau'][
+                                'inflow'],
                             variable_costs=region.tech_assumptions_scn.loc[
                                 'stor_th_large']['opex_var'],
                             emissions=region.tech_assumptions_scn.loc[
                                 'stor_th_large']['emissions_var'],
                         )},
                         outputs={bus_th_net_in: solph.Flow(
-                            **scn_data['storage']['th_cen_storage']['outflow']
+                            **scn_data['storage']['th_cen_storage_dessau'][
+                                'outflow']
                         )},
-                        **scn_data['storage']['th_cen_storage']['params']
+                        **scn_data['storage']['th_cen_storage_dessau'][
+                            'params']
                     )
                 )
 
@@ -957,6 +961,33 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     }
                 )
             )
+
+            # storage
+            pth_storage_cfg = scn_data['storage']['th_cen_storage']
+            stor_capacity = th_cen_peak_load * pth_storage_cfg[
+                'general']['capacity_spec']
+
+            if scn_data['storage']['th_cen_storage'][
+                    'enabled']['enabled'] == 1:
+                nodes.append(
+                    solph.components.GenericStorage(
+                        label=f'stor_th_cen_{ags}',
+                        inputs={bus_th_net_in: solph.Flow(
+                            nominal_value=stor_capacity * pth_storage_cfg[
+                                'general']['c_rate_charge'],
+                            variable_costs=region.tech_assumptions_scn.loc[
+                                'stor_th_large']['opex_var'],
+                            emissions=region.tech_assumptions_scn.loc[
+                                'stor_th_large']['emissions_var'],
+                        )},
+                        outputs={bus_th_net_in: solph.Flow(
+                            nominal_value=stor_capacity * pth_storage_cfg[
+                                'general']['c_rate_discharge'],
+                        )},
+                        **pth_storage_cfg['params'],
+                        nominal_storage_capacity=stor_capacity
+                    )
+                )
 
         # demand per sector and mun
         # TODO: Include efficiencies (also in sources above)
