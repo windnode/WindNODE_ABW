@@ -33,7 +33,7 @@
 
     # share of methane (0..1)
     # Note: methane needs to be in commodity list above
-    methane_share = 0
+    methane_share = 0.55
 
 # electrical and heat demand
 # (parametrized via DB table)
