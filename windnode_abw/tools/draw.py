@@ -479,3 +479,74 @@ def plot_balance_bar(region, df_generation, df_demand):
         tickfont_size=14),
         autosize=True)
     fig.show()
+
+def plot_timeseries(region, kind='el', **kwargs):
+	    """"""
+	    start = kwargs.get('start', region.cfg['date_from'])
+	    end = kwargs.get('end', region.cfg['date_to'])
+	    ags =  kwargs.get('ags', 'ABW')
+	    
+	    if kind=='el':
+	        feedin_keys = ['pv_ground', 'pv_roof_small', 'pv_roof_large', 'hydro',' bio', 'conventional', 'wind']
+	    else:
+	        feedin_keys = ['solar_heat', ] # what is missing?
+	    
+	    demand_keys = [key for key in region.demand_ts.keys() if key.startswith(kind)]
+	    
+	    if ags=='ABW':
+	        df_feedin = pd.DataFrame({k: v.sum(axis=1) for k, v in region.feedin_ts.items() if k in feedin_keys}).loc[start:end,:]
+	        df_demand = pd.DataFrame({k: v.sum(axis=1) for k, v in region.demand_ts.items() if k in demand_keys}).loc[start:end,:]
+	    else:  
+	        df_feedin = pd.DataFrame({k: v.loc[:,[ags]].sum(axis=1) for k, v in region.feedin_ts.items() if k in feedin_keys}).loc[start:end,:]
+	        df_demand = pd.DataFrame({k: v.loc[:,[ags]].sum(axis=1) for k, v in region.demand_ts.items() if k in demand_keys}).loc[start:end,:]
+
+
+	    # what is conventional
+	    df_residual_load = df_demand.sum(axis=1) - df_feedin.drop(columns=['conventional']).sum(axis=1)
+
+	    fig = go.Figure()
+
+	    for tech, data in df_feedin.iteritems():
+	        fig.add_trace(go.Scatter(x=data.index,
+	                                 y=data.values,
+	                                 name=NAMES[tech],
+	                                 fill='tonexty',
+	                                 mode='none',
+	                                 fillcolor=COLORS[tech],
+	                                stackgroup='one'))
+
+	    for tech, data in df_demand.iteritems():
+	        fig.add_trace(go.Scatter(x=data.index,
+	                                 y=(-data.values),
+	                                 name=NAMES[tech],
+	                                 fill='tonexty',
+	                                 mode='none',
+	                                 fillcolor=COLORS[tech],
+	                                stackgroup='two'))
+
+
+	    fig.update_xaxes(
+	        title='Zoom',
+	        rangeslider_visible=True,
+	        rangeselector=dict(
+	            buttons=list([
+	                dict(count=6, label="6m", step="month", stepmode="backward"),
+	                dict(count=1, label="1m", step="month", stepmode="backward"),
+	                dict(count=14, label="2w", step="day", stepmode="backward"),
+	                dict(count=7, label="1w", step="day", stepmode="backward"),
+	                dict(count=3, label="3d", step="day", stepmode="backward"),
+	                #dict(step="all")
+	            ])
+	        )
+	    )
+
+	    fig.update_layout(
+	        title='Power Generation and Demand of %s'% ags,
+	        #xaxis={'categoryorder':'category ascending'},
+	        xaxis_tickfont_size=14,
+	        yaxis=dict(
+	        title='MW',
+	        titlefont_size=16,
+	        tickfont_size=14),
+	        autosize=True)
+	    fig.show()
