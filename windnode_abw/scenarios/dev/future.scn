@@ -354,9 +354,8 @@
     [[flex_cen_pth]]
         [[[enabled]]]
             enabled = 1
-        [[[outflow]]]
-            nominal_value = 1000
         [[[params]]]
+            nom_th_power_rel_to_pl = 0.5
             conversion_factor = 0.95
 
     # demand side management in households
