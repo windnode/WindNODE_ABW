@@ -17,6 +17,43 @@ from oemof.graph import create_nx_graph
 import logging
 logger = logging.getLogger('windnode_abw')
 
+NAMES = {'hydro': 'Laufwasser',
+            'bio': 'Bioenergie',
+            'wind': 'Windenergie',
+            'pv_ground': 'Photovoltaik (Freifläche)',
+            'pv_roof_small': 'Photovoltaik (Aufdach <30 kW)',
+            'pv_roof_large': 'Photovoltaik (Aufdach >30 kW)',
+            'export':'export',
+            'import': 'import',
+            'demand':'demand',
+            'hh': 'households',
+            'rca': 'r. comercial aggriculture',
+            'ind': 'industry',
+            'conventional': 'conventional',
+            'el_hh': 'households',
+            'el_rca': 'GHD',
+            'el_ind': 'industry',
+            }
+
+# https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
+COLORS = {'bio': 'green',
+          'hydro': 'royalblue',
+          'pv_ground' : 'goldenrod',
+          'pv_roof_large' : 'gold',
+          'pv_roof_small' : 'darkorange',
+          'wind': 'skyblue',
+          'conventional':'grey',
+          'import' : 'maroon',
+          'export' : 'olive',
+          'demand' : 'darkgray',
+          'rca': 'gray',
+          'hh': 'darkmagenta',
+          'ind': 'darkslategray',
+          'el_rca': 'gray',
+          'el_hh': 'darkmagenta',
+          'el_ind': 'darkslategray'
+         }
+
 
 def draw_graph(grph, mun_ags=None,
                edge_labels=True, node_color='#AFAFAF',
@@ -366,8 +403,6 @@ def sample_plots(region, results):
     	'legend_label'
     	'cmap'
     """
-
-
     gdf_region = gpd.GeoDataFrame(regions_scns[scenario].muns.loc[:,['gen', 'geom']], geometry='geom')
     gdf_region = gdf_region.join(df_rel_area, how='inner')
     
@@ -405,54 +440,21 @@ def sample_plots(region, results):
 
 
     def plot_balance_bar(df_generation, df_demand):
-    techs = {'hydro': 'Laufwasser',
-         'bio': 'Bioenergie',
-         'wind': 'Windenergie',
-         'pv_ground': 'Photovoltaik (Freifläche)',
-         'pv_roof_small': 'Photovoltaik (Aufdach <30 kW)',
-         'pv_roof_large': 'Photovoltaik (Aufdach >30 kW)',
-         'export':'export',
-         'import': 'import',
-         'demand':'demand',
-         'hh': 'households',
-         'rca': 'r. comercial aggriculture',
-         'ind': 'industry'
-             }
-    # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
-    colors = {'bio': 'green',
-          'hydro': 'royalblue',
-          'pv_ground' : 'goldenrod',
-          'pv_roof_large' : 'gold',
-          'pv_roof_small' : 'darkorange',
-          'wind': 'skyblue',
-          'import' : 'maroon',
-          'export' : 'olive',
-          'demand' : 'darkgray',
-          'rca': 'gray',
-          'hh': 'darkmagenta',
-          'ind': 'darkslategray'
-         }         
-
-    sectors = {'el_ind': 'Industrie',
-           'el_rca': 'GHD',
-           'el_hh': 'Haushalte'
-           }
-    
-    
+    """"""    
     fig = go.Figure()
     for tech, data in df_generation.iteritems():
         fig.add_trace(go.Bar(x=regions_scns[scenario].muns['gen'],
                              y=data,
-                             name=techs[tech],
-                             marker_color=colors[tech]))
+                             name=NAMES[tech],
+                             marker_color=COLORS[tech]))
 
 
 
     for tech, data in df_demand.iteritems():
         fig.add_trace(go.Bar(x=regions_scns[scenario].muns['gen'],
                              y=-data,
-                             name=techs[tech],
-                             marker_color=colors[tech],
+                             name=NAMES[tech],
+                             marker_color=COLORS[tech],
                             visible='legendonly'))
 
 
