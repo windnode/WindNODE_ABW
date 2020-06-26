@@ -402,3 +402,68 @@ def sample_plots(region, results):
              fontweight='normal')
     plt.tight_layout()
     plt.show()
+
+
+    def plot_balance_bar(df_generation, df_demand):
+    techs = {'hydro': 'Laufwasser',
+         'bio': 'Bioenergie',
+         'wind': 'Windenergie',
+         'pv_ground': 'Photovoltaik (Freifläche)',
+         'pv_roof_small': 'Photovoltaik (Aufdach <30 kW)',
+         'pv_roof_large': 'Photovoltaik (Aufdach >30 kW)',
+         'export':'export',
+         'import': 'import',
+         'demand':'demand',
+         'hh': 'households',
+         'rca': 'r. comercial aggriculture',
+         'ind': 'industry'
+             }
+    # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
+    colors = {'bio': 'green',
+          'hydro': 'royalblue',
+          'pv_ground' : 'goldenrod',
+          'pv_roof_large' : 'gold',
+          'pv_roof_small' : 'darkorange',
+          'wind': 'skyblue',
+          'import' : 'maroon',
+          'export' : 'olive',
+          'demand' : 'darkgray',
+          'rca': 'gray',
+          'hh': 'darkmagenta',
+          'ind': 'darkslategray'
+         }         
+
+    sectors = {'el_ind': 'Industrie',
+           'el_rca': 'GHD',
+           'el_hh': 'Haushalte'
+           }
+    
+    
+    fig = go.Figure()
+    for tech, data in df_generation.iteritems():
+        fig.add_trace(go.Bar(x=regions_scns[scenario].muns['gen'],
+                             y=data,
+                             name=techs[tech],
+                             marker_color=colors[tech]))
+
+
+
+    for tech, data in df_demand.iteritems():
+        fig.add_trace(go.Bar(x=regions_scns[scenario].muns['gen'],
+                             y=-data,
+                             name=techs[tech],
+                             marker_color=colors[tech],
+                            visible='legendonly'))
+
+
+    fig.update_layout(
+        title='Power Generation and Demand',
+        barmode='relative',
+        xaxis={'categoryorder':'category ascending'},
+        xaxis_tickfont_size=14,
+        yaxis=dict(
+        title='MW',
+        titlefont_size=16,
+        tickfont_size=14),
+        autosize=True)
+    fig.show()
