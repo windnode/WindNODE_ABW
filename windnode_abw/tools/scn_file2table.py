@@ -10,7 +10,7 @@ from windnode_abw.tools.data_io import load_scenario_cfg
 
 if __name__ == "__main__":
     # =========================================
-    scn_name = 'sq'
+    scn_name = 'dev/sq'
     # out file
     csv_file = 'scenario_header.csv'
     # number of value rows to be created (=number of scenarios)
