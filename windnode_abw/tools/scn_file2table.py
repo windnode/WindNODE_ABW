@@ -13,7 +13,7 @@ if __name__ == "__main__":
     scn_name = 'sq'
     # out file
     csv_file = 'scenario_header.csv'
-    # number of value rows to be created
+    # number of value rows to be created (=number of scenarios)
     # (all filled with identical data from scenario above)
     row_count = 39
     # =========================================
