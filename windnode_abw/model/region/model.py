@@ -526,13 +526,17 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             continue
         if es not in ['elenergy', 'dist_heating']:
             bus = solph.Bus(label=f'b_{es}')
+            costs_var = region.tech_assumptions_scn.loc[
+                'comm_' + es]['capex'] if es != 'solar' else 0
+            emissions_var = region.tech_assumptions_scn.loc[
+                'comm_' + es]['emissions_var'] if es != 'solar' else 0
             com = solph.Source(
                 label=es,
                 outputs={bus: solph.Flow(
-                    variable_costs=region.tech_assumptions_scn.loc[
-                        'comm_' + es]['capex'] if es != 'solar' else 0,
-                    emissions=region.tech_assumptions_scn.loc[
-                        'comm_' + es]['emissions_var']  if es != 'solar' else 0
+                    variable_costs=(costs_var + emissions_var *
+                                    region.tech_assumptions_scn.loc[
+                                        'emission']['capex']),
+                    emissions=emissions_var
                 )
                 }
             )
