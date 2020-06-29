@@ -200,9 +200,9 @@
             # nominal thermal power
             nom_th_power = 60
             # minimal th. energy share provided by GuD in relation to demand
-            # TODO: Set back to 0.8 for annual optimization
-            #min_th_energy_share = 0.8
-            min_th_energy_share = 0
+            # CAUTION: If >0, the system might not be solvable for time ranges
+            # shorter than a full year!
+            min_th_energy_share = 0.8
             # cb-coefficient/back-pressure coefficient (Stromkennzahl/P-Q ratio)
             cb_coeff = 1.2
             # cv-coefficient/beta (Stromverlustkenziffer)
