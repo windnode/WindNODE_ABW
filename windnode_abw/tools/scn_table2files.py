@@ -30,7 +30,7 @@ if __name__ == "__main__":
     # (exported from scenario document, separated by ";")
     csv_file = 'scenarios.csv'
     # header lines (check in CSV or tool will break!)
-    header_lines = 5
+    header_lines = 4
     # ===================================================
 
     # import scenario table
@@ -42,8 +42,9 @@ if __name__ == "__main__":
     
     for scn_no in range(len(scn_df) - header_lines):
         # extract params from scn DF
-        scn_data = scn_df.iloc[[0, 1, 2, 3, 4,
-                                scn_no + header_lines]].to_dict()
+        scn_data = scn_df.iloc[
+            list(range(header_lines)) + [scn_no + header_lines]
+        ].to_dict()
 
         # build dict
         scn_config = {}
