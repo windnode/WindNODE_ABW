@@ -1197,7 +1197,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     ################################
                     pth_storage_cfg = scn_data['storage']['th_dec_pth_storage']
                     if (pth_storage_cfg['enabled']['enabled'] == 1 and
-                        pth_storage_cfg['general']['pth_storage_share'] > 0):
+                            0 <
+                            pth_storage_cfg['general']['pth_storage_share']
+                            <= 1):
 
                         # create additional PTH heat bus
                         bus_th_dec_pth = solph.Bus(
@@ -1328,6 +1330,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 conversion_factors={bus_th_dec: 1}
                             )
                         )
+                    else:
+                        pth_storage_cfg['general']['pth_storage_share'] = 0
 
                     ###################################
                     # HP systems without heat storage #
