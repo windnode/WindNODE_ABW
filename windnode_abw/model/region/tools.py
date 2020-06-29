@@ -841,7 +841,7 @@ def calc_available_pv_capacity(region):
     if region.pot_areas_pv_scn is None:
         if cfg['pv_installed_power'] == 'MAX_AREA':
             msg = 'Cannot calculate PV potential (param pv_installed_power=' \
-                  'AVAIL_AREA but no pv_land_use_scenario selected)'
+                  'MAX_AREA but no pv_land_use_scenario selected)'
             logger.error(msg)
             raise ValueError(msg)
         elif isinstance(cfg['pv_installed_power'], float):
@@ -977,7 +977,7 @@ def calc_available_wec_capacity(region):
     if region.pot_areas_wec_scn is None:
         if cfg['wec_installed_power'] == 'MAX_AREA':
             msg = 'Cannot calculate WEC potential (param wec_installed_power=' \
-                  'AVAIL_AREA but no wec_land_use_scenario selected)'
+                  'MAX_AREA but no wec_land_use_scenario selected)'
             logger.error(msg)
             raise ValueError(msg)
         elif isinstance(cfg['wec_installed_power'], float):
