@@ -1,5 +1,140 @@
 import pandas as pd
 
+import logging
+logger = logging.getLogger('windnode_abw')
+
+INTERNAL_NAMES = {
+    "stor_battery_large": "flex_bat_large",
+    "stor_battery_small": "flex_bat_small",
+    "stor_th_large": "th_cen_storage",
+    "stor_th_small": "th_dec_pth_storage",
+}
+
+PRINT_NAMES = {
+    'bhkw': "Large-scale CHP",
+    'bio': "Biogas",
+    'gas': "Open-cycle gas turbine",
+    'gud': "Combined-cycle gas turbine",
+    'hydro': "Hydro",
+    'pv_ground': "PV ground-mounted",
+    'pv_roof_large': "PV roof top (large)",
+    'pv_roof_small': "PV roof top (small)",
+    'wind': "Wind",
+    'import': "Electricity imports (national grid)",
+    "elenergy": "Direct electric heating",
+    "fuel_oil": "Oil heating",
+    "gas_boiler": "Gas (district heating)",
+    "natural_gas": "Gas heating",
+    "solar": "Solar thermal heating",
+    "wood": "Wood heating",
+    "coal": "Coal heating",
+    "pth": "Power-to-heat (district heating)",
+    "pth_ASHP": "Air source heat pump",
+    "pth_GSHP": "Ground source heat pump",
+    "stor_th_large": "Thermal storage (district heating)",
+    "stor_th_small": "Thermal storage",
+    "flex_bat_large": "Large-scale battery storage",
+    "flex_bat_small": "PV system battery storage",
+}
+
+GEN_EL_NAMES = {
+    "gud": {
+        "params": "pp_natural_gas_cc",
+        "params_comm": "comm_natural_gas"},
+    "gas": {
+        "params": "pp_natural_gas_sc",
+        "params_comm": "comm_natural_gas"},
+    "bhkw": {
+        "params": "pp_bhkw",
+        "params_comm": "comm_natural_gas"},
+    'hydro': {
+        "params": "hydro"},
+    'pv_ground': {
+        "params": "pv_ground"},
+    'pv_roof_large': {
+        "params": "pv_roof_large"},
+    'pv_roof_small': {
+        "params": "pv_roof_small"},
+    'wind': {
+        "params": "wind"},
+    "bio": {
+        "params": "bio",
+        "params_comm": "comm_biogas"},
+    'import': {
+        "params": None,
+        "params_comm": "elenergy"}
+}
+
+GEN_TH_NAMES = {
+    "elenergy": {
+        "params": None,
+        "params_comm": "elenergy"},
+    "fuel_oil": {
+        "params": "heating_fuel_oil",
+        "params_comm": "comm_fuel_oil"},
+    "gas_boiler": {
+        "params": "pp_natural_gas_boiler",
+        "params_comm": "comm_natural_gas"},
+    "gud": {
+        "params": "pp_natural_gas_cc",
+        "params_comm": "comm_natural_gas"},
+    "bhkw": {
+        "params": "pp_bhkw",
+        "params_comm": "comm_natural_gas"},
+    "natural_gas": {
+        "params": "heating_natural_gas",
+        "params_comm": "comm_natural_gas"},
+    "solar": {
+        "params": "heating_solar"},
+    "wood": {
+        "params": "heating_wood",
+        "params_comm": "comm_wood"},
+    "coal": {
+        "params": "heating_coal",
+        "params_comm": "comm_coal"},
+    "pth": {
+        "params": "heating_rod",
+        "params_comm": "elenergy"},
+    "pth_ASHP": {
+        "params": "heating_ashp",
+        "params_comm": "elenergy"},
+    "pth_GSHP": {
+        "params": "heating_gshp",
+        "params_comm": "elenergy"},
+}
+
+UNITS = {
+    'Grid losses': 'MWh',
+    'Electricity demand': 'MWh',
+    'Electricity demand for heating': 'MWh',
+    'Electricity demand total': 'MWh',
+    'Heating demand': 'MWh',
+    'Electricity imports': 'MWh',
+    'Electricity exports': 'MWh',
+    'Electricity imports % of demand': '%',
+    'Electricity exports % of demand': '%',
+    'Balance': 'MWh',
+    'Self-consumption annual': 'MWh',
+    'Self-consumption hourly': 'MWh',
+    'Area required pv_roof_small': 'ha',
+    'Area required pv_roof_large': 'ha',
+    'Area required pv_ground': 'ha',
+    'Area required wind': 'ha',
+    'CO2 emissions el.': 'tCO2',
+    'CO2 emissions th.': 'tCO2',
+    'Net DSM activation': 'MWh',
+    "Electricity storage losses": "MWh",
+    "Heat storage losses": "MWh",
+    "Area required rel. PV rooftop": "%",
+    "Area required rel. PV ground hard": "%",
+    "Area required rel. PV ground hard soft": "%",
+    "Area required rel. PV ground hard 1-perc agri": "%",
+    "Area required rel. PV ground hard soft 1-perc agri": "%",
+    "Area required rel. wind 500m wo forest": "%",
+    "Area required rel. wind 500m w forest": "%",
+    "Area required rel. wind 1000m w forest": "%",
+}
+
 
 def results_to_dataframes(esys):
     """Convert result dict to DataFrames for flows and stationary variables.
