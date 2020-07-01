@@ -119,7 +119,7 @@ UNITS = {
     'Area required pv_roof_small' : 'ha', #?
     'Area required pv_roof_large' : 'ha',
     'Area required pv_ground' : 'ha',
-    'Area required wind' : 'm^2',
+    'Area required wind' : 'ha',
     'CO2 emissions el.' : 'tCO2', #?
     'CO2 emissions th.' : 'tCO2',
     'Net DSM activation': 'MWh',
