@@ -121,7 +121,8 @@ UNITS = {
     'Area required pv_ground' : 'ha',
     'Area required wind' : 'm^2',
     'CO2 emissions el.' : 'tCO2', #?
-    'CO2 emissions th.' : 'tCO2'
+    'CO2 emissions th.' : 'tCO2',
+    'Net DSM activation': 'MWh'
 }
 
 def results_to_dataframes(esys):
@@ -818,6 +819,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
     results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["line_id", "bus_from", "bus_to"])
+    results["Net DSM activation"] = extracted_results["DSM activation"]["Demand increase"].sum(level="ags")
 
     # Area requried by wind and PV
     re_params = region.cfg['scn_data']['generation']['re_potentials']
@@ -918,6 +920,7 @@ def create_highlevel_results(results_tables, results_t, results_txaxt):
         highlevel["Area required " + re] = results_tables["Area required"][re].sum()
     highlevel["CO2 emissions el."] = results_t["CO2 emissions el. total"].sum()
     highlevel["CO2 emissions th."] = results_t["CO2 emissions th. total"].sum()
+    highlevel["Net DSM activation"] = results_tables["Net DSM activation"].sum()
 
     # add multiindex including units to output
     mindex = [highlevel.keys(),
