@@ -122,7 +122,9 @@ UNITS = {
     'Area required wind' : 'm^2',
     'CO2 emissions el.' : 'tCO2', #?
     'CO2 emissions th.' : 'tCO2',
-    'Net DSM activation': 'MWh'
+    'Net DSM activation': 'MWh',
+    "Electricity storage losses": "MWh",
+    "Heat storage losses": "MWh"
 }
 
 def results_to_dataframes(esys):
@@ -832,6 +834,15 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["line_id", "bus_from", "bus_to"])
     results["Net DSM activation"] = extracted_results["DSM activation"]["Demand increase"].sum(level="ags")
 
+    # Losses in energy storages
+    results["Electricity storage losses"] = (results["Batteriespeicher nach Gemeinde"]["charge"] -
+                                             results["Batteriespeicher nach Gemeinde"]["discharge"]).unstack("level").fillna(0)
+    results["Electricity storage losses"].columns = ["flex_bat_" + n for n in results["Electricity storage losses"].columns]
+    results["Heat storage losses"] = (results["Wärmespeicher nach Gemeinde"]["charge"] -
+                                      results["Wärmespeicher nach Gemeinde"]["discharge"]).unstack("level").fillna(
+        0).rename(columns={"dec": "stor_th_small", "cen": "stor_th_large"})
+
+
     # Area requried by wind and PV
     re_params = region.cfg['scn_data']['generation']['re_potentials']
     results["Area required"] = pd.concat([
@@ -932,6 +943,8 @@ def create_highlevel_results(results_tables, results_t, results_txaxt):
     highlevel["CO2 emissions el."] = results_t["CO2 emissions el. total"].sum()
     highlevel["CO2 emissions th."] = results_t["CO2 emissions th. total"].sum()
     highlevel["Net DSM activation"] = results_tables["Net DSM activation"].sum()
+    highlevel["Electricity storage losses"] = results_tables["Electricity storage losses"].sum().sum()
+    highlevel["Heat storage losses"] = results_tables["Heat storage losses"].sum().sum()
 
     # add multiindex including units to output
     mindex = [highlevel.keys(),
