@@ -111,7 +111,7 @@ def analysis(run_timestamp, scenarios='ALL'):
             results_scns[scn_id]['results_t'] = results_t
 
             # Aggregation to scalar result values
-            highlevel_results = create_highlevel_results(results_axlxt, results_t, flows_txaxt)
+            highlevel_results = create_highlevel_results(results_axlxt, results_t, flows_txaxt, regions_scns[scn_id])
             results_scns[scn_id]['highlevel_results'] = highlevel_results
 
     return regions_scns, results_scns
