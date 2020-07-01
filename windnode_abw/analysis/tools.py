@@ -570,6 +570,13 @@ def flows_timexagsxtech(results_raw, region):
             "unstack_col": "technology",
             "level_flow_in": 1,
             "level_flow_out": 0},
+        "Stromnachfrage DSM HH": {
+            "node_pattern": "(?P<ags>\d+)_b\d+",
+            "stubname": "flex_dsm",
+            "bus_pattern": 'b_el_\w+',
+            "unstack_col": None,
+            "level_flow_in": 1,
+            "level_flow_out": 0},
     }
 
     flows = {}
@@ -649,6 +656,10 @@ def flows_timexagsxtech(results_raw, region):
         axis=1).fillna(0)
     flows.pop("Stromnachfrage Heizstab")
     flows.pop("Stromnachfrage PtH")
+
+    # Add electricity demand by HH with DSM to HH electricity demand
+    flows["Stromnachfrage"]["hh"] = flows["Stromnachfrage"]["hh"] + flows["Stromnachfrage DSM HH"]["flex_dsm"]
+    flows.pop("Stromnachfrage DSM HH")
 
     return flows
 
