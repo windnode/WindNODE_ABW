@@ -835,7 +835,12 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         .. math:
             P_{inst} \cdot (Annuity + opex_{fix}) + E_{gen} * opex_{var} + E_{commodity} * opex_{var,commodity}
         """
-        costs = (capacity * (params["annuity"] + params["opex_fix"])).fillna(0) + generation * params["opex_var"] + generation * params["emissions_var_comm"] / params["sys_eff"]
+        costs = (capacity * (params["annuity"] + params["opex_fix"])).fillna(0) + generation * params["opex_var"]
+
+        if "emissions_var_comm" in params and "sys_eff" in params:
+            costs_commodity = generation * params["emissions_var_comm"] / params["sys_eff"]
+
+            costs = costs + costs_commodity
 
         return costs
 
@@ -912,12 +917,12 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     inst_cap_bat_tmp = pd.concat([
         parameters['Installierte Kapazität Großbatterien']["capacity"].rename("flex_bat_large"),
         parameters['Installierte Kapazität PV-Batteriespeicher']["capacity"].rename("flex_bat_small")], axis=1)
-    discharge_stor_th_tmp = results['Batteriespeicher nach Gemeinde']["discharge"].unstack("level").rename(
+    discharge_stor_el_tmp = results['Batteriespeicher nach Gemeinde']["discharge"].unstack("level").rename(
         columns={"large": "flex_bat_large", "small": "flex_bat_small"})
-    discharge_stor_th_tmp.index = discharge_stor_th_tmp.index.astype(int)
+    discharge_stor_el_tmp.index = discharge_stor_el_tmp.index.astype(int)
     results_tmp_stor_el = _calculate_co2_emissions(
         "stor el.",
-        discharge_stor_th_tmp,
+        discharge_stor_el_tmp,
         inst_cap_bat_tmp,
         parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("flex_bat"), :])
     results.update(results_tmp_stor_el)
@@ -953,6 +958,14 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         "import", "opex_var_comm"]
     export_revenues.index = export_revenues.index.astype(int)
     results["Total costs electricity supply"]["export"] = export_revenues
+
+    # Calculate costs for electricity storages and add to el. supply costs df
+    costs_el_storages_tmp = _calculate_supply_costs(
+        discharge_stor_el_tmp,
+        inst_cap_bat_tmp,
+        parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("flex_bat"), :])
+
+    results["Total costs electricity supply"] = pd.concat([results["Total costs electricity supply"], costs_el_storages_tmp], axis=1)
 
     return results
 
