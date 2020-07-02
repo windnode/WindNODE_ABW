@@ -13,6 +13,10 @@ Install requirements manually in your venv, **egoio** should be the last.
 Install it without dependencies by using `pip install --no-dependencies
 egoio`.
 
+To run the model, you also need a solver to be installed such as CBC or Gurobi.
+On Linux, you can install CBC with `apt install coinor-cbc`. Make sure the
+solver is set in the run configuration dict in `run_scenario.py`.
+
 ### Setup postgres database with docker (optional)
 
 **Note** You don't have to necessarily use docker to create a Postgres database. Using a native installtion works as well
@@ -36,14 +40,15 @@ Afterwards you can access the database via
 
 ### Import scenario data
 
-Scenario data is contained in the database dump [windnode_db_200602.backup](https://next.rl-institut.de/s/Q3sLw7JZgjpXfbR).
+Scenario data is contained in the database dump [windnode_db_200626.backup](https://next.rl-institut.de/s/mXNJibeRWQMjmZA).
 Do the following steps to import the scenario data to your database
 
 1. Download the above scenario data file
 2. Import tables, data, and constraints by 
    ```
-   pg_restore -U windnode -d windnode_abw -h localhost -p 54321 -W --no-owner --no-privileges --no-tablespace -1  <windnode_db_200602.backup
+   pg_restore -U windnode -d windnode_abw -h localhost -p 54321 -W --no-owner --no-privileges --no-tablespace -1  </path/to/windnode_db_200626.backup>
    ```
+   To overwrite existing tables, you may use the `--clean` argument.
 
 ## Setup database connection config file
 

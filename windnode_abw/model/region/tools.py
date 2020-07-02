@@ -479,14 +479,16 @@ def prepare_temp_timeseries(region):
 
 
 def calc_heat_pump_cops(t_high, t_low, quality_grade, consider_icing=False,
-                        temp_icing=None, factor_icing=None):
-    """Calculate temperature-dependent COP of heat pumps
+                        temp_icing=None, factor_icing=None, spf=None, year=2017):
+    """Calculate temperature-dependent COP of heat pumps including efficiency
+    gain over time.
 
-    Code was taken from oemof-thermal:
+    COP-Code was adapted from oemof-thermal:
     https://github.com/oemof/oemof-thermal/blob/features/cmpr_heatpumps_and_chillers/src/oemof/thermal/compression_heatpumps_and_chillers.py
     Related issue: https://github.com/oemof/oemof/issues/591
 
-    ToDo: Import function as soon as available on master/dev
+    Efficiency corrections are based upon increase of seasonal performance
+    factor (SPF) for scenario year as set in cfg since 2017 (SQ).
     """
 
     # Expand length of lists with temperatures and convert unit to Kelvin.
@@ -514,6 +516,10 @@ def calc_heat_pump_cops(t_high, t_low, quality_grade, consider_icing=False,
                 cops = cops + [factor_icing*quality_grade * t_h/(t_h-t_l)]
             if t_l >= temp_icing + 273.15:
                 cops = cops + [quality_grade * t_h / (t_h - t_l)]
+
+    # Efficiency gain for scenario year
+    if year != 2017 and spf is not None:
+        cops = [_ * spf[int(year)]/spf[2017] for _ in cops]
 
     return cops
 
@@ -631,7 +637,7 @@ def create_maintenance_timeseries(datetime_index, months, duration):
     :obj:`list` of :obj:`int` (1 or 0)
         List of (de)activation times
     """
-    if months == '':
+    if months in ['', 0]:
         mask = [True] * len(datetime_index)
     else:
         if not isinstance(months, list):
@@ -654,7 +660,7 @@ def calc_annuity(cfg, tech_assumptions):
     tech_assumptions['annuity'] = tech_assumptions.replace(0, nan).apply(
         lambda row: annuity(row['capex'],
                             row['lifespan'],
-                            cfg['scn_data']['economics']['wacc']),
+                            row['wacc']),
         axis=1)
 
     return tech_assumptions
@@ -683,9 +689,8 @@ def distribute_large_battery_capacity(region, method='re_cap'):
 
     Returns
     -------
-    :pandas:`pandas.DataFrame` or None
-        Battery capacity, charge and discharge power per municipality,
-        None if capacity is zero
+    :pandas:`pandas.DataFrame`
+        Battery capacity, charge and discharge power per municipality
     """
     batt_params = region.cfg['scn_data']['flexopt']['flex_bat_large']
     batt_cap_cum = batt_params['params']['nominal_storage_capacity']
@@ -750,7 +755,11 @@ def distribute_large_battery_capacity(region, method='re_cap'):
         # )
         # results_compare.plot.bar(title='Ergebnisvergleich verschiedener Verteilungsmethoden für Großbatterien')
 
-    return None
+    return pd.DataFrame({
+        'capacity': 0,
+        'power_charge': 0,
+        'power_discharge': 0
+    }, index=region.muns.index)
 
 
 def distribute_small_battery_capacity(region):
@@ -766,9 +775,8 @@ def distribute_small_battery_capacity(region):
 
     Returns
     -------
-    :pandas:`pandas.DataFrame` or None
-        Battery capacity, charge and discharge power per municipality,
-        None if capacity is zero
+    :pandas:`pandas.DataFrame`
+        Battery capacity, charge and discharge power per municipality
     """
     batt_params = region.cfg['scn_data']['flexopt']['flex_bat_small']
     batt_cap_cum = batt_params['params']['nominal_storage_capacity']
@@ -794,7 +802,11 @@ def distribute_small_battery_capacity(region):
             'power_discharge': batt_cap * c_rate_discharge
         })
 
-    return None
+    return pd.DataFrame({
+        'capacity': 0,
+        'power_charge': 0,
+        'power_discharge': 0
+    }, index=region.muns.index)
 
 
 def calc_available_pv_capacity(region):
@@ -829,7 +841,7 @@ def calc_available_pv_capacity(region):
     if region.pot_areas_pv_scn is None:
         if cfg['pv_installed_power'] == 'MAX_AREA':
             msg = 'Cannot calculate PV potential (param pv_installed_power=' \
-                  'AVAIL_AREA but no pv_land_use_scenario selected)'
+                  'MAX_AREA but no pv_land_use_scenario selected)'
             logger.error(msg)
             raise ValueError(msg)
         elif isinstance(cfg['pv_installed_power'], float):
@@ -965,7 +977,7 @@ def calc_available_wec_capacity(region):
     if region.pot_areas_wec_scn is None:
         if cfg['wec_installed_power'] == 'MAX_AREA':
             msg = 'Cannot calculate WEC potential (param wec_installed_power=' \
-                  'AVAIL_AREA but no wec_land_use_scenario selected)'
+                  'MAX_AREA but no wec_land_use_scenario selected)'
             logger.error(msg)
             raise ValueError(msg)
         elif isinstance(cfg['wec_installed_power'], float):

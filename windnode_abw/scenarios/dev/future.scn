@@ -16,14 +16,14 @@
 
 # general options
 [general]
-    id = sq
+    id = future
 
     # the year affects some of the data used by the model:
     #   * to decide on wind time series (2017: wind_sq / other: wind_fs)
     #   * heating structure
     #   * tech. parameters, costs, emissions
     # possible values: 2017, 2035, 2050
-    year = 2017
+    year = 2035
     
 # commodities
 [commodities]
@@ -33,10 +33,7 @@
 
     # share of methane (0..1)
     # Note: methane needs to be in commodity list above
-    methane_share = 0
-
-[economics]
-    wacc = 0.06
+    methane_share = 0.55
 
 # electrical and heat demand
 # (parametrized via DB table)
@@ -48,11 +45,11 @@
         # these factors will be calculated in the tool using demography data)
 
         # el. energy saving: households (0..1, 0=no change)
-        saving_el_hh = 0
+        saving_el_hh = 0.1
         # el. energy saving: retail, commercial, agriculture (0..1, 0=no change)
-        saving_el_rca = 0
+        saving_el_rca = 0.1
         # el. energy saving: industry (0..1, 0=no change)
-        saving_el_ind = 0
+        saving_el_ind = 0.1
 
     # households
     [[dem_el_hh]]
@@ -67,11 +64,11 @@
         # these factors will be calculated in the tool using demography data)
 
         # th. energy saving: single-family households (0..1, 0=no change)
-        saving_th_hh_efh = 0
+        saving_th_hh_efh = 0.1
         # th. energy saving: multi-family households (0..1, 0=no change)
-        saving_th_hh_mfh = 0
+        saving_th_hh_mfh = 0.1
         # th. energy saving: retail, commercial, agriculture (0..1, 0=no change)
-        saving_th_rca = 0
+        saving_th_rca = 0.1
 
 # electrical and heat production
 [generation]
@@ -120,7 +117,7 @@
         #   <VALUE>:  Nom. power in MW (if set, avail. areas from DB are
         #             used to distribute this power to municipalities.
         #
-        pv_roof_installed_power = SQ
+        pv_roof_installed_power = MAX_AREA
 
         # usable area (0..1) for PV installations on residential roofs
         # due to roof shape, windows etc.
@@ -131,7 +128,7 @@
         pv_roof_ind_usable_area = 0.5
 
         # spec. power in ha/MWp
-        pv_roof_land_use = 0.7
+        pv_roof_land_use = 0.55
 
         #################
         # WIND TURBINES #
@@ -190,7 +187,7 @@
             pq_coeff = 0.85
             # months of BHKW maintenance (jan=1), leave empty for no maintenance
             #maint_months = 3,9
-            maint_months =
+            maint_months = 0
             # duration of BHKW maintenance in days
             maint_duration = 7
 
@@ -203,8 +200,8 @@
             # nominal thermal power
             nom_th_power = 60
             # minimal th. energy share provided by GuD in relation to demand
-            # TODO: Set back to 0.8 for annual optimization
-            #min_th_energy_share = 0.8
+            # CAUTION: If >0, the system might not be solvable for time ranges
+            # shorter than a full year!
             min_th_energy_share = 0
             # cb-coefficient/back-pressure coefficient (Stromkennzahl/P-Q ratio)
             cb_coeff = 1.2
@@ -230,22 +227,22 @@
             # annual power production in MWh
             annual_el_prod = 310000
 
-        # Simple cycle (peak power) gas plant Wolfen
-        [[[gas_bw]]]
-            # nominal electric power
-            nom_el_power = 40
-            # annual full load hours
-            annual_flh = 1250
+    # Simple cycle gas plant Wolfen
+    [[gas_bw]]
+        # nominal electric power
+        nom_el_power = 0
+        # annual full load hours
+        annual_flh = 1250
 
 # storages
 [storage]
     # decentral heat storages for heat pumps only
     [[th_dec_pth_storage]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[general]]]
             # share of heat pumps equipped with storage (0..1)
-            pth_storage_share = 0
+            pth_storage_share = 1
 
             # spec. capacity in liter/kW (m^3/MW) installed heat pump power (el.)
             capacity_spec = 60
@@ -260,9 +257,24 @@
             inflow_conversion_factor = 1
             outflow_conversion_factor = 1
 
-    # heat storage for Dessau
-    # TODO: Replace capacity
+    # heat storage for district heating (except Dessau)
     [[th_cen_storage]]
+        [[[enabled]]]
+            enabled = 1
+        [[[general]]]
+            # spec. capacity in MWh/MW_th_peak (derived from Dessau)
+            capacity_spec = 5
+
+            # c-rates (derived from Dessau)
+            c_rate_charge = 0.1
+            c_rate_discharge = 0.1
+        [[[params]]]
+            loss_rate = 0.001
+            inflow_conversion_factor = 1
+            outflow_conversion_factor = 1
+
+    # heat storage for Dessau
+    [[th_cen_storage_dessau]]
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]
@@ -275,53 +287,38 @@
             inflow_conversion_factor = 1
             outflow_conversion_factor = 1
 
-# regional and external el. grid
+# external el. grid
 [grid]
-    # regional lines
-    [[lines]]
-        [[[params]]]
-            # conversion_factor: efficiency
-            conversion_factor = 0.988
-        [[[outflow]]]
-            variable_costs = 0.0001
-
-    [[trafos]]
-        [[[params]]]
-            # conversion_factor: efficiency
-            conversion_factor = 0.997
-
     # external grid
     [[extgrid]]
         [[[imex_lines]]]
-            [[[[params]]]]
-                # conversion_factor: efficiency
-                conversion_factor = 0.988
-                # power_limit: 0..1
-                # usable cap. of external grid
-                # (rel. to nominal power)
-                power_limit = 1
-                # energy_limit: 0..1, set to 1 to deactivate
-                # limiting electricity imports from external grid
-                # (annual amount rel. to el. demand)
-                energy_limit = 1
-            [[[[outflow]]]]
-                variable_costs = 0.0001
+            # power_limit: 0..1
+            # usable power of external grid - to transmit power between
+            # different region nodes via ext. grid (bypass)
+            # (rel. to nominal power)
+            power_limit_bypass = 1
+
+        [[[import]]]
+            # energy_limit: 0..1, set to 1 to deactivate
+            # limiting electricity imports from external grid
+            # (annual amount rel. to el. demand)
+            energy_limit = 0.9
 
 # flexibility options
 [flexopt]
     # large-scale batteries (values for entire region)
     [[flex_bat_large]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[inflow]]]
             # max. charging power
-            nominal_value = 0
+            nominal_value = 40
         [[[outflow]]]
             # max. discharging power
-            nominal_value = 0
+            nominal_value = 40
         [[[params]]]
             # cumulative capacity
-            nominal_storage_capacity = 0
+            nominal_storage_capacity = 160
             # following params according to DEA stor, S.180
             # conversion factors AC calculated via roundtrip AC/DC
             loss_rate = 0.0042
@@ -331,16 +328,16 @@
     # PV batteries in small rooftop solar home systems (values for entire region)
     [[flex_bat_small]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[inflow]]]
             # max. charging power
-            nominal_value = 0
+            nominal_value = 40
         [[[outflow]]]
             # max. discharging power
-            nominal_value = 0
+            nominal_value = 40
         [[[params]]]
             # cumulative capacity
-            nominal_storage_capacity = 0
+            nominal_storage_capacity = 70
             # following params according to DEA stor, S.180
             # conversion factors AC calculated via roundtrip AC/DC
             loss_rate = 0.0042
@@ -372,19 +369,18 @@
     # central PtH (boilers)
     [[flex_cen_pth]]
         [[[enabled]]]
-            enabled = 0
-        [[[outflow]]]
-            nominal_value = 1000
+            enabled = 1
         [[[params]]]
+            nom_th_power_rel_to_pl = 0.5
             conversion_factor = 0.95
 
     # demand side management in households
     [[dsm]]
         [[[params]]]
             # share of HH with DSM (0..1)
-            hh_share = 0
+            hh_share = 0.1
 
             method = interval
             shift_interval = 24
             delay_time = 12
-            mode = 'flex_min'
+            mode = flex_min

@@ -1,6 +1,6 @@
+import os
 import pandas as pd
 import oemof.solph as solph
-import os
 from pyomo.environ import Constraint
 from windnode_abw.tools.logger import log_memory_usage
 import logging
@@ -11,7 +11,7 @@ from windnode_abw.model.region.tools import calc_heat_pump_cops, \
     calc_dsm_cap_down, calc_dsm_cap_up, create_maintenance_timeseries
 
 
-def simulate(om, solver='cbc', verbose=True):
+def simulate(om, solver='cbc', verbose=True, keepfiles=False):
     """Optimize energy system
 
     Parameters
@@ -21,6 +21,8 @@ def simulate(om, solver='cbc', verbose=True):
         Solver which is used
     verbose : :obj:`bool`
         If set, be verbose
+    keepfiles : :obj:`bool`
+        If set, temporary solver files will be kept in /tmp/
 
     Returns
     -------
@@ -33,7 +35,7 @@ def simulate(om, solver='cbc', verbose=True):
 
     om.solve(solver=solver,
              solve_kwargs={'tee': verbose,
-                           'keepfiles': True})
+                           'keepfiles': keepfiles})
 
     return om
 
@@ -103,7 +105,7 @@ def create_oemof_model(region, cfg, save_lp=False):
 
     # Add electricity import limit
     el_import_limit = region.cfg['scn_data']['grid']['extgrid'][
-        'imex_lines']['params']['energy_limit']
+        'import']['energy_limit']
     if el_import_limit < 1:
         imported_electricity_limit(om, limit=el_import_limit)
 
@@ -269,12 +271,33 @@ def create_el_model(region=None, datetime_index=None):
                 label=f'trafo_{idx}_b{row["bus0"]}_b{row["bus1"]}',
                 inputs={bus0: solph.Flow(),
                         bus1: solph.Flow()},
-                outputs={bus0: solph.Flow(nominal_value=row['s_nom']),
-                         bus1: solph.Flow(nominal_value=row['s_nom'])},
+                outputs={bus0: solph.Flow(
+                    variable_costs=region.tech_assumptions_scn.loc[
+                        'trafo']['opex_var'],
+                    emissions=region.tech_assumptions_scn.loc[
+                        'trafo']['emissions_var'],
+                    investment=solph.Investment(
+                        ep_costs=region.tech_assumptions_scn.loc[
+                            'trafo']['annuity'],
+                        existing=row['s_nom'])
+                ),
+                bus1: solph.Flow(
+                    variable_costs=region.tech_assumptions_scn.loc[
+                        'trafo']['opex_var'],
+                    emissions=region.tech_assumptions_scn.loc[
+                        'trafo']['emissions_var'],
+                    investment=solph.Investment(
+                        ep_costs=region.tech_assumptions_scn.loc[
+                            'trafo']['annuity'],
+                        existing=row['s_nom'])
+                )},
                 # TODO: Revise efficiencies
                 conversion_factors={
-                    (bus0, bus1): scn_data['grid']['trafos']['params']['conversion_factor'],
-                    (bus1, bus0): scn_data['grid']['trafos']['params']['conversion_factor']})
+                    (bus0, bus1): region.tech_assumptions_scn.loc[
+                        'trafo']['sys_eff'],
+                    (bus1, bus0): region.tech_assumptions_scn.loc[
+                        'trafo']['sys_eff']
+                })
         )
 
     #################
@@ -301,7 +324,7 @@ def create_el_model(region=None, datetime_index=None):
                     v_level='hv' if row['v_nom'] == 110 else 'ehv'
                 ),
                 inputs={bus: solph.Flow(
-                    variable_costs=region.tech_assumptions_scn.loc[
+                    variable_costs=-region.tech_assumptions_scn.loc[
                         'elenergy']['capex']
                 )})
         )
@@ -344,24 +367,28 @@ def create_el_model(region=None, datetime_index=None):
                     bus: solph.Flow(
                         nominal_value=s_nom *
                                       scn_data['grid']['extgrid'][
-                                          'imex_lines']['params'][
-                                          'power_limit'],
-                        **scn_data['grid']['extgrid']['imex_lines']['outflow']
+                                          'imex_lines']['power_limit_bypass'],
+                        variable_costs=region.tech_assumptions_scn.loc[
+                            'line']['opex_var'],
+                        emissions=region.tech_assumptions_scn.loc[
+                            'line']['emissions_var']
                     ),
                     imex_bus: solph.Flow(
                         nominal_value=s_nom *
                                       scn_data['grid']['extgrid'][
-                                          'imex_lines']['params'][
-                                          'power_limit'],
-                        **scn_data['grid']['extgrid']['imex_lines']['outflow']
+                                          'imex_lines']['power_limit_bypass'],
+                        variable_costs=region.tech_assumptions_scn.loc[
+                            'line']['opex_var'],
+                        emissions=region.tech_assumptions_scn.loc[
+                            'line']['emissions_var']
                     )
                 },
                 # TODO: Revise efficiencies
                 conversion_factors={
-                    (bus, imex_bus): scn_data['grid']['extgrid'][
-                        'imex_lines']['params']['conversion_factor'],
-                    (imex_bus, bus): scn_data['grid']['extgrid'][
-                        'imex_lines']['params']['conversion_factor']
+                    (bus, imex_bus): region.tech_assumptions_scn.loc[
+                        'line']['sys_eff'],
+                    (imex_bus, bus): region.tech_assumptions_scn.loc[
+                        'line']['sys_eff'],
                 }
             )
         )
@@ -381,18 +408,34 @@ def create_el_model(region=None, datetime_index=None):
                         bus1: solph.Flow()},
                 outputs={
                     bus0: solph.Flow(
-                        nominal_value=float(row['s_nom']),
-                        **scn_data['grid']['lines']['outflow']
+                        variable_costs=region.tech_assumptions_scn.loc[
+                            'line']['opex_var'],
+                        emissions=region.tech_assumptions_scn.loc[
+                            'line']['emissions_var'],
+                        investment=solph.Investment(
+                            ep_costs=region.tech_assumptions_scn.loc[
+                                         'line']['annuity'] * row['length'],
+                            existing=float(row['s_nom'])
+                        )
                     ),
                     bus1: solph.Flow(
-                        nominal_value=float(row['s_nom']),
-                        **scn_data['grid']['lines']['outflow']
+                        variable_costs=region.tech_assumptions_scn.loc[
+                            'line']['opex_var'],
+                        emissions=region.tech_assumptions_scn.loc[
+                            'line']['emissions_var'],
+                        investment=solph.Investment(
+                            ep_costs=region.tech_assumptions_scn.loc[
+                                         'line']['annuity'] * row['length'],
+                            existing=float(row['s_nom'])
+                        )
                     )
                 },
                 # TODO: Revise efficiencies
                 conversion_factors={
-                    (bus0, bus1): scn_data['grid']['lines']['params']['conversion_factor'],
-                    (bus1, bus0): scn_data['grid']['lines']['params']['conversion_factor']
+                    (bus0, bus1): region.tech_assumptions_scn.loc[
+                        'line']['sys_eff'],
+                    (bus1, bus0): region.tech_assumptions_scn.loc[
+                        'line']['sys_eff'],
                 }
             )
         )
@@ -644,7 +687,6 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
         bus_th_net_in = buses[f'b_th_cen_in_{ags}']
         bus_th_net_out = buses[f'b_th_cen_out_{ags}']
 
-        #
         scaling_factor = dist_heating_share / \
                          region.tech_assumptions_scn.loc[
                              'district_heating']['sys_eff']
@@ -669,7 +711,8 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 label=f'network_th_cen_{ags}',
                 inputs={bus_th_net_in: solph.Flow()},
                 outputs={bus_th_net_out: solph.Flow(
-                    variable_costs=1
+                    variable_costs=region.tech_assumptions_scn.loc[
+                        'district_heating']['opex_var']
                 )
                 },
                 conversion_factors={
@@ -754,21 +797,25 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             )
 
             # storage
-            if scn_data['storage']['th_cen_storage']['enabled']['enabled'] == 1:
+            if scn_data['storage']['th_cen_storage_dessau'][
+                    'enabled']['enabled'] == 1:
                 nodes.append(
                     solph.components.GenericStorage(
                         label=f'stor_th_cen_{ags}',
                         inputs={bus_th_net_in: solph.Flow(
-                            **scn_data['storage']['th_cen_storage']['inflow'],
+                            **scn_data['storage']['th_cen_storage_dessau'][
+                                'inflow'],
                             variable_costs=region.tech_assumptions_scn.loc[
                                 'stor_th_large']['opex_var'],
                             emissions=region.tech_assumptions_scn.loc[
                                 'stor_th_large']['emissions_var'],
                         )},
                         outputs={bus_th_net_in: solph.Flow(
-                            **scn_data['storage']['th_cen_storage']['outflow']
+                            **scn_data['storage']['th_cen_storage_dessau'][
+                                'outflow']
                         )},
-                        **scn_data['storage']['th_cen_storage']['params']
+                        **scn_data['storage']['th_cen_storage_dessau'][
+                            'params']
                     )
                 )
 
@@ -816,7 +863,7 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             )
 
             # Simple cycle (peak power) gas plant Wolfen
-            gas_cfg = scn_data['generation']['gen_th_cen']['gas_bw']
+            gas_cfg = scn_data['generation']['gas_bw']
             bus_el = esys_nodes['b_el_27910']
             nodes.append(
                 solph.Transformer(
@@ -824,8 +871,10 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                     inputs={b_gas: solph.Flow()},
                     outputs={bus_el: solph.Flow(
                         nominal_value=gas_cfg['nom_el_power'],
-                        summed_min=len(datetime_index) / gas_cfg['annual_flh'],
-                        summed_max=len(datetime_index) / gas_cfg['annual_flh'],
+                        summed_min=(len(datetime_index)/8760) *
+                                   gas_cfg['annual_flh'],
+                        summed_max=(len(datetime_index)/8760) *
+                                   gas_cfg['annual_flh'],
                         variable_costs=region.tech_assumptions_scn.loc[
                             'pp_natural_gas_sc']['opex_var'],
                         emissions=region.tech_assumptions_scn.loc[
@@ -913,6 +962,33 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
                 )
             )
 
+            # storage
+            pth_storage_cfg = scn_data['storage']['th_cen_storage']
+            stor_capacity = th_cen_peak_load * pth_storage_cfg[
+                'general']['capacity_spec']
+
+            if scn_data['storage']['th_cen_storage'][
+                    'enabled']['enabled'] == 1:
+                nodes.append(
+                    solph.components.GenericStorage(
+                        label=f'stor_th_cen_{ags}',
+                        inputs={bus_th_net_in: solph.Flow(
+                            nominal_value=stor_capacity * pth_storage_cfg[
+                                'general']['c_rate_charge'],
+                            variable_costs=region.tech_assumptions_scn.loc[
+                                'stor_th_large']['opex_var'],
+                            emissions=region.tech_assumptions_scn.loc[
+                                'stor_th_large']['emissions_var'],
+                        )},
+                        outputs={bus_th_net_in: solph.Flow(
+                            nominal_value=stor_capacity * pth_storage_cfg[
+                                'general']['c_rate_discharge'],
+                        )},
+                        **pth_storage_cfg['params'],
+                        nominal_storage_capacity=stor_capacity
+                    )
+                )
+
         # demand per sector and mun
         # TODO: Include efficiencies (also in sources above)
         for sector in th_sectors:
@@ -973,8 +1049,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
     # BATTERIES #
     #############
     # large scale batteries
-    if scn_data['flexopt']['flex_bat_large']['enabled']['enabled'] == 1 and \
-            region.batteries_large is not None:
+    if scn_data['flexopt']['flex_bat_large']['enabled']['enabled'] == 1:
         batt_params = scn_data['flexopt']['flex_bat_large']
 
         for mun in region.muns.itertuples():
@@ -1006,8 +1081,7 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     )
 
     # PV batteries in small rooftop solar home systems
-    if scn_data['flexopt']['flex_bat_small']['enabled']['enabled'] == 1 and \
-            region.batteries_small is not None:
+    if scn_data['flexopt']['flex_bat_small']['enabled']['enabled'] == 1:
         batt_params = scn_data['flexopt']['flex_bat_small']
 
         for mun in region.muns.itertuples():
@@ -1062,7 +1136,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                 quality_grade=params['quality_grade_ASHP'],
                 consider_icing=True,
                 temp_icing=params['icing_temp'],
-                factor_icing=params['icing_factor']
+                factor_icing=params['icing_factor'],
+                spf=region.tech_assumptions.loc['heating_ashp']['sys_eff'],
+                year=scn_data['general']['year']
             )
             cops_GSHP = calc_heat_pump_cops(
                 t_high=[params['heating_temp']],
@@ -1070,7 +1146,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     (region.temp_ts['soil_temp'][mun.Index]
                     )[datetime_index]
                 ),
-                quality_grade=params['quality_grade_GSHP']
+                quality_grade=params['quality_grade_GSHP'],
+                spf=region.tech_assumptions.loc['heating_gshp']['sys_eff'],
+                year=scn_data['general']['year']
             )
 
             for sector in th_sectors:
@@ -1119,7 +1197,9 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                     ################################
                     pth_storage_cfg = scn_data['storage']['th_dec_pth_storage']
                     if (pth_storage_cfg['enabled']['enabled'] == 1 and
-                        pth_storage_cfg['general']['pth_storage_share'] > 0):
+                            0 <
+                            pth_storage_cfg['general']['pth_storage_share']
+                            <= 1):
 
                         # create additional PTH heat bus
                         bus_th_dec_pth = solph.Bus(
@@ -1250,6 +1330,8 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                                 conversion_factors={bus_th_dec: 1}
                             )
                         )
+                    else:
+                        pth_storage_cfg['general']['pth_storage_share'] = 0
 
                     ###################################
                     # HP systems without heat storage #
@@ -1338,6 +1420,16 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
         for mun in region.muns.itertuples():
 
             if region.dist_heating_share_scn[mun.Index] > 0:
+                scaling_factor = region.dist_heating_share_scn.loc[mun.Index] / \
+                                 region.tech_assumptions_scn.loc[
+                                     'district_heating']['sys_eff']
+
+                # get annual thermal peak load (consider network losses)
+                th_cen_peak_load = sum(
+                    [region.demand_ts[f'th_{sector}'][mun.Index]
+                     for sector in th_sectors]
+                ).max() * scaling_factor
+
                 mun_buses = region.buses.loc[region.subst.loc[
                     mun.subst_id].bus_id]
                 bus_out = esys_nodes[f'b_th_cen_in_{mun.Index}']
@@ -1350,12 +1442,13 @@ def create_flexopts(region=None, datetime_index=None, esys_nodes=[]):
                             for busdata in mun_buses.itertuples()
                         },
                         outputs={bus_out: solph.Flow(
-                            # TODO: get from DB table?
-                            nominal_value=scn_data['flexopt'][
-                                'flex_cen_pth']['outflow']['nominal_value'],
+                            nominal_value=round(
+                                th_cen_peak_load * scn_data['flexopt'][
+                                    'flex_cen_pth']['params'][
+                                    'nom_th_power_rel_to_pl']),
                             variable_costs=region.tech_assumptions_scn.loc[
                                 'heating_rod']['opex_var'],
-                            emissions = region.tech_assumptions_scn.loc[
+                            emissions=region.tech_assumptions_scn.loc[
                                 'heating_rod']['emissions_var']
                         )},
                         conversion_factors={

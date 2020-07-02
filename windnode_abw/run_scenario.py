@@ -3,7 +3,11 @@ from windnode_abw.tools.logger import setup_logger, log_memory_usage
 logger = setup_logger()
 
 import os
+import argparse
+import time
+import multiprocessing
 
+from windnode_abw import __path__ as wn_path
 from windnode_abw.model import Region
 from windnode_abw.model.region.model import simulate, create_oemof_model
 from windnode_abw.model.region.tools import calc_line_loading
@@ -48,6 +52,8 @@ def run_scenario(cfg):
         os.path.basename(__file__))[0] + '_esys.oemof'
     file_region = os.path.splitext(
         os.path.basename(__file__))[0] + '_region.oemof'
+
+    cfg['scn_data'] = load_scenario_cfg(cfg['scenario'])
 
     # load esys from file
     if cfg['load_esys']:
@@ -94,7 +100,8 @@ def run_scenario(cfg):
 
     om = simulate(om=om,
                   solver=cfg['solver'],
-                  verbose=cfg['verbose'])
+                  verbose=cfg['solver_verbose'],
+                  keepfiles=cfg['solver_keepfiles'])
 
     log_memory_usage()
     logger.info('Processing results...')
@@ -126,36 +133,95 @@ def run_scenario(cfg):
                        cfg=cfg,
                        solver_meta=esys.results['meta'])
 
-    return esys, region
+    logger.info(f'===== Scenario {cfg["scenario"]} done! =====')
+
+    # debug_plot_results(esys=esys,
+    #                    region=region)
 
 
 if __name__ == "__main__":
+    # get list of available scenarios
+    avail_scenarios = [file.split('.')[0]
+                       for file in os.listdir(os.path.join(wn_path[0],
+                                                           'scenarios'))
+                       if file.endswith(".scn")]
+    avail_scenarios_str = ''.join(
+        [(s+',\n  ' if (n%5 == 0 and n > 0) else s+', ')
+         for n, s in enumerate(avail_scenarios)])
 
-    # configuration
+    parser = argparse.ArgumentParser(
+        description='WindNODE ABW energy system.',
+        formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('scn', metavar='SCENARIO', type=str, nargs='*',
+                        default=['dev/future'],
+                        help='ID of scenario to be run, e.g. \'ISE2050\'. '
+                             'You may pass multiple, e.g. \'dev/sq ISE2050\'. '
+                             'Use \'all\' for all scenarios. '
+                             'If nothing is provided, it defaults to scenario '
+                             'dev/future.\n\n'
+                             f'Available scenarios:\n  {avail_scenarios_str}')
+    parser.add_argument('--mp', metavar='NUMBER', type=int, nargs='?',
+                        dest='proc_count', default=1,
+                        help='Number of processes to be used by '
+                             'multiprocessing. If values is 1 or not '
+                             'provided, program is executed without MP. '
+                             'If value exceeds number of scenarios, number of '
+                             'scenarios is used.')
+    args = parser.parse_args()
+
+    # check if sufficient CPU cores
+    if args.proc_count > multiprocessing.cpu_count():
+        msg = 'Number of processes exceeds number of installed CPU cores.'
+        logger.error(msg)
+        raise ValueError(msg)
+
+    # create scenario list
+    if args.scn == ['all']:
+        scenarios = avail_scenarios
+    else:
+        scenarios = args.scn
+
+    # check if MP process count exceeds scenario count
+    if args.proc_count > len(scenarios):
+        logger.info('Number of processes exceeds number of scenarios. '
+                    'I will use the number of scenarios '
+                    f'({len(scenarios)}) as process count.')
+        args.proc_count = len(scenarios)
+
+    logger.info(f'Running scenarios: {str(scenarios)} in {args.proc_count} '
+                f'processes.')
+    run_timestamp = time.strftime('%Y-%m-%d_%H%M%S')
+    logger.info(f'Run timestamp: {run_timestamp}')
+
+    # configuration for all calculated scenarios
     cfg = {
-        'scenario': 'future',
+        # note: dev scenarios have been moved to dev/,
+        # use them 'scenario': 'dev/future'
+        'run_timestamp': run_timestamp,
         'date_from': '2015-01-01 00:00:00',
-        'date_to': '2015-01-04 23:00:00',
+        'date_to': '2015-12-31 23:00:00',
         'freq': '60min',
-        'results_path': os.path.join(config.get_data_root_dir(),
-                                     config.get('user_dirs',
-                                                'results_dir')),
         'solver': 'gurobi',
-        'verbose': True,
-        'save_lp': True,
+        'solver_verbose': True,
+        'solver_keepfiles': False,
+        'save_lp': False,
         'dump_esys': False,
         'load_esys': False,
         'dump_results': True
     }
 
-    cfg['scn_data'] = load_scenario_cfg(cfg['scenario'])
+    # use MP
+    if args.proc_count > 1:
+        pool = multiprocessing.Pool(args.proc_count)
+        cfgs = [dict(**c, **{'scenario': s})
+                for c, s in zip([cfg] * len(scenarios), scenarios)]
+        pool.map(run_scenario, cfgs)
+        pool.close()
 
-    esys, region = run_scenario(cfg=cfg)
+    # do not use MP
+    else:
+        for scn_id in scenarios:
+            cfg['scenario'] = scn_id
+            run_scenario(cfg=cfg)
 
-    # calc_line_loading(esys=esys,
-    #                   region=region)
-
-    debug_plot_results(esys=esys,
-                       region=region)
-
-    logger.info('Done!')
+    logger.info('===== All done! =====')

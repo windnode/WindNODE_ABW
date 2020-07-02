@@ -7,7 +7,6 @@ import os
 import requests
 import pandas as pd
 import keyring
-import time
 import json
 
 from sqlalchemy.orm import sessionmaker
@@ -471,13 +470,15 @@ def import_db_data(cfg):
     tech_assumptions_query = session.query(
         WnAbwTechAssumptions.technology,
         WnAbwTechAssumptions.year,
+        WnAbwTechAssumptions.technology_name,
         (WnAbwTechAssumptions.capex * 1000).label('capex'),
         (WnAbwTechAssumptions.opex_fix * 1000).label('opex_fix'),
         (WnAbwTechAssumptions.opex_var * 1000).label('opex_var'),
         WnAbwTechAssumptions.lifespan,
         WnAbwTechAssumptions.emissions_fix,
         WnAbwTechAssumptions.emissions_var,
-        (WnAbwTechAssumptions.sys_eff / 100).label('sys_eff')
+        (WnAbwTechAssumptions.sys_eff / 100).label('sys_eff'),
+        (WnAbwTechAssumptions.wacc / 100).label('wacc')
     )
     data['tech_assumptions'] = pd.read_sql_query(
         tech_assumptions_query.statement,
@@ -643,8 +644,7 @@ def export_results(results, cfg, solver_meta):
                              config.get('user_dirs',
                                         'results_dir')
                              )
-    results_subdir = time.strftime('%y%m%d_%H%M%S')
-    results_path = os.path.join(base_path, results_subdir, scenario_id)
+    results_path = os.path.join(base_path, cfg['run_timestamp'], scenario_id)
     os.makedirs(results_path)
 
     logger.info(f'Exporting results to {results_path} ...')
@@ -696,17 +696,21 @@ def load_results(timestamp, scenario):
     se_files = ['params_stat']
 
     results = {}
-    for file in df_files:
-        results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
-                                    index_col=0,
-                                    header=[0, 1])
-    for file in se_files:
-        results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
-                                    index_col=[0, 1],
-                                    header=None,
-                                    squeeze=True)
+    try:
+        for file in df_files:
+            results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
+                                        index_col=0,
+                                        header=[0, 1])
+        for file in se_files:
+            results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
+                                        index_col=[0, 1],
+                                        header=None,
+                                        squeeze=True)
 
-    with open(os.path.join(results_path, 'meta.json')) as file:
-        results['meta'] = json.load(file)
+        with open(os.path.join(results_path, 'meta.json')) as file:
+            results['meta'] = json.load(file)
+
+    except FileNotFoundError:
+        return None
 
     return results
