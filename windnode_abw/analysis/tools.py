@@ -830,6 +830,16 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
         return results_tmp
 
+    def _calculate_supply_costs(capacity, generation, params):
+        """
+        .. math:
+            P_{inst} \cdot (Annuity + opex_{fix}) + E_{gen} * opex_{var} + E_{commodity} * opex_{var,commodity}
+        """
+        costs = (capacity * (params["annuity"] + params["opex_fix"])).fillna(0) + generation * params["opex_var"] + generation * params["emissions_var_comm"] / params["sys_eff"]
+
+        return costs
+
+
     idx = pd.IndexSlice
 
     results = {}
@@ -932,6 +942,17 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         parameters['Installed capacity heat storage'],
         parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("stor_th"), :])
     results.update(results_tmp_stor_th)
+
+    # Calculate supply costs
+    # Note: Revenues for exported electricity are considered with negative costs
+    results["Total costs electricity supply"] = _calculate_supply_costs(
+        parameters["Installed capacity electricity supply"],
+        results["Stromerzeugung nach Gemeinde"],
+        parameters["Parameters el. generators"])
+    export_revenues = results["Stromnachfrage nach Gemeinde"]["export"] * -parameters["Parameters el. generators"].loc[
+        "import", "opex_var_comm"]
+    export_revenues.index = export_revenues.index.astype(int)
+    results["Total costs electricity supply"]["export"] = export_revenues
 
     return results
 
