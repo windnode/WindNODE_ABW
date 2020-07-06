@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 
 import logging
 logger = logging.getLogger('windnode_abw')
@@ -84,9 +85,6 @@ def analysis(run_timestamp, scenarios='ALL'):
             regions_scns[scn_id] = Region.import_data(cfg)
             results_scns[scn_id]['results_raw'] = results_raw
 
-            # Aggregate flow results along different dimensions (outdated, see #29)
-            #results = aggregate_flows(results_raw)
-
             # Retrieve parameters from database and config file
             parameters = aggregate_parameters(regions_scns[scn_id], results_raw)
             results_scns[scn_id]['parameters'] = parameters
@@ -94,6 +92,15 @@ def analysis(run_timestamp, scenarios='ALL'):
             # Flows extracted to dimension time, ags code, technology (and sometimes more dimensions)
             flows_txaxt = flows_timexagsxtech(results_raw["flows"], regions_scns[scn_id])
             results_scns[scn_id]['flows_txaxt'] = flows_txaxt
+
+            # Aggregate flow results along different dimensions (outdated, see #29)
+            # only used to access DSM demand increase/decrease
+            aggregated_results = aggregate_flows(results_raw)
+            results_scns[scn_id]['flows_txaxt']["DSM activation"] = pd.concat(
+                [aggregated_results['Lasterhöhung DSM Haushalte nach Gemeinde'].stack().rename("Demand increase"),
+                 aggregated_results['Lastreduktion DSM Haushalte nach Gemeinde'].stack().rename(
+                     "Demand decrease")], axis=1)
+            results_scns[scn_id]['flows_txaxt']["DSM activation"].index = results_scns[scn_id]['flows_txaxt']["DSM activation"].index.set_names(["timestamp", "ags"])
 
             # Aggregation of results to region level (dimensions: ags code (region) x technology)
             results_axlxt = results_agsxlevelxtech(flows_txaxt, parameters, regions_scns[scn_id])
@@ -104,7 +111,7 @@ def analysis(run_timestamp, scenarios='ALL'):
             results_scns[scn_id]['results_t'] = results_t
 
             # Aggregation to scalar result values
-            highlevel_results = create_highlevel_results(results_axlxt, results_t, flows_txaxt)
+            highlevel_results = create_highlevel_results(results_axlxt, results_t, flows_txaxt, regions_scns[scn_id])
             results_scns[scn_id]['highlevel_results'] = highlevel_results
 
     return regions_scns, results_scns

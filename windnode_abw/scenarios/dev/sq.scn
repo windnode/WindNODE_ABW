@@ -200,9 +200,9 @@
             # nominal thermal power
             nom_th_power = 60
             # minimal th. energy share provided by GuD in relation to demand
-            # TODO: Set back to 0.8 for annual optimization
-            #min_th_energy_share = 0.8
-            min_th_energy_share = 0
+            # CAUTION: If >0, the system might not be solvable for time ranges
+            # shorter than a full year!
+            min_th_energy_share = 0.8
             # cb-coefficient/back-pressure coefficient (Stromkennzahl/P-Q ratio)
             cb_coeff = 1.2
             # cv-coefficient/beta (Stromverlustkenziffer)
@@ -242,10 +242,10 @@
             enabled = 0
         [[[general]]]
             # share of heat pumps equipped with storage (0..1)
-            pth_storage_share = 0
+            pth_storage_share = 0.71
 
             # spec. capacity in liter/kW (m^3/MW) installed heat pump power (el.)
-            capacity_spec = 60
+            capacity_spec = 20
             # temperature spread
             delta_temp = 40
 
@@ -257,9 +257,24 @@
             inflow_conversion_factor = 1
             outflow_conversion_factor = 1
 
-    # heat storage for Dessau
-    # TODO: Replace capacity
+    # heat storage for district heating (except Dessau)
     [[th_cen_storage]]
+        [[[enabled]]]
+            enabled = 0
+        [[[general]]]
+            # spec. capacity in MWh/MW_th_peak (derived from Dessau)
+            capacity_spec = 5
+
+            # c-rates (derived from Dessau)
+            c_rate_charge = 0.1
+            c_rate_discharge = 0.1
+        [[[params]]]
+            loss_rate = 0.001
+            inflow_conversion_factor = 1
+            outflow_conversion_factor = 1
+
+    # heat storage for Dessau
+    [[th_cen_storage_dessau]]
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]
@@ -355,9 +370,8 @@
     [[flex_cen_pth]]
         [[[enabled]]]
             enabled = 0
-        [[[outflow]]]
-            nominal_value = 1000
         [[[params]]]
+            nom_th_power_rel_to_pl = 0
             conversion_factor = 0.95
 
     # demand side management in households

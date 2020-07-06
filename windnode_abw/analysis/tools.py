@@ -104,25 +104,37 @@ GEN_TH_NAMES = {
 }
 
 UNITS = {
-    'Grid losses' : 'kWh',
-    'Electricity demand' : 'kWh',
-    'Electricity demand for heating' : 'kWh',
-    'Electricity demand total' : 'kWh',
-    'Heating demand' : 'kWh',
-    'Electricity imports' : 'kWh',
-    'Electricity exports' : 'kWh',
-    'Electricity imports % of demand' : '%',
-    'Electricity exports % of demand' : '%',
-    'Balance' : '?', #?
-    'Self-consumption annual' : 'kWh',
-    'Self-consumption hourly' : 'kWh',
-    'Area required pv_roof_small' : 'ha', #?
-    'Area required pv_roof_large' : 'ha',
-    'Area required pv_ground' : 'ha',
-    'Area required wind' : 'm^2',
-    'CO2 emissions el.' : 'tCO2', #?
-    'CO2 emissions th.' : 'tCO2'
+    'Grid losses': 'MWh',
+    'Electricity demand': 'MWh',
+    'Electricity demand for heating': 'MWh',
+    'Electricity demand total': 'MWh',
+    'Heating demand': 'MWh',
+    'Electricity imports': 'MWh',
+    'Electricity exports': 'MWh',
+    'Electricity imports % of demand': '%',
+    'Electricity exports % of demand': '%',
+    'Balance': 'MWh',
+    'Self-consumption annual': 'MWh',
+    'Self-consumption hourly': 'MWh',
+    'Area required pv_roof_small': 'ha',
+    'Area required pv_roof_large': 'ha',
+    'Area required pv_ground': 'ha',
+    'Area required wind': 'ha',
+    'CO2 emissions el.': 'tCO2',
+    'CO2 emissions th.': 'tCO2',
+    'Net DSM activation': 'MWh',
+    "Electricity storage losses": "MWh",
+    "Heat storage losses": "MWh",
+    "Area required rel. PV rooftop": "%",
+    "Area required rel. PV ground hard": "%",
+    "Area required rel. PV ground hard soft": "%",
+    "Area required rel. PV ground hard 1-perc agri": "%",
+    "Area required rel. PV ground hard soft 1-perc agri": "%",
+    "Area required rel. wind 500m wo forest": "%",
+    "Area required rel. wind 500m w forest": "%",
+    "Area required rel. wind 1000m w forest": "%",
 }
+
 
 def results_to_dataframes(esys):
     """Convert result dict to DataFrames for flows and stationary variables.
@@ -569,6 +581,13 @@ def flows_timexagsxtech(results_raw, region):
             "unstack_col": "technology",
             "level_flow_in": 1,
             "level_flow_out": 0},
+        "Stromnachfrage DSM HH": {
+            "node_pattern": "(?P<ags>\d+)_b\d+",
+            "stubname": "flex_dsm",
+            "bus_pattern": 'b_el_\w+',
+            "unstack_col": None,
+            "level_flow_in": 1,
+            "level_flow_out": 0},
     }
 
     flows = {}
@@ -648,6 +667,10 @@ def flows_timexagsxtech(results_raw, region):
         axis=1).fillna(0)
     flows.pop("Stromnachfrage Heizstab")
     flows.pop("Stromnachfrage PtH")
+
+    # Add electricity demand by HH with DSM to HH electricity demand
+    flows["Stromnachfrage"]["hh"] = flows["Stromnachfrage"]["hh"] + flows["Stromnachfrage DSM HH"]["flex_dsm"]
+    flows.pop("Stromnachfrage DSM HH")
 
     return flows
 
@@ -807,6 +830,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
         return results_tmp
 
+    idx = pd.IndexSlice
+
     results = {}
 
     results["Stromerzeugung nach Gemeinde"] = extracted_results["Stromerzeugung"].sum(level="ags")
@@ -818,6 +843,16 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
     results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["line_id", "bus_from", "bus_to"])
+    results["Net DSM activation"] = extracted_results["DSM activation"]["Demand increase"].sum(level="ags")
+
+    # Losses in energy storages
+    results["Electricity storage losses"] = (results["Batteriespeicher nach Gemeinde"]["charge"] -
+                                             results["Batteriespeicher nach Gemeinde"]["discharge"]).unstack("level").fillna(0)
+    results["Electricity storage losses"].columns = ["flex_bat_" + n for n in results["Electricity storage losses"].columns]
+    results["Heat storage losses"] = (results["Wärmespeicher nach Gemeinde"]["charge"] -
+                                      results["Wärmespeicher nach Gemeinde"]["discharge"]).unstack("level").fillna(
+        0).rename(columns={"dec": "stor_th_small", "cen": "stor_th_large"})
+
 
     # Area requried by wind and PV
     re_params = region.cfg['scn_data']['generation']['re_potentials']
@@ -828,6 +863,34 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         parameters["Installed capacity electricity supply"]["wind"] * re_params["wec_land_use"] / re_params[
             "wec_nom_power"],
     ], axis=1)
+
+    # Relative area required by wind and PV
+    results["Area required rel."] = pd.DataFrame()
+    results["Area required rel."]["PV rooftop small"] = results["Area required"]["pv_roof_small"] / region.pot_areas_pv_roof.sum(axis=1) * 1e2
+    results["Area required rel."]["PV rooftop large"] = results["Area required"]["pv_roof_large"] / region.pot_areas_pv_roof.sum(axis=1) * 1e2
+    results["Area required rel."]["PV ground hard"] = results["Area required"]["pv_ground"] / \
+                                            region.pot_areas_pv.loc[idx[:, ["bab_h", "rail_h"], :], "area_ha"].sum(level=0) * 1e2
+    results["Area required rel."]["PV ground hard soft"] = results["Area required"]["pv_ground"] / \
+                                            region.pot_areas_pv.loc[idx[:, ["bab_hs", "rail_hs"], :], "area_ha"].sum(level=0) * 1e2
+    results["Area required rel."]["PV ground hard 1-perc agri"] = results["Area required"]["pv_ground"] / \
+                                                       (region.pot_areas_pv.loc[
+                                                            idx[:, ["bab_h", "rail_h"], :], "area_ha"].sum(
+                                                           level=0) + 0.01 * region.pot_areas_pv.loc[
+                                                            idx[:, ["agri_h"], :], "area_ha"].sum(level=0)) * 1e2
+    results["Area required rel."]["PV ground hard soft 1-perc agri"] = results["Area required"]["pv_ground"] / \
+                                                       (region.pot_areas_pv.loc[
+                                                            idx[:, ["bab_hs", "rail_hs"], :], "area_ha"].sum(
+                                                           level=0) + 0.01 * region.pot_areas_pv.loc[
+                                                            idx[:, ["agri_hs"], :], "area_ha"].sum(level=0)) * 1e2
+    results["Area required rel."]["Wind 500m wo forest"] = results["Area required"]["wind"] / \
+                                                      region.pot_areas_wec.loc[
+                                                          idx[:, ["s500f0"], :], "area_ha"].sum(level=0) * 1e2
+    results["Area required rel."]["Wind 500m w forest"] = results["Area required"]["wind"] / \
+                                                      region.pot_areas_wec.loc[
+                                                          idx[:, ["s500f1"], :], "area_ha"].sum(level=0) * 1e2
+    results["Area required rel."]["Wind 1000m w forest"] = results["Area required"]["wind"] / \
+                                                      region.pot_areas_wec.loc[
+                                                          idx[:, ["s1000f1"], :], "area_ha"].sum(level=0) * 1e2
 
     # CO2 emissions electricity
     results_tmp_el = _calculate_co2_emissions("el.", results["Stromerzeugung nach Gemeinde"],
@@ -890,9 +953,10 @@ def results_tech(results_axlxt):
     return results
 
 
-def create_highlevel_results(results_tables, results_t, results_txaxt):
+def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     """Aggregate results to scalar values for each scenario"""
 
+    idx = pd.IndexSlice
     highlevel = {}
 
     # TODO: Netzverluste af IMEX lines fehlen, müssen aber berücksichtigt werden, da sie bei Stromimport/-export anfallen
@@ -916,8 +980,38 @@ def create_highlevel_results(results_tables, results_t, results_txaxt):
             results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)))) * 100).mean()
     for re in results_tables["Area required"].columns:
         highlevel["Area required " + re] = results_tables["Area required"][re].sum()
+
     highlevel["CO2 emissions el."] = results_t["CO2 emissions el. total"].sum()
     highlevel["CO2 emissions th."] = results_t["CO2 emissions th. total"].sum()
+    highlevel["Net DSM activation"] = results_tables["Net DSM activation"].sum()
+    highlevel["Electricity storage losses"] = results_tables["Electricity storage losses"].sum().sum()
+    highlevel["Heat storage losses"] = results_tables["Heat storage losses"].sum().sum()
+
+    # Area required relative to available area
+    highlevel["Area required rel. PV rooftop"] = results_tables["Area required"][["pv_roof_small", "pv_roof_large"]].sum().sum() / region.pot_areas_pv_roof.sum().sum() * 1e2
+    highlevel["Area required rel. PV ground hard"] = results_tables["Area required"]["pv_ground"].sum() / region.pot_areas_pv.loc[idx[:, ["bab_h", "rail_h"], :], "area_ha"].sum() * 1e2
+    highlevel["Area required rel. PV ground hard soft"] = results_tables["Area required"]["pv_ground"].sum() / region.pot_areas_pv.loc[idx[:, ["bab_hs", "rail_hs"], :], "area_ha"].sum() * 1e2
+    highlevel["Area required rel. PV ground hard 1-perc agri"] = results_tables["Area required"]["pv_ground"].sum() / \
+                                                                 (region.pot_areas_pv.loc[
+                                                                      idx[:, ["bab_h", "rail_h"],
+                                                                      :], "area_ha"].sum() + 0.01 *
+                                                                  region.pot_areas_pv.loc[
+                                                                      idx[:, ["agri_h"], :], "area_ha"].sum()) * 1e2
+    highlevel["Area required rel. PV ground hard soft 1-perc agri"] = results_tables["Area required"]["pv_ground"].sum() / \
+                                                                 (region.pot_areas_pv.loc[
+                                                                      idx[:, ["bab_hs", "rail_hs"],
+                                                                      :], "area_ha"].sum() + 0.01 *
+                                                                  region.pot_areas_pv.loc[
+                                                                      idx[:, ["agri_hs"], :], "area_ha"].sum()) * 1e2
+    highlevel["Area required rel. wind 500m wo forest"] = results_tables["Area required"]["wind"].sum() / \
+                                                      region.pot_areas_wec.loc[
+                                                          idx[:, ["s500f0"], :], "area_ha"].sum() * 1e2
+    highlevel["Area required rel. wind 500m w forest"] = results_tables["Area required"]["wind"].sum() / \
+                                                      region.pot_areas_wec.loc[
+                                                          idx[:, ["s500f1"], :], "area_ha"].sum() * 1e2
+    highlevel["Area required rel. wind 1000m w forest"] = results_tables["Area required"]["wind"].sum() / \
+                                                      region.pot_areas_wec.loc[
+                                                          idx[:, ["s1000f1"], :], "area_ha"].sum() * 1e2
 
     # add multiindex including units to output
     mindex = [highlevel.keys(),
