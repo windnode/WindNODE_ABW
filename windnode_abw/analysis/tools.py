@@ -996,6 +996,16 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         stor_th_parameters)
 
     results["Total costs heat supply"] = pd.concat([results["Total costs heat supply"], costs_heat_storages_tmp], axis=1)
+
+    # Calculate levelized cost of electricity
+    results["LCOE"] = results["Total costs electricity supply"].div(
+                results['Stromnachfrage nach Gemeinde'].sum(axis=1)
+                + results['Stromnachfrage Wärme nach Gemeinde'].sum(axis=1), axis="index")
+
+    # Calculate levelized cost of heat
+    results["LCOH"] = results["Total costs heat supply"].div(
+                results['Wärmenachfrage nach Gemeinde'].sum(axis=1).sum(level="ags"), axis="index")
+
     return results
 
 
