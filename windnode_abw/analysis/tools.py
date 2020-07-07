@@ -626,6 +626,15 @@ def flows_timexagsxtech(results_raw, region):
                                                     'level',
                                                     'ags'])
                 )
+                # create zero-filled DF for th. storages
+            elif name in ["Stromnachfrage DSM HH"]:
+                flows[name] = pd.DataFrame(
+                    {'flex_dsm': 0},
+                    index=pd.MultiIndex.from_product(
+                        [results_raw.index,
+                         region.muns.index], names=['timestamp',
+                                                    'ags'])
+                )
 
             pass
 
