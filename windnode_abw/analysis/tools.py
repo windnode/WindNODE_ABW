@@ -835,10 +835,10 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         .. math:
             P_{inst} \cdot (Annuity + opex_{fix}) + E_{gen} * opex_{var} + E_{commodity} * opex_{var,commodity}
         """
-        costs = (capacity * (params["annuity"] + params["opex_fix"])).fillna(0) + generation * params["opex_var"]
+        costs = (capacity * (params["annuity"] + params["opex_fix"])).fillna(0) + (generation * params["opex_var"]).fillna(0)
 
         if "emissions_var_comm" in params and "sys_eff" in params:
-            costs_commodity = generation * params["emissions_var_comm"] / params["sys_eff"]
+            costs_commodity = (generation * params["emissions_var_comm"] / params["sys_eff"]).fillna(0)
 
             costs = costs + costs_commodity
 
@@ -852,9 +852,12 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Stromerzeugung nach Gemeinde"] = extracted_results["Stromerzeugung"].sum(level="ags")
     results["Stromerzeugung nach Gemeinde"].index = results["Stromerzeugung nach Gemeinde"].index.astype(int)
     results["Stromnachfrage nach Gemeinde"] = extracted_results["Stromnachfrage"].sum(level="ags")
+    results["Stromnachfrage nach Gemeinde"].index = results["Stromnachfrage nach Gemeinde"].index.astype(int)
     results["Stromnachfrage Wärme nach Gemeinde"] = extracted_results["Stromnachfrage Wärme"].sum(level="ags")
+    results["Stromnachfrage Wärme nach Gemeinde"].index = results["Stromnachfrage Wärme nach Gemeinde"].index.astype(int)
     results["Wärmeerzeugung nach Gemeinde"] = extracted_results["Wärmeerzeugung"].sum(level=["level", "ags"])
-    results["Wärmenachfrage nach Gemeinde"] = extracted_results["Wärmenachfrage"].sum(level=["level", "ags"])
+    results["Wärmenachfrage nach Gemeinde"] = extracted_results["Wärmenachfrage"].sum(level=["ags"])
+    results["Wärmenachfrage nach Gemeinde"].index = results["Wärmenachfrage nach Gemeinde"].index.astype(int)
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
     results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["line_id", "bus_from", "bus_to"])
@@ -941,11 +944,15 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     discharge_stor_th_tmp = results['Wärmespeicher nach Gemeinde']["discharge"].unstack("level").rename(
         columns={"cen": "stor_th_large", "dec": "stor_th_small"})
     discharge_stor_th_tmp.index = discharge_stor_th_tmp.index.astype(int)
+    stor_th_parameters = parameters["Parameters storages"].loc[
+                         parameters["Parameters storages"].index.str.startswith("th_"), :].rename(
+        index={"th_cen_storage": "stor_th_large",
+               "th_dec_pth_storage": "stor_th_small"})
     results_tmp_stor_th = _calculate_co2_emissions(
         "stor th.",
         discharge_stor_th_tmp,
         parameters['Installed capacity heat storage'],
-        parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("stor_th"), :])
+        stor_th_parameters)
     results.update(results_tmp_stor_th)
 
     # Calculate supply costs
@@ -967,6 +974,28 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     results["Total costs electricity supply"] = pd.concat([results["Total costs electricity supply"], costs_el_storages_tmp], axis=1)
 
+    # Calculate heat supply costs
+    # Note: costs for the commodity of PtH technologies (pth* and elenergy) is set to zero, because these costs are
+    # already included in the electricity generation costs
+    params_heat_supply_tmp = parameters["Parameters th. generators"].copy()
+    params_heat_supply_tmp.loc[["elenergy", "pth", "pth_ASHP", "pth_GSHP"], "opex_var_comm"] = 0
+    for pth_tech in ["pth_ASHP", "pth_GSHP"]:
+        params_heat_supply_tmp.loc[pth_tech + "_stor"] = params_heat_supply_tmp.loc[pth_tech]
+        params_heat_supply_tmp.loc[pth_tech + "_nostor"] = params_heat_supply_tmp.loc[pth_tech]
+        params_heat_supply_tmp.drop(pth_tech, inplace=True)
+
+    results["Total costs heat supply"] = _calculate_supply_costs(
+        parameters["Installed capacity heat supply"],
+        heat_generation,
+        params_heat_supply_tmp)
+
+    # Calculate costs for heat storages and add to heat supply costs df
+    costs_heat_storages_tmp = _calculate_supply_costs(
+        discharge_stor_th_tmp,
+        parameters['Installed capacity heat storage'],
+        stor_th_parameters)
+
+    results["Total costs heat supply"] = pd.concat([results["Total costs heat supply"], costs_heat_storages_tmp], axis=1)
     return results
 
 
