@@ -325,6 +325,11 @@ def aggregate_flows(results_raw):
                     params['pattern'],
                     expand=False),
                 axis=1).agg('sum')
+        else:
+            results[name] = pd.DataFrame(
+                0,
+                index=results['Strombedarf nach Gemeinde'].index,
+                columns=results['Strombedarf nach Gemeinde'].columns)
 
     return results
 
@@ -624,6 +629,15 @@ def flows_timexagsxtech(results_raw, region):
                          ['cen', 'dec'],
                          region.muns.index], names=['timestamp',
                                                     'level',
+                                                    'ags'])
+                )
+                # create zero-filled DF for th. storages
+            elif name in ["Stromnachfrage DSM HH"]:
+                flows[name] = pd.DataFrame(
+                    {'flex_dsm': 0},
+                    index=pd.MultiIndex.from_product(
+                        [results_raw.index,
+                         region.muns.index], names=['timestamp',
                                                     'ags'])
                 )
 
