@@ -46,12 +46,20 @@ PRINT_NAMES = {
     "wood": "Wood heating",
     "coal": "Coal heating",
     "pth": "Power-to-heat (district heating)",
-    "pth_ASHP": "Air source heat pump",
-    "pth_GSHP": "Ground source heat pump",
-    "stor_th_large": "Thermal storage (district heating)",
-    "stor_th_small": "Thermal storage",
-    "flex_bat_large": "Large-scale battery storage",
-    "flex_bat_small": "PV system battery storage",
+    "pth_ASHP" : "Air source heat pump",
+    "pth_GSHP" : "Ground source heat pump",
+    "stor_th_large" : "Thermal storage (district heating)",
+    "stor_th_small" : "Thermal storage",
+    "flex_bat_large" : "Large-scale battery storage",
+    "flex_bat_small" : "PV system battery storage",
+    "hh" : "Households",
+    "ind" : "Industry",
+    "rca" : "Agri-comerce",
+    "export" : "Export",
+    "conventional" : "Conventional",
+    "el_hh" : "Electricity households",
+    "el_rca" : "Electricity agri-comerce",
+    "el_ind" : "Electricity industry"
 }
 
 # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
@@ -423,6 +431,7 @@ def plot_geoplots(region, df_data, plot_kwds):
     	'legend_label'
     	'cmap'
     """
+    df_data = df_data.rename(columns=PRINT_NAMES)
     gdf_region = gpd.GeoDataFrame(region.muns.loc[:,['gen', 'geom']], geometry='geom')
     gdf_region = gdf_region.join(df_data, how='inner')
     
@@ -483,11 +492,10 @@ def plot_balance_bar(region, df_generation, df_demand):
         barmode='relative',
         xaxis={'categoryorder':'category ascending'},
         xaxis_tickfont_size=14,
-        yaxis=dict(
-        title='MW',
-        titlefont_size=16,
-        tickfont_size=14),
-        autosize=True)
+        yaxis=dict(title='MW',
+            titlefont_size=16,
+            tickfont_size=14),
+            autosize=True)
     fig.show()
 
 def plot_timeseries(region, kind='el', **kwargs):
@@ -528,7 +536,7 @@ def plot_timeseries(region, kind='el', **kwargs):
 	    for tech, data in df_demand.iteritems():
 	        fig.add_trace(go.Scatter(x=data.index,
 	                                 y=(-data.values),
-	                                 name=NAMES[tech],
+	                                 name=PRINT_NAMES[tech],
 	                                 fill='tonexty',
 	                                 mode='none',
 	                                 fillcolor=COLORS[tech],
