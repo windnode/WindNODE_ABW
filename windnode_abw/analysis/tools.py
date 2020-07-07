@@ -133,6 +133,10 @@ UNITS = {
     "Area required rel. wind 500m wo forest": "%",
     "Area required rel. wind 500m w forest": "%",
     "Area required rel. wind 1000m w forest": "%",
+    "Total costs electricity supply": "EUR",
+    "Total costs heat supply": "EUR",
+    "LCOE": "EUR/MWh",
+    "LCOH": "EUR/MWh",
 }
 
 
@@ -1022,6 +1026,10 @@ def results_tech(results_axlxt):
     results["Heat generation"] = results_axlxt['Wärmeerzeugung nach Gemeinde'].sum().rename(PRINT_NAMES)
     results["CO2 emissions th. total"] = pd.concat([results_axlxt["CO2 emissions th. total"].sum(), results_axlxt["CO2 emissions stor th. total"].sum()]).rename(PRINT_NAMES)
     results["CO2 emissions el. total"] = pd.concat([results_axlxt["CO2 emissions el. total"].sum(), results_axlxt["CO2 emissions stor el. total"].sum()]).rename(PRINT_NAMES)
+    results["Total costs electricity supply"] = results_axlxt["Total costs electricity supply"].sum()
+    results["Total costs heat supply"] = results_axlxt["Total costs heat supply"].sum()
+    results["LCOE"] = results_axlxt["LCOE"].sum()
+    results["LCOH"] = results_axlxt["LCOH"].sum()
 
     return results
 
@@ -1085,6 +1093,10 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Area required rel. wind 1000m w forest"] = results_tables["Area required"]["wind"].sum() / \
                                                       region.pot_areas_wec.loc[
                                                           idx[:, ["s1000f1"], :], "area_ha"].sum() * 1e2
+    highlevel["Total costs electricity supply"] = results_t["Total costs electricity supply"].sum()
+    highlevel["Total costs heat supply"] = results_t["Total costs heat supply"].sum()
+    highlevel["LCOE"] = results_t["LCOE"].sum()
+    highlevel["LCOH"] = results_t["LCOH"].sum()
 
     # add multiindex including units to output
     mindex = [highlevel.keys(),
