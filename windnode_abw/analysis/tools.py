@@ -325,6 +325,11 @@ def aggregate_flows(results_raw):
                     params['pattern'],
                     expand=False),
                 axis=1).agg('sum')
+        else:
+            results[name] = pd.DataFrame(
+                0,
+                index=results['Strombedarf nach Gemeinde'].index,
+                columns=results['Strombedarf nach Gemeinde'].columns)
 
     return results
 
