@@ -27,25 +27,35 @@ from oemof.graph import create_nx_graph
 import logging
 logger = logging.getLogger('windnode_abw')
 
-NAMES = {'hydro': 'Laufwasser',
-            'bio': 'Bioenergie',
-            'wind': 'Windenergie',
-            'pv_ground': 'Photovoltaik (Freifläche)',
-            'pv_roof_small': 'Photovoltaik (Aufdach <30 kW)',
-            'pv_roof_large': 'Photovoltaik (Aufdach >30 kW)',
-            'export':'export',
-            'import': 'import',
-            'demand':'demand',
-            'hh': 'households',
-            'rca': 'r. comercial aggriculture',
-            'ind': 'industry',
-            'conventional': 'conventional',
-            'el_hh': 'households',
-            'el_rca': 'GHD',
-            'el_ind': 'industry',
-            }
+PRINT_NAMES = {
+    'bhkw': "Large-scale CHP",
+    'bio': "Biogas",
+    'gas': "Open-cycle gas turbine",
+    'gud': "Combined-cycle gas turbine",
+    'hydro': "Hydro",
+    'pv_ground': "PV ground-mounted",
+    'pv_roof_large': "PV roof top (large)",
+    'pv_roof_small': "PV roof top (small)",
+    'wind': "Wind",
+    'import': "Electricity imports (national grid)",
+    "elenergy": "Direct electric heating",
+    "fuel_oil": "Oil heating",
+    "gas_boiler": "Gas (district heating)",
+    "natural_gas": "Gas heating",
+    "solar": "Solar thermal heating",
+    "wood": "Wood heating",
+    "coal": "Coal heating",
+    "pth": "Power-to-heat (district heating)",
+    "pth_ASHP": "Air source heat pump",
+    "pth_GSHP": "Ground source heat pump",
+    "stor_th_large": "Thermal storage (district heating)",
+    "stor_th_small": "Thermal storage",
+    "flex_bat_large": "Large-scale battery storage",
+    "flex_bat_small": "PV system battery storage",
+}
 
 # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
+# https://plotly.com/python/builtin-colorscales/
 COLORS = {'bio': 'green',
           'hydro': 'royalblue',
           'pv_ground' : 'goldenrod',
@@ -455,7 +465,7 @@ def plot_balance_bar(region, df_generation, df_demand):
     for tech, data in df_generation.iteritems():
         fig.add_trace(go.Bar(x=region.muns['gen'],
                              y=data,
-                             name=NAMES[tech],
+                             name=PRINT_NAMES[tech],
                              marker_color=COLORS[tech]))
 
 
@@ -463,7 +473,7 @@ def plot_balance_bar(region, df_generation, df_demand):
     for tech, data in df_demand.iteritems():
         fig.add_trace(go.Bar(x=region.muns['gen'],
                              y=-data,
-                             name=NAMES[tech],
+                             name=PRINT_NAMES[tech],
                              marker_color=COLORS[tech],
                             visible='legendonly'))
 
@@ -509,7 +519,7 @@ def plot_timeseries(region, kind='el', **kwargs):
 	    for tech, data in df_feedin.iteritems():
 	        fig.add_trace(go.Scatter(x=data.index,
 	                                 y=data.values,
-	                                 name=NAMES[tech],
+	                                 name=PRINT_NAMES[tech],
 	                                 fill='tonexty',
 	                                 mode='none',
 	                                 fillcolor=COLORS[tech],
