@@ -1001,15 +1001,6 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     results["Total costs heat supply"] = pd.concat([results["Total costs heat supply"], costs_heat_storages_tmp], axis=1)
 
-    # Calculate levelized cost of electricity
-    results["LCOE"] = results["Total costs electricity supply"].div(
-                results['Stromnachfrage nach Gemeinde'].sum(axis=1)
-                + results['Stromnachfrage Wärme nach Gemeinde'].sum(axis=1), axis="index")
-
-    # Calculate levelized cost of heat
-    results["LCOH"] = results["Total costs heat supply"].div(
-                results['Wärmenachfrage nach Gemeinde'].sum(axis=1).sum(level="ags"), axis="index")
-
     return results
 
 
@@ -1028,8 +1019,14 @@ def results_tech(results_axlxt):
     results["CO2 emissions el. total"] = pd.concat([results_axlxt["CO2 emissions el. total"].sum(), results_axlxt["CO2 emissions stor el. total"].sum()]).rename(PRINT_NAMES)
     results["Total costs electricity supply"] = results_axlxt["Total costs electricity supply"].sum()
     results["Total costs heat supply"] = results_axlxt["Total costs heat supply"].sum()
-    results["LCOE"] = results_axlxt["LCOE"].sum()
-    results["LCOH"] = results_axlxt["LCOH"].sum()
+
+    # Calculate levelized cost of electricity
+    results["LCOE"] = results_axlxt["Total costs electricity supply"].sum() / (
+                results_axlxt['Stromnachfrage nach Gemeinde'].sum().sum()
+                + results_axlxt['Stromnachfrage Wärme nach Gemeinde'].sum().sum())
+
+    # Calculate levelized cost of heat
+    results["LCOH"] = results_axlxt["Total costs heat supply"].sum() / results_axlxt['Wärmenachfrage nach Gemeinde'].sum().sum()
 
     return results
 
