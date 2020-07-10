@@ -841,8 +841,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         """
         costs = (capacity * (params["annuity"] + params["opex_fix"])).fillna(0) + (generation * params["opex_var"]).fillna(0)
 
-        if "emissions_var_comm" in params and "sys_eff" in params:
-            costs_commodity = (generation * params["emissions_var_comm"] / params["sys_eff"]).fillna(0)
+        if "opex_var_comm" in params and "sys_eff" in params:
+            costs_commodity = (generation * params["opex_var_comm"] / params["sys_eff"]).fillna(0)
 
             costs = costs + costs_commodity
 
