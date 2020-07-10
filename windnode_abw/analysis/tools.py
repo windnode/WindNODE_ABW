@@ -972,8 +972,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     # Calculate costs for electricity storages and add to el. supply costs df
     costs_el_storages_tmp = _calculate_supply_costs(
-        discharge_stor_el_tmp,
         inst_cap_bat_tmp,
+        discharge_stor_el_tmp,
         parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("flex_bat"), :])
 
     results["Total costs electricity supply"] = pd.concat([results["Total costs electricity supply"], costs_el_storages_tmp], axis=1)
@@ -995,8 +995,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     # Calculate costs for heat storages and add to heat supply costs df
     costs_heat_storages_tmp = _calculate_supply_costs(
-        discharge_stor_th_tmp,
         parameters['Installed capacity heat storage'],
+        discharge_stor_th_tmp,
         stor_th_parameters)
 
     results["Total costs heat supply"] = pd.concat([results["Total costs heat supply"], costs_heat_storages_tmp], axis=1)
