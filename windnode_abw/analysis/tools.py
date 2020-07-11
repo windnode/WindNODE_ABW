@@ -965,10 +965,12 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         parameters["Installed capacity electricity supply"],
         results["Stromerzeugung nach Gemeinde"],
         parameters["Parameters el. generators"])
-    export_revenues = results["Stromnachfrage nach Gemeinde"]["export"] * -parameters["Parameters el. generators"].loc[
-        "import", "opex_var_comm"]
-    export_revenues.index = export_revenues.index.astype(int)
-    results["Total costs electricity supply"]["export"] = export_revenues
+    # Export revenues calculated with constant electricity price of 75 EUR/MWh
+    # TODO: if you include it, make sure sum of LCOE calculated in create_highlevel_results() ignore these revenues
+    # export_revenues = results["Stromnachfrage nach Gemeinde"]["export"] * -parameters["Parameters el. generators"].loc[
+    #     "import", "opex_var_comm"]
+    # export_revenues.index = export_revenues.index.astype(int)
+    # results["Total costs electricity supply"]["export"] = export_revenues
 
     # Calculate costs for electricity storages and add to el. supply costs df
     costs_el_storages_tmp = _calculate_supply_costs(
