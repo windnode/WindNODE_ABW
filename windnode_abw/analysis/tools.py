@@ -133,6 +133,10 @@ UNITS = {
     "Area required rel. wind 500m wo forest": "%",
     "Area required rel. wind 500m w forest": "%",
     "Area required rel. wind 1000m w forest": "%",
+    "Total costs electricity supply": "EUR",
+    "Total costs heat supply": "EUR",
+    "LCOE": "EUR/MWh",
+    "LCOH": "EUR/MWh",
 }
 
 
@@ -511,7 +515,7 @@ def flows_timexagsxtech(results_raw, region):
     # define extraction pattern
     flow_extractor = {
         "Stromerzeugung": {
-            "node_pattern": "\w+_(?P<ags>\d+)_b\d+_(?P<technology>\w+)",
+            "node_pattern": "\w+_(?P<ags>\d+)(?:_b\d+)?_(?P<technology>\w+)",
             "stubname": "gen",
             "bus_pattern": 'b_el_\d+'},
         "Wärmeerzeugung": {
@@ -844,6 +848,21 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
         return results_tmp
 
+    def _calculate_supply_costs(capacity, generation, params):
+        """
+        .. math:
+            P_{inst} \cdot (Annuity + opex_{fix}) + E_{gen} * opex_{var} + E_{commodity} * opex_{var,commodity}
+        """
+        costs = (capacity * (params["annuity"] + params["opex_fix"])).fillna(0) + (generation * params["opex_var"]).fillna(0)
+
+        if "opex_var_comm" in params and "sys_eff" in params:
+            costs_commodity = (generation * params["opex_var_comm"] / params["sys_eff"]).fillna(0)
+
+            costs = costs + costs_commodity
+
+        return costs
+
+
     idx = pd.IndexSlice
 
     results = {}
@@ -851,9 +870,12 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Stromerzeugung nach Gemeinde"] = extracted_results["Stromerzeugung"].sum(level="ags")
     results["Stromerzeugung nach Gemeinde"].index = results["Stromerzeugung nach Gemeinde"].index.astype(int)
     results["Stromnachfrage nach Gemeinde"] = extracted_results["Stromnachfrage"].sum(level="ags")
+    results["Stromnachfrage nach Gemeinde"].index = results["Stromnachfrage nach Gemeinde"].index.astype(int)
     results["Stromnachfrage Wärme nach Gemeinde"] = extracted_results["Stromnachfrage Wärme"].sum(level="ags")
+    results["Stromnachfrage Wärme nach Gemeinde"].index = results["Stromnachfrage Wärme nach Gemeinde"].index.astype(int)
     results["Wärmeerzeugung nach Gemeinde"] = extracted_results["Wärmeerzeugung"].sum(level=["level", "ags"])
-    results["Wärmenachfrage nach Gemeinde"] = extracted_results["Wärmenachfrage"].sum(level=["level", "ags"])
+    results["Wärmenachfrage nach Gemeinde"] = extracted_results["Wärmenachfrage"].sum(level=["ags"])
+    results["Wärmenachfrage nach Gemeinde"].index = results["Wärmenachfrage nach Gemeinde"].index.astype(int)
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
     results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["line_id", "bus_from", "bus_to"])
@@ -916,12 +938,12 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     inst_cap_bat_tmp = pd.concat([
         parameters['Installierte Kapazität Großbatterien']["capacity"].rename("flex_bat_large"),
         parameters['Installierte Kapazität PV-Batteriespeicher']["capacity"].rename("flex_bat_small")], axis=1)
-    discharge_stor_th_tmp = results['Batteriespeicher nach Gemeinde']["discharge"].unstack("level").rename(
+    discharge_stor_el_tmp = results['Batteriespeicher nach Gemeinde']["discharge"].unstack("level").rename(
         columns={"large": "flex_bat_large", "small": "flex_bat_small"})
-    discharge_stor_th_tmp.index = discharge_stor_th_tmp.index.astype(int)
+    discharge_stor_el_tmp.index = discharge_stor_el_tmp.index.astype(int)
     results_tmp_stor_el = _calculate_co2_emissions(
         "stor el.",
-        discharge_stor_th_tmp,
+        discharge_stor_el_tmp,
         inst_cap_bat_tmp,
         parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("flex_bat"), :])
     results.update(results_tmp_stor_el)
@@ -940,12 +962,60 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     discharge_stor_th_tmp = results['Wärmespeicher nach Gemeinde']["discharge"].unstack("level").rename(
         columns={"cen": "stor_th_large", "dec": "stor_th_small"})
     discharge_stor_th_tmp.index = discharge_stor_th_tmp.index.astype(int)
+    stor_th_parameters = parameters["Parameters storages"].loc[
+                         parameters["Parameters storages"].index.str.startswith("th_"), :].rename(
+        index={"th_cen_storage": "stor_th_large",
+               "th_dec_pth_storage": "stor_th_small"})
     results_tmp_stor_th = _calculate_co2_emissions(
         "stor th.",
         discharge_stor_th_tmp,
         parameters['Installed capacity heat storage'],
-        parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("stor_th"), :])
+        stor_th_parameters)
     results.update(results_tmp_stor_th)
+
+    # Calculate supply costs
+    # Note: Revenues for exported electricity are considered with negative costs
+    results["Total costs electricity supply"] = _calculate_supply_costs(
+        parameters["Installed capacity electricity supply"],
+        results["Stromerzeugung nach Gemeinde"],
+        parameters["Parameters el. generators"])
+    # Export revenues calculated with constant electricity price of 75 EUR/MWh
+    # TODO: if you include it, make sure sum of LCOE calculated in create_highlevel_results() ignore these revenues
+    # export_revenues = results["Stromnachfrage nach Gemeinde"]["export"] * -parameters["Parameters el. generators"].loc[
+    #     "import", "opex_var_comm"]
+    # export_revenues.index = export_revenues.index.astype(int)
+    # results["Total costs electricity supply"]["export"] = export_revenues
+
+    # Calculate costs for electricity storages and add to el. supply costs df
+    costs_el_storages_tmp = _calculate_supply_costs(
+        inst_cap_bat_tmp,
+        discharge_stor_el_tmp,
+        parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("flex_bat"), :])
+
+    results["Total costs electricity supply"] = pd.concat([results["Total costs electricity supply"], costs_el_storages_tmp], axis=1)
+
+    # Calculate heat supply costs
+    # Note: costs for the commodity of PtH technologies (pth* and elenergy) is set to zero, because these costs are
+    # already included in the electricity generation costs
+    params_heat_supply_tmp = parameters["Parameters th. generators"].copy()
+    params_heat_supply_tmp.loc[["elenergy", "pth", "pth_ASHP", "pth_GSHP"], "opex_var_comm"] = 0
+    for pth_tech in ["pth_ASHP", "pth_GSHP"]:
+        params_heat_supply_tmp.loc[pth_tech + "_stor"] = params_heat_supply_tmp.loc[pth_tech]
+        params_heat_supply_tmp.loc[pth_tech + "_nostor"] = params_heat_supply_tmp.loc[pth_tech]
+        params_heat_supply_tmp.drop(pth_tech, inplace=True)
+
+    results["Total costs heat supply"] = _calculate_supply_costs(
+        parameters["Installed capacity heat supply"],
+        heat_generation,
+        params_heat_supply_tmp)
+
+    # Calculate costs for heat storages and add to heat supply costs df
+    costs_heat_storages_tmp = _calculate_supply_costs(
+        parameters['Installed capacity heat storage'],
+        discharge_stor_th_tmp,
+        stor_th_parameters)
+
+    results["Total costs heat supply"] = pd.concat([results["Total costs heat supply"], costs_heat_storages_tmp], axis=1)
 
     return results
 
@@ -963,6 +1033,16 @@ def results_tech(results_axlxt):
     results["Heat generation"] = results_axlxt['Wärmeerzeugung nach Gemeinde'].sum().rename(PRINT_NAMES)
     results["CO2 emissions th. total"] = pd.concat([results_axlxt["CO2 emissions th. total"].sum(), results_axlxt["CO2 emissions stor th. total"].sum()]).rename(PRINT_NAMES)
     results["CO2 emissions el. total"] = pd.concat([results_axlxt["CO2 emissions el. total"].sum(), results_axlxt["CO2 emissions stor el. total"].sum()]).rename(PRINT_NAMES)
+    results["Total costs electricity supply"] = results_axlxt["Total costs electricity supply"].sum()
+    results["Total costs heat supply"] = results_axlxt["Total costs heat supply"].sum()
+
+    # Calculate levelized cost of electricity
+    results["LCOE"] = results_axlxt["Total costs electricity supply"].sum() / (
+                results_axlxt['Stromnachfrage nach Gemeinde'].sum().sum()
+                + results_axlxt['Stromnachfrage Wärme nach Gemeinde'].sum().sum())
+
+    # Calculate levelized cost of heat
+    results["LCOH"] = results_axlxt["Total costs heat supply"].sum() / results_axlxt['Wärmenachfrage nach Gemeinde'].sum().sum()
 
     return results
 
@@ -1026,6 +1106,10 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Area required rel. wind 1000m w forest"] = results_tables["Area required"]["wind"].sum() / \
                                                       region.pot_areas_wec.loc[
                                                           idx[:, ["s1000f1"], :], "area_ha"].sum() * 1e2
+    highlevel["Total costs electricity supply"] = results_t["Total costs electricity supply"].sum()
+    highlevel["Total costs heat supply"] = results_t["Total costs heat supply"].sum()
+    highlevel["LCOE"] = results_t["LCOE"].sum()
+    highlevel["LCOH"] = results_t["LCOH"].sum()
 
     # add multiindex including units to output
     mindex = [highlevel.keys(),
