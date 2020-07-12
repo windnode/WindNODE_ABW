@@ -68,7 +68,7 @@ html_theme = "sphinx_material"
 # material theme options (see theme.conf for more information)
 html_theme_options = {
     "repo_url": "https://github.com/windnode/windnode_abw/",
-    "repo_name": "WindNode ABW",
+    "repo_name": "See source code on GitHub",
     "html_minify": False,
     "html_prettify": True,
     "css_minify": True,
