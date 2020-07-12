@@ -1,3 +1,4 @@
 sphinx
 nbsphinx
 sphinxcontrib-bibtex
+sphinx-material
