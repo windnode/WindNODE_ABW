@@ -710,7 +710,8 @@ def non_region_bus2ags(bus_id, region):
 
     return str(int(ags))
 
-def aggregate_parameters(region, results_raw):
+
+def aggregate_parameters(region, results_raw, flows):
 
     def _extract_tech_params(NAMES):
         gen_keys = [v["params"] for k, v in NAMES.items() if v["params"] is not None]
@@ -726,7 +727,6 @@ def aggregate_parameters(region, results_raw):
         return df
 
     flows_params = flow_params_agsxtech(results_raw["params_flows"])
-    flows = flows_timexagsxtech(results_raw["flows"], region)
 
     params = {}
 
