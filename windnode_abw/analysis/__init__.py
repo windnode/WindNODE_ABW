@@ -85,13 +85,13 @@ def analysis(run_timestamp, scenarios='ALL'):
             regions_scns[scn_id] = Region.import_data(cfg)
             results_scns[scn_id]['results_raw'] = results_raw
 
-            # Retrieve parameters from database and config file
-            parameters = aggregate_parameters(regions_scns[scn_id], results_raw)
-            results_scns[scn_id]['parameters'] = parameters
-
             # Flows extracted to dimension time, ags code, technology (and sometimes more dimensions)
             flows_txaxt = flows_timexagsxtech(results_raw["flows"], regions_scns[scn_id])
             results_scns[scn_id]['flows_txaxt'] = flows_txaxt
+
+            # Retrieve parameters from database and config file
+            parameters = aggregate_parameters(regions_scns[scn_id], results_raw, flows_txaxt)
+            results_scns[scn_id]['parameters'] = parameters
 
             # Aggregate flow results along different dimensions (outdated, see #29)
             # only used to access DSM demand increase/decrease
