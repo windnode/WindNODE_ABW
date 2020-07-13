@@ -116,7 +116,8 @@ def run_scenario(cfg):
 
         infeasible = False
     else:
-        logger.warning('Model infeasible! No data dumped.')
+        logger.warning('Model infeasible! Only input params and meta info '
+                       'dumped')
         esys.results['meta'] = {}
         infeasible = True
 
