@@ -55,7 +55,7 @@ html_sidebars = {
     "**": [
         # "logo-text.html",
         "globaltoc.html",
-        # "localtoc.html",
+        "localtoc.html",
         # "searchbox.html"
     ]
 }
@@ -83,13 +83,43 @@ html_theme_options = {
     "nav_links": [
         {"href": "index", "internal": True, "title": "WindNODE ABW"},
         {
-            "href": "https://squidfunk.github.io/mkdocs-material/",
-            "internal": False,
-            "title": "Material for MkDocs",
+            "href": "scenarios",
+            "internal": True,
+            "title": "Scenarios",
+        },
+        {
+            "href": "energy_system_model",
+            "internal": True,
+            "title": "Energy system model",
+        },
+        {
+            "href": "data",
+            "internal": True,
+            "title": "Data",
+        },
+        {
+            "href": "results",
+            "internal": True,
+            "title": "Results",
+        },
+        {
+            "href": "bibliography",
+            "internal": True,
+            "title": "Bibliography",
+        },
+        {
+            "href": "development",
+            "internal": True,
+            "title": "Development",
         },
     ],
     "heroes": {
-        "index": "A regional energy system model for Anhalt-Bitterfeld-Wolfen.",
+        "index": "A regional energy system model for Anhalt-Bitterfeld-Wolfen",
+        "scenarios": "Scenario-based exploration of energy supply and flexibility options",
+        "energy_system_model": "Modelling regional aspects of future electricity and heat supply",
+        "data": "Where the data comes from",
+        "results": "Explore results in detail",
+        "development": "Some notes for developers"
     },
     "version_dropdown": True,
     "version_json": "_static/versions.json",

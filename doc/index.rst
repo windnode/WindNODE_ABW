@@ -3,18 +3,16 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to WindNODE ABW's documentation!
-========================================
+
+WindNODE ABW is one part of the Reiner Lemoine Institute's engagement in the research project
+`WindNODE <https://windnode.de>`_.
+
+Project context
+---------------
+
+Goals
+-----
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
