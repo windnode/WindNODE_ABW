@@ -58,7 +58,7 @@ html_sidebars = {
     "**": [
         # "logo-text.html",
         "globaltoc.html",
-        "localtoc.html",
+        # "localtoc.html",
         # "searchbox.html"
     ]
 }
