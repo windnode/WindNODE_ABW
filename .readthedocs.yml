@@ -1,5 +1,6 @@
 version: 2
-formats: htmlzip
+formats:
+  - htmlzip
 sphinx:
   configuration: doc/conf.py
 python:
