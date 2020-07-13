@@ -1,8 +1,8 @@
 Energy system model
 ===================
 
-The region Anhalt-Bitterfeld-Wolfen
------------------------------------
+The region Anhalt-Bitterfeld-Wittenberg
+---------------------------------------
 
 
 Rationale and model focus

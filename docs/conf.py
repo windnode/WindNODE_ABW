@@ -118,7 +118,7 @@ html_theme_options = {
         },
     ],
     "heroes": {
-        "index": "A regional energy system model for Anhalt-Bitterfeld-Wolfen",
+        "index": "A regional energy system model for Anhalt-Bitterfeld-Wittenberg",
         "scenarios": "Scenario-based exploration of energy supply and flexibility options",
         "energy_system_model": "Modelling regional aspects of future electricity and heat supply",
         "data": "Where the data comes from",
