@@ -619,7 +619,7 @@ def load_scenario_cfg(scn_name=None):
         return convert2numeric(dict(ConfigObj(path)))
 
 
-def export_results(results, cfg, solver_meta):
+def export_results(results, cfg, solver_meta, infeasible):
     """Export results to CSV file, meta infos to JSON file
 
     A new directory is created
@@ -632,9 +632,12 @@ def export_results(results, cfg, solver_meta):
         Run and scenario config
     solver_meta : :obj:`dict`
         Meta infos from optimization
+    infeasible : :obj:`bool`
+        Model was infeasible
     """
     scenario_id = cfg['scn_data']['general']['id']
     meta = {
+        'infeasible': infeasible,
         'config': cfg,
         'memory_used_wo_solver': f'{str(log_memory_usage())} MB',
         'solver': solver_meta
@@ -648,6 +651,13 @@ def export_results(results, cfg, solver_meta):
     os.makedirs(results_path)
 
     logger.info(f'Exporting results to {results_path} ...')
+
+    # if infeasible, only use params for export
+    if infeasible:
+        results = {
+            'params_flows': results['params_flows'],
+            'params_stat': results['params_stat']
+        }
 
     for name, df in results.items():
         df.to_csv(os.path.join(results_path, f'{name}.csv'))
