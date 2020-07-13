@@ -67,6 +67,7 @@ extensions.append("sphinx_material")
 html_theme_path = sphinx_material.html_theme_path()
 html_context = sphinx_material.get_html_context()
 html_theme = "sphinx_material"
+html_logo = "images/Windnode.png"
 
 # material theme options (see theme.conf for more information)
 html_theme_options = {
@@ -75,7 +76,7 @@ html_theme_options = {
     "html_minify": False,
     "html_prettify": True,
     "css_minify": True,
-    "logo_icon": "&#xe869",
+    # "logo_icon": "&#xe869",
     "repo_type": "github",
     "color_primary": "blue",
     "color_accent": "cyan",
