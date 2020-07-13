@@ -140,8 +140,15 @@ UNITS = {
 }
 
 
-def results_to_dataframes(esys):
+def results_to_dataframes(esys, infeasible):
     """Convert result dict to DataFrames for flows and stationary variables.
+
+    Parameters
+    ----------
+    esys : oemof.solph.EnergySystem
+        Energy system including results
+    infeasible : :obj:`bool`
+        Model was infeasible
 
     Returns
     -------
@@ -159,18 +166,8 @@ def results_to_dataframes(esys):
                 Series with node parameters, (node, var) as index,
                 labels is excluded
     """
+    # add params to results
     results = {
-        'flows': pd.DataFrame(
-            {(str(from_n), str(to_n)): flow['sequences']['flow']
-             for (from_n, to_n), flow in esys.results['main'].items()
-             if to_n is not None}
-        ),
-        'vars_stat': pd.DataFrame(
-            {(str(from_n), col): flow['sequences'][col]
-             for (from_n, to_n), flow in esys.results['main'].items()
-             if to_n is None
-             for col in flow['sequences'].columns}
-        ),
         'params_flows': pd.DataFrame(
             {(str(from_n), str(to_n)): flow['scalars']
              for (from_n, to_n), flow in esys.results['params'].items()
@@ -183,6 +180,21 @@ def results_to_dataframes(esys):
              for row in flow['scalars'].index if row != 'label'}
         )
     }
+
+    # add result vars to results only if there's a solution
+    if not infeasible:
+        results['flows'] = pd.DataFrame(
+            {(str(from_n), str(to_n)): flow['sequences']['flow']
+             for (from_n, to_n), flow in esys.results['main'].items()
+             if to_n is not None}
+        )
+        results['vars_stat'] = pd.DataFrame(
+            {(str(from_n), col): flow['sequences'][col]
+             for (from_n, to_n), flow in esys.results['main'].items()
+             if to_n is None
+             for col in flow['sequences'].columns}
+        )
+
     return results
 
 
