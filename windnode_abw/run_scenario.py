@@ -105,18 +105,28 @@ def run_scenario(cfg):
 
     log_memory_usage()
     logger.info('Processing results...')
-    # add results to energy system
-    esys.results['main'] = outputlib.processing.results(om)
-    # add meta infos
-    esys.results['meta'] = outputlib.processing.meta_results(om)
+
+    if om.solver_results.Solver.Status.key == 'ok':
+        # add results to energy system
+        esys.results['main'] = outputlib.processing.results(om)
+        # add meta infos
+        esys.results['meta'] = outputlib.processing.meta_results(om)
+        # add om flows to allow access Flow objects
+        # esys.results['om_flows'] = list(om.flows.items())
+
+        infeasible = False
+    else:
+        logger.warning('Model infeasible! No data dumped.')
+        esys.results['meta'] = {}
+        infeasible = True
+
     # add initial params to energy system
     esys.results['params'] = outputlib.processing.parameter_as_dict(esys)
-    # add om flows to allow access Flow objects
-    #esys.results['om_flows'] = list(om.flows.items())
+
+    # convert results to DF
+    results = results_to_dataframes(esys, infeasible)
 
     log_memory_usage()
-
-    results = results_to_dataframes(esys)
 
     # dump esys to file
     if cfg['dump_esys']:
@@ -131,7 +141,8 @@ def run_scenario(cfg):
     if cfg['dump_results']:
         export_results(results=results,
                        cfg=cfg,
-                       solver_meta=esys.results['meta'])
+                       solver_meta=esys.results['meta'],
+                       infeasible=infeasible)
 
     logger.info(f'===== Scenario {cfg["scenario"]} done! =====')
 
