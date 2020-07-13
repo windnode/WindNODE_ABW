@@ -32,7 +32,8 @@ author = '@nesnoj,@gplssm,@nailend'
 extensions = [
     'nbsphinx',
     'sphinx.ext.mathjax',
-    'sphinxcontrib.bibtex'
+    'sphinxcontrib.bibtex',
+    'sphinx.ext.intersphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -103,7 +104,7 @@ html_theme_options = {
             "title": "Results",
         },
         {
-            "href": "bibliography",
+            "href": "zbibliography",
             "internal": True,
             "title": "Bibliography",
         },

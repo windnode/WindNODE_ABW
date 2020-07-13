@@ -15,4 +15,11 @@ Goals
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+
+   scenarios
+   energy_system_model
+   data
+   results
+   zbibliography
+   development
