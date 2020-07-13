@@ -1,0 +1,9 @@
+version: 2
+formats: htmlzip
+sphinx:
+  configuration: doc/conf.py
+python:
+  version: 3
+  install:
+    - requirements: doc/requirements.txt
+  system_packages: true
