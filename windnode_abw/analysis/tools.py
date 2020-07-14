@@ -922,7 +922,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     # Relative area required by wind and PV
     results["Area required rel."] = pd.DataFrame()
     results["Area required rel."]["PV rooftop small"] = (
-            results["Area required"]["pv_roof_small"] / region.pot_areas_pv_roof['area_resid_ha'] /
+            results["Area required"]["pv_roof_small"] /
+            region.pot_areas_pv_roof['area_resid_ha'] /
             re_params["pv_roof_resid_usable_area"] * 1e2
     ).fillna(0)
     results["Area required rel."]["PV rooftop large"] = (
@@ -973,9 +974,12 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     ).replace(inf, 0)
 
     # CO2 emissions electricity
-    results_tmp_el = _calculate_co2_emissions("el.", results["Stromerzeugung nach Gemeinde"],
-                                           parameters["Installed capacity electricity supply"],
-                                           parameters["Parameters el. generators"])
+    results_tmp_el = _calculate_co2_emissions(
+        "el.",
+        results["Stromerzeugung nach Gemeinde"],
+        parameters["Installed capacity electricity supply"],
+        parameters["Parameters el. generators"])
+
     results.update(results_tmp_el)
 
     # CO2 emissions attributed to battery energy storages
