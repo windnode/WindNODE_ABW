@@ -700,6 +700,8 @@ def load_results(timestamp, scenario):
                                 scenario
                                 )
 
+    logger.info(f'Loading raw results...')
+
     # DataFrames
     df_files = ['flows', 'vars_stat', 'params_flows']
     # Series
