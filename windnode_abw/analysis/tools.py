@@ -920,8 +920,16 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     # Relative area required by wind and PV
     results["Area required rel."] = pd.DataFrame()
-    results["Area required rel."]["PV rooftop small"] = results["Area required"]["pv_roof_small"] / region.pot_areas_pv_roof.sum(axis=1) * 1e2
-    results["Area required rel."]["PV rooftop large"] = results["Area required"]["pv_roof_large"] / region.pot_areas_pv_roof.sum(axis=1) * 1e2
+    results["Area required rel."]["PV rooftop small"] = (
+            results["Area required"]["pv_roof_small"] / region.pot_areas_pv_roof['area_resid_ha'] /
+            re_params["pv_roof_resid_usable_area"] * 1e2
+    ).fillna(0)
+    results["Area required rel."]["PV rooftop large"] = (
+            results["Area required"]["pv_roof_large"] /
+            region.pot_areas_pv_roof['area_ind_ha'] /
+            re_params["pv_roof_ind_usable_area"] * 1e2
+    ).fillna(0)
+
     results["Area required rel."]["PV ground hard"] = results["Area required"]["pv_ground"] / \
                                             region.pot_areas_pv.loc[idx[:, ["bab_h", "rail_h"], :], "area_ha"].sum(level=0) * 1e2
     results["Area required rel."]["PV ground hard soft"] = results["Area required"]["pv_ground"] / \
