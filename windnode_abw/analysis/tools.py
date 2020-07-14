@@ -904,12 +904,18 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     # Area requried by wind and PV
     re_params = region.cfg['scn_data']['generation']['re_potentials']
+
+    if region.cfg['scn_data']['general']['year'] == 2017:
+        wind_area = pd.Series(0, index=region.muns.index)
+    else:
+        wind_area = parameters["Installed capacity electricity supply"]["wind"] *\
+                    re_params["wec_land_use"] / re_params["wec_nom_power"]
+
     results["Area required"] = pd.concat([
         parameters["Installed capacity electricity supply"]["pv_roof_small"] * re_params["pv_roof_land_use"],
         parameters["Installed capacity electricity supply"]["pv_roof_large"] * re_params["pv_roof_land_use"],
         parameters["Installed capacity electricity supply"]["pv_ground"] * re_params["pv_land_use"],
-        parameters["Installed capacity electricity supply"]["wind"] * re_params["wec_land_use"] / re_params[
-            "wec_nom_power"],
+        wind_area,
     ], axis=1)
 
     # Relative area required by wind and PV
