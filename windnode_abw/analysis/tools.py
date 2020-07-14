@@ -1,4 +1,5 @@
 import pandas as pd
+from numpy import inf
 
 import logging
 logger = logging.getLogger('windnode_abw')
@@ -930,20 +931,31 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
             re_params["pv_roof_ind_usable_area"] * 1e2
     ).fillna(0)
 
-    results["Area required rel."]["PV ground hard"] = results["Area required"]["pv_ground"] / \
-                                            region.pot_areas_pv.loc[idx[:, ["bab_h", "rail_h"], :], "area_ha"].sum(level=0) * 1e2
-    results["Area required rel."]["PV ground hard soft"] = results["Area required"]["pv_ground"] / \
-                                            region.pot_areas_pv.loc[idx[:, ["bab_hs", "rail_hs"], :], "area_ha"].sum(level=0) * 1e2
-    results["Area required rel."]["PV ground hard 1-perc agri"] = results["Area required"]["pv_ground"] / \
-                                                       (region.pot_areas_pv.loc[
-                                                            idx[:, ["bab_h", "rail_h"], :], "area_ha"].sum(
-                                                           level=0) + 0.01 * region.pot_areas_pv.loc[
-                                                            idx[:, ["agri_h"], :], "area_ha"].sum(level=0)) * 1e2
-    results["Area required rel."]["PV ground hard soft 1-perc agri"] = results["Area required"]["pv_ground"] / \
-                                                       (region.pot_areas_pv.loc[
-                                                            idx[:, ["bab_hs", "rail_hs"], :], "area_ha"].sum(
-                                                           level=0) + 0.01 * region.pot_areas_pv.loc[
-                                                            idx[:, ["agri_hs"], :], "area_ha"].sum(level=0)) * 1e2
+    results["Area required rel."]["PV ground hard"] = (
+            results["Area required"]["pv_ground"] /
+            region.pot_areas_pv.loc[idx[:, ["bab_h", "rail_h"], :],
+                                    "area_ha"].sum(level=0) * 1e2
+    ).replace(inf, 0)
+    results["Area required rel."]["PV ground hard soft"] = (
+            results["Area required"]["pv_ground"] /
+            region.pot_areas_pv.loc[idx[:, ["bab_hs", "rail_hs"], :],
+                                    "area_ha"].sum(level=0) * 1e2
+    ).replace(inf, 0)
+    results["Area required rel."]["PV ground hard 1-perc agri"] = (
+            results["Area required"]["pv_ground"] /
+            (region.pot_areas_pv.loc[
+                 idx[:, ["bab_h", "rail_h"], :], "area_ha"].sum(level=0) +
+             0.01 * region.pot_areas_pv.loc[
+                 idx[:, ["agri_h"], :], "area_ha"].sum(level=0)) * 1e2
+    ).replace(inf, 0)
+    results["Area required rel."]["PV ground hard soft 1-perc agri"] = (
+            results["Area required"]["pv_ground"] /
+            (region.pot_areas_pv.loc[
+                 idx[:, ["bab_hs", "rail_hs"], :], "area_ha"].sum(level=0) +
+             0.01 * region.pot_areas_pv.loc[
+                 idx[:, ["agri_hs"], :], "area_ha"].sum(level=0)) * 1e2
+    ).replace(inf, 0)
+
     results["Area required rel."]["Wind 500m wo forest"] = results["Area required"]["wind"] / \
                                                       region.pot_areas_wec.loc[
                                                           idx[:, ["s500f0"], :], "area_ha"].sum(level=0) * 1e2
