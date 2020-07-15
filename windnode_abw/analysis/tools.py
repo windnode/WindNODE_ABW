@@ -1035,6 +1035,14 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     results["Total costs heat supply"] = pd.concat([results["Total costs heat supply"], costs_heat_storages_tmp], axis=1)
 
+
+    # Add Autarky
+    results["Autarky"] = pd.DataFrame()
+	results["Autarky"]['supply'] = extracted_results["Autarky"]['supply'].sum(level=1)
+	results["Autarky"]['demand'] = extracted_results["Autarky"]['demand'].sum(level=1)
+	results["Autarky"]['relative'] = extracted_results["Autarky"]['supply'].div(extracted_results["Autarky"]['demand'])
+	results["Autarky"]['hours'] = (extracted_results["Autarky"]['relative']>1).sum(level=1).astype(int)
+    
     return results
 
 
