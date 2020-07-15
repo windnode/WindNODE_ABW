@@ -21,7 +21,7 @@
     [[re_potentials]]
         pv_installed_power = 3716
         pv_land_use_scenario = HS
-        pv_usable_area_agri_max = 0
+        pv_usable_area_agri_max = nolimit
         pv_land_use = 0.8
         pv_roof_installed_power = 803
         pv_roof_resid_usable_area = 0.25
