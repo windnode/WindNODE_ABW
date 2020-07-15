@@ -911,11 +911,16 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     else:
         wind_area = parameters["Installed capacity electricity supply"]["wind"] *\
                     re_params["wec_land_use"] / re_params["wec_nom_power"]
+    if re_params['pv_installed_power'] == 'SQ':
+        pv_ground_area = pd.Series(0, index=region.muns.index, name='pv_ground')
+    else:
+        pv_ground_area = parameters["Installed capacity electricity supply"]["pv_ground"] *\
+                         re_params["pv_land_use"]
 
     results["Area required"] = pd.concat([
         parameters["Installed capacity electricity supply"]["pv_roof_small"] * re_params["pv_roof_land_use"],
         parameters["Installed capacity electricity supply"]["pv_roof_large"] * re_params["pv_roof_land_use"],
-        parameters["Installed capacity electricity supply"]["pv_ground"] * re_params["pv_land_use"],
+        pv_ground_area,
         wind_area,
     ], axis=1)
 
