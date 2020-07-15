@@ -45,11 +45,16 @@ PRINT_NAMES = {
     "natural_gas": "Gas heating",
     "solar": "Solar thermal heating",
     "solar_heat": "Solar heating",
+    "elenergy" : "electrical energy",
     "wood": "Wood heating",
     "coal": "Coal heating",
     "pth": "Power-to-heat (district heating)",
     "pth_ASHP" : "Air source heat pump",
+    "pth_ASHP_nostor" : "Air source heat pump, no storage",
+    "pth_ASHP_stor" : "Air source heat pump, storage",
     "pth_GSHP" : "Ground source heat pump",
+    "pth_GSHP_nostor" :"Ground source heat pump, no storage",
+    "pth_GSHP_stor" : "Ground source heat pump, storage",
     "stor_th_large" : "Thermal storage (district heating)",
     "stor_th_small" : "Thermal storage",
     "flex_bat_large" : "Large-scale battery storage",
@@ -65,6 +70,9 @@ PRINT_NAMES = {
     "th_hh_efh" : "thermal single household",
     "th_hh_mfh" : "thermal multi household",
     "th_rca": "thermal agri-comerce",
+    "hh_efh" : "singe households",
+    "hh_mfh" : "multi households",
+
 
 
 }
@@ -514,76 +522,77 @@ def plot_balance_bar(region, df_generation, df_demand):
             autosize=True)
     fig.show()
 
-def plot_timeseries(region, kind='el', **kwargs):
-	    """"""
-	    start = kwargs.get('start', region.cfg['date_from'])
-	    end = kwargs.get('end', region.cfg['date_to'])
-	    ags =  kwargs.get('ags', 'ABW')
-	    
-	    if kind =='el':
-	        feedin_keys = [i for i in region.feedin_ts.keys() if "solar_heat" not in i]
-	    elif kind == 'th':
-        	feedin_keys = ['solar_heat', ] # what is missing?
-        
-        #else:
-        #    raise ValueError("Enter either 'el' or 'th'") 
-	    
-	    demand_keys = [key for key in region.demand_ts.keys() if key.startswith(kind)]
-	    
-	    if ags=='ABW':
-	        df_feedin = pd.DataFrame({k: v.sum(axis=1) for k, v in region.feedin_ts.items() if k in feedin_keys}).loc[start:end,:]
-	        df_demand = pd.DataFrame({k: v.sum(axis=1) for k, v in region.demand_ts.items() if k in demand_keys}).loc[start:end,:]
-	    else:  
-	        df_feedin = pd.DataFrame({k: v.loc[:,[ags]].sum(axis=1) for k, v in region.feedin_ts.items() if k in feedin_keys}).loc[start:end,:]
-	        df_demand = pd.DataFrame({k: v.loc[:,[ags]].sum(axis=1) for k, v in region.demand_ts.items() if k in demand_keys}).loc[start:end,:]
+def plot_timeseries(results_scn, kind='el', **kwargs):
+    """"""
+    #start = kwargs.get('start', region.cfg['date_from'])
+    #end = kwargs.get('end', region.cfg['date_to'])
+    ags = kwargs.get('ags', 'ABW')
+    
+    # remove if ags in multiindex is converted to int
+    ags = str(ags)
+    
+    if kind =='el':
+        df_feedin = results_scn['flows_txaxt']['Stromerzeugung']
+        df_demand = results_scn['flows_txaxt']['Stromnachfrage']
+    elif kind == 'th':
+        df_feedin = results_scn['flows_txaxt']['Wärmeerzeugung']
+        df_demand = results_scn['flows_txaxt']['Wärmenachfrage']
+    #else:
+    #    raise ValueError("Enter either 'el' or 'th'") 
+   
+    if ags=='ABW':
+        df_feedin = df_feedin.sum(level=0)#.loc[start:end,:]
+        df_demand = df_demand.sum(level=0)#.loc[start:end,:]
+    else:  
+        df_feedin = df_feedin.loc[(slice(None),ags),:].sum(level=0)#.loc[start:end,:]
+        df_demand = df_demand.loc[(slice(None),ags),:].sum(level=0)
+
+    # what is conventional
+    #df_residual_load = df_demand.sum(axis=1) - df_feedin.drop(columns=['conventional']).sum(axis=1)
+
+    fig = go.Figure()
+
+    for tech, data in df_feedin.iteritems():
+        fig.add_trace(go.Scatter(x=data.index,
+                                 y=data.values,
+                                 name=PRINT_NAMES[tech],
+                                 fill='tonexty',
+                                 mode='none',
+                                 #fillcolor=COLORS[tech],
+                                stackgroup='one'))
+
+    for tech, data in df_demand.iteritems():
+        fig.add_trace(go.Scatter(x=data.index,
+                                 y=(-data.values),
+                                 name=PRINT_NAMES[tech],
+                                 fill='tonexty',
+                                 mode='none',
+                                 #fillcolor=COLORS[tech],
+                                stackgroup='two'))
 
 
-	    # what is conventional
-	    #df_residual_load = df_demand.sum(axis=1) - df_feedin.drop(columns=['conventional']).sum(axis=1)
+    fig.update_xaxes(
+        title='Zoom',
+        rangeslider_visible=True,
+        rangeselector=dict(
+            buttons=list([
+                dict(count=6, label="6m", step="month", stepmode="backward"),
+                dict(count=1, label="1m", step="month", stepmode="backward"),
+                dict(count=14, label="2w", step="day", stepmode="backward"),
+                dict(count=7, label="1w", step="day", stepmode="backward"),
+                dict(count=3, label="3d", step="day", stepmode="backward"),
+                #dict(step="all")
+            ])
+        )
+    )
 
-	    fig = go.Figure()
-
-	    for tech, data in df_feedin.iteritems():
-	        fig.add_trace(go.Scatter(x=data.index,
-	                                 y=data.values,
-	                                 name=PRINT_NAMES[tech],
-	                                 fill='tonexty',
-	                                 mode='none',
-	                                 fillcolor=COLORS[tech],
-	                                stackgroup='one'))
-
-	    for tech, data in df_demand.iteritems():
-	        fig.add_trace(go.Scatter(x=data.index,
-	                                 y=(-data.values),
-	                                 name=PRINT_NAMES[tech],
-	                                 fill='tonexty',
-	                                 mode='none',
-	                                 fillcolor=COLORS[tech],
-	                                stackgroup='two'))
-
-
-	    fig.update_xaxes(
-	        title='Zoom',
-	        rangeslider_visible=True,
-	        rangeselector=dict(
-	            buttons=list([
-	                dict(count=6, label="6m", step="month", stepmode="backward"),
-	                dict(count=1, label="1m", step="month", stepmode="backward"),
-	                dict(count=14, label="2w", step="day", stepmode="backward"),
-	                dict(count=7, label="1w", step="day", stepmode="backward"),
-	                dict(count=3, label="3d", step="day", stepmode="backward"),
-	                #dict(step="all")
-	            ])
-	        )
-	    )
-
-	    fig.update_layout(
-	        title='Power Generation and Demand of %s'% ags,
-	        #xaxis={'categoryorder':'category ascending'},
-	        xaxis_tickfont_size=14,
-	        yaxis=dict(
-	        title='MW',
-	        titlefont_size=16,
-	        tickfont_size=14),
-	        autosize=True)
-	    fig.show()
+    fig.update_layout(
+        title='Power Generation and Demand of %s'% ags,
+        #xaxis={'categoryorder':'category ascending'},
+        xaxis_tickfont_size=14,
+        yaxis=dict(
+        title='MW',
+        titlefont_size=16,
+        tickfont_size=14),
+        autosize=True)
+    fig.show()
