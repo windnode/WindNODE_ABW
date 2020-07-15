@@ -44,6 +44,7 @@ PRINT_NAMES = {
     "gas_boiler": "Gas (district heating)",
     "natural_gas": "Gas heating",
     "solar": "Solar thermal heating",
+    "solar_heat": "Solar heating",
     "wood": "Wood heating",
     "coal": "Coal heating",
     "pth": "Power-to-heat (district heating)",
@@ -60,7 +61,12 @@ PRINT_NAMES = {
     "conventional" : "Conventional",
     "el_hh" : "Electricity households",
     "el_rca" : "Electricity agri-comerce",
-    "el_ind" : "Electricity industry"
+    "el_ind" : "Electricity industry",
+    "th_hh_efh" : "thermal single household",
+    "th_hh_mfh" : "thermal multi household",
+    "th_rca": "thermal agri-comerce",
+
+
 }
 
 # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
@@ -72,6 +78,7 @@ COLORS = {'bio': 'green',
           'pv_roof_small' : 'darkorange',
           'wind': 'skyblue',
           'conventional':'grey',
+          'solar_heat': 'peru',
           'gud':'teal',
           'bhkw' : 'seagreen',
           'gas' : 'lightgrey',
@@ -83,7 +90,12 @@ COLORS = {'bio': 'green',
           'ind': 'darkslategray',
           'el_rca': 'gray',
           'el_hh': 'darkmagenta',
-          'el_ind': 'darkslategray'
+          'el_ind': 'darkslategray',
+          'th_hh_efh': 'plum',
+          'th_hh_mfh': 'fuchsia',
+          'th_rca' : 'crimson',
+
+
          }
 
 
@@ -508,10 +520,13 @@ def plot_timeseries(region, kind='el', **kwargs):
 	    end = kwargs.get('end', region.cfg['date_to'])
 	    ags =  kwargs.get('ags', 'ABW')
 	    
-	    if kind=='el':
-	        feedin_keys = ['pv_ground', 'pv_roof_small', 'pv_roof_large', 'hydro',' bio', 'conventional', 'wind']
-	    else:
-	        feedin_keys = ['solar_heat', ] # what is missing?
+	    if kind =='el':
+	        feedin_keys = [i for i in region.feedin_ts.keys() if "solar_heat" not in i]
+	    elif kind == 'th':
+        	feedin_keys = ['solar_heat', ] # what is missing?
+        
+        #else:
+        #    raise ValueError("Enter either 'el' or 'th'") 
 	    
 	    demand_keys = [key for key in region.demand_ts.keys() if key.startswith(kind)]
 	    
@@ -524,7 +539,7 @@ def plot_timeseries(region, kind='el', **kwargs):
 
 
 	    # what is conventional
-	    df_residual_load = df_demand.sum(axis=1) - df_feedin.drop(columns=['conventional']).sum(axis=1)
+	    #df_residual_load = df_demand.sum(axis=1) - df_feedin.drop(columns=['conventional']).sum(axis=1)
 
 	    fig = go.Figure()
 
