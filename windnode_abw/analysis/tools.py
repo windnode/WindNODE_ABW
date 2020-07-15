@@ -941,42 +941,42 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
             results["Area required"]["pv_ground"] /
             region.pot_areas_pv.loc[idx[:, ["bab_h", "rail_h"], :],
                                     "area_ha"].sum(level=0) * 1e2
-    ).replace(inf, 0)
+    ).replace(inf, 0).fillna(0)
     results["Area required rel."]["PV ground hard soft"] = (
             results["Area required"]["pv_ground"] /
             region.pot_areas_pv.loc[idx[:, ["bab_hs", "rail_hs"], :],
                                     "area_ha"].sum(level=0) * 1e2
-    ).replace(inf, 0)
+    ).replace(inf, 0).fillna(0)
     results["Area required rel."]["PV ground hard 1-perc agri"] = (
             results["Area required"]["pv_ground"] /
             (region.pot_areas_pv.loc[
                  idx[:, ["bab_h", "rail_h"], :], "area_ha"].sum(level=0) +
              0.01 * region.pot_areas_pv.loc[
                  idx[:, ["agri_h"], :], "area_ha"].sum(level=0)) * 1e2
-    ).replace(inf, 0)
+    ).replace(inf, 0).fillna(0)
     results["Area required rel."]["PV ground hard soft 1-perc agri"] = (
             results["Area required"]["pv_ground"] /
             (region.pot_areas_pv.loc[
                  idx[:, ["bab_hs", "rail_hs"], :], "area_ha"].sum(level=0) +
              0.01 * region.pot_areas_pv.loc[
                  idx[:, ["agri_hs"], :], "area_ha"].sum(level=0)) * 1e2
-    ).replace(inf, 0)
+    ).replace(inf, 0).fillna(0)
 
     results["Area required rel."]["Wind 500m wo forest"] = (
             results["Area required"]["wind"] /
             region.pot_areas_wec.loc[idx[:, ["s500f0"], :],
                                      "area_ha"].sum(level=0) * 1e2
-    ).replace(inf, 0)
+    ).replace(inf, 0).fillna(0)
     results["Area required rel."]["Wind 500m w forest"] = (
             results["Area required"]["wind"] /
             region.pot_areas_wec.loc[idx[:, ["s500f1"], :],
                                      "area_ha"].sum(level=0) * 1e2
-    ).replace(inf, 0)
+    ).replace(inf, 0).fillna(0)
     results["Area required rel."]["Wind 1000m w forest"] = (
             results["Area required"]["wind"] /
             region.pot_areas_wec.loc[idx[:, ["s1000f1"], :],
                                      "area_ha"].sum(level=0) * 1e2
-    ).replace(inf, 0)
+    ).replace(inf, 0).fillna(0)
 
     # CO2 emissions electricity
     results_tmp_el = _calculate_co2_emissions(
