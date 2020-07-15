@@ -702,6 +702,12 @@ def flows_timexagsxtech(results_raw, region):
     flows["Stromnachfrage"]["hh"] = flows["Stromnachfrage"]["hh"] + flows["Stromnachfrage DSM HH"]["flex_dsm"]
     flows.pop("Stromnachfrage DSM HH")
 
+    # Add autarky
+    flows["Autarky"] = pd.DataFrame()
+    flows["Autarky"]["supply"] = flows['Stromerzeugung'].drop(columns='import').sum(axis=1)
+    flows["Autarky"]["demand"] = flows['Stromerzeugung'].drop(columns='export').sum(axis=1)
+    flows["Autarky"]["relative"] = flows["Autarky"]['supply'].unstack().div(flows["Autarky"]['demand'].unstack()).stack()
+
     return flows
 
 
