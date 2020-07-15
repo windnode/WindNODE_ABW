@@ -705,7 +705,7 @@ def flows_timexagsxtech(results_raw, region):
     # Add autarky
     flows["Autarky"] = pd.DataFrame()
     flows["Autarky"]["supply"] = flows['Stromerzeugung'].drop(columns='import').sum(axis=1)
-    flows["Autarky"]["demand"] = flows['Stromerzeugung'].drop(columns='export').sum(axis=1)
+    flows["Autarky"]["demand"] = flows['Stromnachfrage'].drop(columns='export').sum(axis=1)
     flows["Autarky"]["relative"] = flows["Autarky"]['supply'].unstack().div(flows["Autarky"]['demand'].unstack()).stack()
 
     return flows
@@ -1038,10 +1038,10 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     # Add Autarky
     results["Autarky"] = pd.DataFrame()
-	results["Autarky"]['supply'] = extracted_results["Autarky"]['supply'].sum(level=1)
-	results["Autarky"]['demand'] = extracted_results["Autarky"]['demand'].sum(level=1)
-	results["Autarky"]['relative'] = extracted_results["Autarky"]['supply'].div(extracted_results["Autarky"]['demand'])
-	results["Autarky"]['hours'] = (extracted_results["Autarky"]['relative']>1).sum(level=1).astype(int)
+    results["Autarky"]['supply'] = extracted_results["Autarky"]['supply'].sum(level=1)
+    results["Autarky"]['demand'] = extracted_results["Autarky"]['demand'].sum(level=1)
+    results["Autarky"]['relative'] = results["Autarky"]['supply'].div(results["Autarky"]['demand'])
+    results["Autarky"]['hours'] = (extracted_results["Autarky"]['relative']>1).sum(level=1).astype(int)
     
     return results
 
