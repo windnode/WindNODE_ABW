@@ -906,8 +906,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     # Area requried by wind and PV
     re_params = region.cfg['scn_data']['generation']['re_potentials']
 
-    if region.cfg['scn_data']['general']['year'] == 2017:
-        wind_area = pd.Series(0, index=region.muns.index)
+    if re_params['wec_installed_power'] == 'SQ':
+        wind_area = pd.Series(0, index=region.muns.index, name='wind')
     else:
         wind_area = parameters["Installed capacity electricity supply"]["wind"] *\
                     re_params["wec_land_use"] / re_params["wec_nom_power"]
