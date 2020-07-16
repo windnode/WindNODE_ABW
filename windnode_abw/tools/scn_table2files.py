@@ -31,6 +31,10 @@ if __name__ == "__main__":
     csv_file = 'scenarios.csv'
     # header lines (check in CSV or tool will break!)
     header_lines = 4
+
+    # CAUTION: Empty values in scenario CSV make the
+    # conversion to crash as dicts cannot be merged
+    # properly.
     # ===================================================
 
     # import scenario table

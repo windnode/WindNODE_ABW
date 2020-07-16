@@ -829,9 +829,12 @@ def aggregate_parameters(region, results_raw, flows):
     capacity_special_pth = flows_params["Wärmeerzeugung PtH"]["nominal_value"].sum(
         level=["ags", "technology"]).unstack("technology").fillna(0)
     capacity_special_pth.index = capacity_special_pth.index.astype(int)
-    idx = pd.IndexSlice
-    capacity_special_heating = flows['Wärmeerzeugung'].loc[
-        idx[:, "dec", :], ["fuel_oil", "natural_gas", "elenergy", "solar", "wood"]].max(level="ags")
+    capacity_special_heating = flows['Wärmeerzeugung'].xs(
+        "dec", level='level').groupby('ags').max()[
+        [col for col in
+         ["fuel_oil", "natural_gas", "elenergy", "solar", "wood"]
+         if col in flows['Wärmeerzeugung']]
+    ]
     capacity_special_heating.index = capacity_special_heating.index.astype(int)
 
     params["Installed capacity heat supply"] = pd.concat(
