@@ -713,6 +713,24 @@ def flows_timexagsxtech(results_raw, region):
         [line_flows_exchange_1.rename("out"),
          line_flows_exchange_2.rename("in")], axis=1)
 
+    # Intra-regional exchange as export (region feeds grid) and import (region gets supplied from grid)
+    region_export_in_tmp = flows["Stromnetz"][flows["Stromnetz"]["in"] >= 0].groupby(["timestamp", "bus_from"])["in"].sum()
+    region_export_in_tmp.index.set_names("ags", level="bus_from", inplace=True)
+    region_export_out_tmp = flows["Stromnetz"][flows["Stromnetz"]["in"] < 0].abs().groupby(["timestamp", "bus_to"])["in"].sum()
+    region_export_out_tmp.index.set_names("ags", level="bus_to", inplace=True)
+    region_export_tmp = region_export_in_tmp.add(region_export_out_tmp, fill_value=0)
+
+    region_import_in_tmp = flows["Stromnetz"][flows["Stromnetz"]["out"] >= 0].groupby(["timestamp", "bus_to"])[
+        "out"].sum()
+    region_import_in_tmp.index.set_names("ags", level="bus_to", inplace=True)
+    region_import_out_tmp = flows["Stromnetz"][flows["Stromnetz"]["out"] < 0].abs().groupby(["timestamp", "bus_from"])[
+        "out"].sum()
+    region_import_out_tmp.index.set_names("ags", level="bus_from", inplace=True)
+    region_import_tmp = region_import_in_tmp.add(region_import_out_tmp, fill_value=0)
+
+    flows["Intra-regional exchange"] = pd.concat([region_export_tmp, region_import_tmp], axis=1).rename(
+        columns={"in": "export", "out": "import"}).fillna(0)
+
     # Assign electricity import/export (shortage/excess) to region's ags
     # and merge into Erzeugung/Nachfrage
     for key in ["Stromimport", "Stromexport"]:
@@ -927,6 +945,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
     results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["line_id", "bus_from", "bus_to"])
+    results["Intra-regional exchange"] = extracted_results["Intra-regional exchange"].sum(level=["ags"])
+    results["Intra-regional exchange"].index = results["Intra-regional exchange"].index.astype(int)
     results["Net DSM activation"] = extracted_results["DSM activation"]["Demand increase"].sum(level="ags")
 
     # Losses in energy storages
