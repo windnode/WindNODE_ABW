@@ -1042,7 +1042,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Autarky"]['demand'] = extracted_results["Autarky"]['demand'].sum(level=1)
     results["Autarky"]['relative'] = results["Autarky"]['supply'].div(results["Autarky"]['demand'])
     results["Autarky"]['hours'] = (extracted_results["Autarky"]['relative']>1).sum(level=1).astype(int)
-    
+    results["Autarky"].index = results["Autarky"].index.astype(int)
     return results
 
 
