@@ -384,14 +384,16 @@ class Region:
         """
         return self._pot_areas_wec
 
-    @property
-    def pot_areas_wec_scn(self):
-        """Return WEC potential areas, aggregated by scenario's WEC area scenario
+    def pot_areas_wec_scn(self, scenario):
+        """Return WEC potential areas for given scenario, aggregated by
+        scenario's WEC area scenario.
 
-        Return None for invalid WEC scenario.
+        Returns
+        -------
+        :pandas:`pandas.DataFrame`
+            Potential areas, return None for invalid WEC scenario.
         """
-        scn = self._cfg['scn_data']['generation'][
-            're_potentials']['wec_land_use_scenario'].lower()
+        scn = scenario.lower()
         if scn not in ['s500f0', 's500f1', 's1000f0', 's1000f1', 'sq']:
             return None
         return self._pot_areas_wec[
