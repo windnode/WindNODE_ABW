@@ -953,14 +953,13 @@ def calc_available_wec_capacity(region):
 
     Possible combinations of config params `wec_installed_power` and
     `wec_land_use_scenario`:
-    =================== ===================== ==========================================
-    wec_installed_power wec_land_use_scenario result
-    =================== ===================== ==========================================
-    SQ                  SQ                    SQ data
-    SQ                  s1000f1/s500f0/s500f1 SQ data
-    MAX_AREA            s1000f1/s500f0/s500f1 max. potential using wec_land_use_scenario
-    VALUE               s1000f1/s500f0/s500f1 VALUE distrib. using wec_land_use_scenario
-    =================== ===================== ==========================================
+    =================== ================================ ==========================================
+    wec_installed_power wec_land_use_scenario            result
+    =================== ================================ ==========================================
+    SQ                  SQ/s1000f0/s1000f1/s500f0/s500f1 SQ data only
+    MAX_AREA            SQ/s1000f0/s1000f1/s500f0/s500f1 max. potential using wec_land_use_scenario
+    VALUE               SQ/s1000f0/s1000f1/s500f0/s500f1 VALUE distrib. using wec_land_use_scenario
+    =================== ================================ ==========================================
 
     Parameters
     ----------
@@ -983,12 +982,12 @@ def calc_available_wec_capacity(region):
     if region.pot_areas_wec_scn is None:
         if cfg['wec_installed_power'] == 'MAX_AREA':
             msg = 'Cannot calculate WEC potential (param wec_installed_power=' \
-                  'MAX_AREA but no wec_land_use_scenario selected)'
+                  'MAX_AREA but no valid wec_land_use_scenario selected)'
             logger.error(msg)
             raise ValueError(msg)
         elif isinstance(cfg['wec_installed_power'], float):
             msg = 'Cannot calculate WEC potential (param wec_installed_power ' \
-                  'is numeric but no wec_land_use_scenario selected to ' \
+                  'is numeric but no valid wec_land_use_scenario selected to ' \
                   'distribute power)'
             logger.error(msg)
             raise ValueError(msg)
@@ -996,8 +995,11 @@ def calc_available_wec_capacity(region):
 
     areas_agg = region.pot_areas_wec_scn.groupby('ags_id').agg('sum')
 
+    # use SQ turbines only
+    if cfg['wec_installed_power'] == 'SQ':
+        return None
     # use all available areas from DB
-    if cfg['wec_installed_power'] == 'MAX_AREA':
+    elif cfg['wec_installed_power'] == 'MAX_AREA':
         gen_count_wind = (areas_agg *
                           cfg['wec_usable_area'] /
                           cfg['wec_land_use']).round().astype(int)
