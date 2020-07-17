@@ -702,6 +702,12 @@ def flows_timexagsxtech(results_raw, region):
     flows["Stromnachfrage"]["hh"] = flows["Stromnachfrage"]["hh"] + flows["Stromnachfrage DSM HH"]["flex_dsm"]
     flows.pop("Stromnachfrage DSM HH")
 
+    # Add autarky
+    flows["Autarky"] = pd.DataFrame()
+    flows["Autarky"]["supply"] = flows['Stromerzeugung'].drop(columns='import').sum(axis=1)
+    flows["Autarky"]["demand"] = flows['Stromnachfrage'].drop(columns='export').sum(axis=1)
+    flows["Autarky"]["relative"] = flows["Autarky"]['supply'].unstack().div(flows["Autarky"]['demand'].unstack()).stack()
+
     return flows
 
 
@@ -1032,6 +1038,14 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     results["Total costs heat supply"] = pd.concat([results["Total costs heat supply"], costs_heat_storages_tmp], axis=1)
 
+
+    # Add Autarky
+    results["Autarky"] = pd.DataFrame()
+    results["Autarky"]['supply'] = extracted_results["Autarky"]['supply'].sum(level=1)
+    results["Autarky"]['demand'] = extracted_results["Autarky"]['demand'].sum(level=1)
+    results["Autarky"]['relative'] = results["Autarky"]['supply'].div(results["Autarky"]['demand'])
+    results["Autarky"]['hours'] = (extracted_results["Autarky"]['relative']>1).sum(level=1).astype(int)
+    results["Autarky"].index = results["Autarky"].index.astype(int)
     return results
 
 
