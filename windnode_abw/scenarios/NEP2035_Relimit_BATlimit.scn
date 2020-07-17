@@ -111,11 +111,11 @@
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]
-            nominal_value = 60
+            nominal_value = 80
         [[[outflow]]]
-            nominal_value = 60
+            nominal_value = 80
         [[[params]]]
-            nominal_storage_capacity = 240
+            nominal_storage_capacity = 310
             loss_rate = 0.0042
             inflow_conversion_factor = 0.94
             outflow_conversion_factor = 0.93
@@ -123,11 +123,11 @@
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]
-            nominal_value = 110
+            nominal_value = 100
         [[[outflow]]]
-            nominal_value = 110
+            nominal_value = 100
         [[[params]]]
-            nominal_storage_capacity = 170
+            nominal_storage_capacity = 150
             loss_rate = 0.0042
             inflow_conversion_factor = 0.94
             outflow_conversion_factor = 0.93

@@ -27,7 +27,7 @@
         pv_roof_resid_usable_area = 0.25
         pv_roof_ind_usable_area = 0.5
         pv_roof_land_use = 0.55
-        wec_installed_power = 1283
+        wec_installed_power = 1237
         wec_land_use_scenario = SQ
         wec_usable_area = 1
         wec_land_use = 20
@@ -111,11 +111,11 @@
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]
-            nominal_value = 40
+            nominal_value = 50
         [[[outflow]]]
-            nominal_value = 40
+            nominal_value = 50
         [[[params]]]
-            nominal_storage_capacity = 160
+            nominal_storage_capacity = 200
             loss_rate = 0.0042
             inflow_conversion_factor = 0.94
             outflow_conversion_factor = 0.93
