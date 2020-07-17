@@ -499,8 +499,12 @@ def flow_params_agsxtech(results_raw):
             "stubname": "stor_th",
             "bus_pattern": 'b_th_\w+_\d+(_\w+)?',
             "params": ["emissions", "nominal_value", "variable_costs"]},
+        "Grid": {
+            "node_pattern": "(?P<line_id>\d+)_b(?P<bus_from>\d+)_b(?P<bus_to>\d+)",
+            "stubname": "line",
+            "bus_pattern": 'b_el_\d+',
+            "params": ["emissions", "investment_ep_costs", "investment_existing", "nominal_value", "variable_costs"]}
     }
-
 
     params = {}
     for name, patterns in param_extractor.items():
