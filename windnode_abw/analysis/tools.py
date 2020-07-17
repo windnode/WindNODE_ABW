@@ -702,6 +702,12 @@ def flows_timexagsxtech(results_raw, region):
     flows["Stromnachfrage"]["hh"] = flows["Stromnachfrage"]["hh"] + flows["Stromnachfrage DSM HH"]["flex_dsm"]
     flows.pop("Stromnachfrage DSM HH")
 
+    # Add autarky
+    flows["Autarky"] = pd.DataFrame()
+    flows["Autarky"]["supply"] = flows['Stromerzeugung'].drop(columns='import').sum(axis=1)
+    flows["Autarky"]["demand"] = flows['Stromnachfrage'].drop(columns='export').sum(axis=1)
+    flows["Autarky"]["relative"] = flows["Autarky"]['supply'].unstack().div(flows["Autarky"]['demand'].unstack()).stack()
+
     return flows
 
 
@@ -828,9 +834,12 @@ def aggregate_parameters(region, results_raw, flows):
     capacity_special_pth = flows_params["Wärmeerzeugung PtH"]["nominal_value"].sum(
         level=["ags", "technology"]).unstack("technology").fillna(0)
     capacity_special_pth.index = capacity_special_pth.index.astype(int)
-    idx = pd.IndexSlice
-    capacity_special_heating = flows['Wärmeerzeugung'].loc[
-        idx[:, "dec", :], ["fuel_oil", "natural_gas", "elenergy", "solar", "wood"]].max(level="ags")
+    capacity_special_heating = flows['Wärmeerzeugung'].xs(
+        "dec", level='level').groupby('ags').max()[
+        [col for col in
+         ["fuel_oil", "natural_gas", "elenergy", "solar", "wood"]
+         if col in flows['Wärmeerzeugung']]
+    ]
     capacity_special_heating.index = capacity_special_heating.index.astype(int)
 
     params["Installed capacity heat supply"] = pd.concat(
@@ -1029,6 +1038,14 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     results["Total costs heat supply"] = pd.concat([results["Total costs heat supply"], costs_heat_storages_tmp], axis=1)
 
+
+    # Add Autarky
+    results["Autarky"] = pd.DataFrame()
+    results["Autarky"]['supply'] = extracted_results["Autarky"]['supply'].sum(level=1)
+    results["Autarky"]['demand'] = extracted_results["Autarky"]['demand'].sum(level=1)
+    results["Autarky"]['relative'] = results["Autarky"]['supply'].div(results["Autarky"]['demand'])
+    results["Autarky"]['hours'] = (extracted_results["Autarky"]['relative']>1).sum(level=1).astype(int)
+    results["Autarky"].index = results["Autarky"].index.astype(int)
     return results
 
 

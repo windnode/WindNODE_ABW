@@ -442,6 +442,7 @@ class WnAbwPotentialAreasPvRoof(Base):
 
     ags = relationship('WnAbwMun')
 
+
 class WnAbwPotentialAreasWec(Base):
     """Potential areas for wind turbines
 

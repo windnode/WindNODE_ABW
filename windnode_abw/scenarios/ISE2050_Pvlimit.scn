@@ -28,8 +28,8 @@
         pv_roof_ind_usable_area = 0.5
         pv_roof_land_use = 0.45
         wec_installed_power = 2694
-        wec_land_use_scenario = s1000f1
-        wec_usable_area = 0.1
+        wec_land_use_scenario = SQ
+        wec_usable_area = 1
         wec_land_use = 20
         wec_nom_power = 4.2
     [[gen_el]]

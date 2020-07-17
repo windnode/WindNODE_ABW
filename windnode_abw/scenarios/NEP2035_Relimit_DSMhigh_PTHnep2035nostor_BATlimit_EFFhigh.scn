@@ -23,7 +23,7 @@
         pv_land_use_scenario = H
         pv_usable_area_agri_max = 2086
         pv_land_use = 1
-        pv_roof_installed_power = 530
+        pv_roof_installed_power = MAX_AREA
         pv_roof_resid_usable_area = 0.25
         pv_roof_ind_usable_area = 0.5
         pv_roof_land_use = 0.55
