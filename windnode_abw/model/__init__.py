@@ -367,7 +367,7 @@ class Region:
     def pot_areas_wec_scn(self):
         """Return WEC potential areas, aggregated by area scenario
 
-        Return None for empty WEC scenario.
+        Return None for invalid WEC scenario.
         """
         scn = self._cfg['scn_data']['generation'][
             're_potentials']['wec_land_use_scenario'].lower()
