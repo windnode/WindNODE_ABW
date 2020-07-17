@@ -336,21 +336,41 @@ class Region:
     def pot_areas_pv(self):
         return self._pot_areas_pv
 
-    @property
-    def pot_areas_pv_scn(self):
-        """Return PV potential areas (raw, without restrictions on agricultural
-        areas), aggregated by scenario's PV ground area scenario.
+    def pot_areas_pv_scn(self, scenario, pv_usable_area_agri_max):
+        """Return PV potential areas (with and without restrictions on agricultural
+        areas) for given scenario, aggregated by scenario's PV ground area type.
 
-        Return None for empty PV scenario.
+        Returns
+        -------
+        :obj:`dict` of :pandas:`pandas.DataFrame`
+            Potential areas with and without agricultural restrictions.
+            Return None for invalid or SQ scenario.
         """
-        if self._cfg['scn_data']['generation']['re_potentials'][
-                'pv_land_use_scenario'] == 'SQ':
+        scn = scenario.lower()
+        if scn not in ['hs', 'h']:
             return None
-        scn = self._cfg['scn_data']['generation'][
-            're_potentials']['pv_land_use_scenario']
-        return self._pot_areas_pv[
-            self._pot_areas_pv.index.get_level_values(level=1).str.endswith(
-                f'_{scn.lower()}')]['area_ha']
+
+        # --- w/o agri restrictions ---
+        pot_areas = {
+            'without_agri_restrictions':self._pot_areas_pv[
+                self._pot_areas_pv.index.get_level_values(
+                    level=1).str.endswith(f'_{scn}')]['area_ha']
+        }
+
+        # --- calc agri restrictions ---
+        areas = pot_areas['without_agri_restrictions'].copy()
+        areas_agri = areas[areas.index.get_level_values(level=1).str.startswith(
+            'agri_')]
+        # limit area on fields and meadows so that it does not exceed 1 % of the
+        # total area of fields and meadows in ABW
+        if pv_usable_area_agri_max != 'nolimit':
+            if areas_agri.sum() > pv_usable_area_agri_max:
+                areas_agri *= pv_usable_area_agri_max / areas_agri.sum()
+                areas.update(areas_agri)
+
+        pot_areas['with_agri_restrictions'] = areas
+
+        return pot_areas
 
     @property
     def pot_areas_wec(self):
