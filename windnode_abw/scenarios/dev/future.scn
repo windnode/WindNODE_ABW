@@ -157,7 +157,7 @@
         # the municipalities proportionally to the potential areas.
         # See function 'calc_available_wec_capacity()' for a list of
         # possible combinations.
-        wec_land_use_scenario = s1000f1
+        wec_land_use_scenario = s1000f0
 
         # usable area (0..1) for WEC installations
         wec_usable_area = 0.1
