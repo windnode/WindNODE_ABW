@@ -105,7 +105,7 @@
         pv_usable_area_agri_max = 2086
 
         # land use in ha/MWp
-        pv_land_use = 1.5
+        pv_land_use = 1
 
         ###################
         # ROOF-MOUNTED PV #
