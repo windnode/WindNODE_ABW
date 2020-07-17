@@ -145,6 +145,8 @@
         # potential area scenario to be used to build WEC
         # possible values:
         #   SQ: Status quo (existing WEC from DB only)
+        #   s1000f0:  Use available areas resulting from 1000 m distance from
+        #             settlements, do not use forests (SQ regulations)
         #   s1000f1:  Use available areas resulting from 1000 m distance from
         #             settlements, do use forests
         #   s500f0:   Use available areas resulting from 500 m distance from
