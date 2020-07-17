@@ -995,8 +995,11 @@ def calc_available_wec_capacity(region):
 
     areas_agg = region.pot_areas_wec_scn.groupby('ags_id').agg('sum')
 
+    # use SQ turbines only
+    if cfg['wec_installed_power'] == 'SQ':
+        return None
     # use all available areas from DB
-    if cfg['wec_installed_power'] == 'MAX_AREA':
+    elif cfg['wec_installed_power'] == 'MAX_AREA':
         gen_count_wind = (areas_agg *
                           cfg['wec_usable_area'] /
                           cfg['wec_land_use']).round().astype(int)
