@@ -838,12 +838,12 @@ def calc_available_pv_capacity(region):
     """
     cfg = region.cfg['scn_data']['generation']['re_potentials']
 
-    areas_agg = region.pot_areas_pv_scn(
+    areas = region.pot_areas_pv_scn(
         scenario=cfg['pv_land_use_scenario'],
         pv_usable_area_agri_max=cfg['pv_usable_area_agri_max']
     )
 
-    if areas_agg is None:
+    if areas is None:
         if cfg['pv_installed_power'] == 'MAX_AREA':
             msg = 'Cannot calculate PV potential (param pv_installed_power=' \
                   'MAX_AREA but no pv_land_use_scenario selected)'
@@ -857,7 +857,7 @@ def calc_available_pv_capacity(region):
             raise ValueError(msg)
         return None
 
-    areas_agg = areas_agg['with_agri_restrictions'].groupby('ags_id').agg('sum')
+    areas_agg = areas['with_agri_restrictions'].groupby('ags_id').agg('sum')
 
     # use all available areas from DB
     if cfg['pv_installed_power'] == 'MAX_AREA':
