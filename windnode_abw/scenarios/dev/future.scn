@@ -143,8 +143,9 @@
         wec_installed_power = 1000
 
         # potential area scenario to be used to build WEC
+        # (only takes effect if wec_installed_power != SQ)
         # possible values:
-        #   SQ: Status quo (existing WEC from DB only)
+        #   SQ: Status quo (VR/EG areas only)
         #   s1000f0:  Use available areas resulting from 1000 m distance from
         #             settlements, do not use forests (SQ regulations)
         #   s1000f1:  Use available areas resulting from 1000 m distance from
@@ -157,10 +158,11 @@
         # the municipalities proportionally to the potential areas.
         # See function 'calc_available_wec_capacity()' for a list of
         # possible combinations.
-        wec_land_use_scenario = s1000f0
+        wec_land_use_scenario = SQ
 
         # usable area (0..1) for WEC installations
-        wec_usable_area = 0.1
+        # use 1 if wec_land_use_scenario == SQ
+        wec_usable_area = 1
 
         # land use per WEC (E-141) in ha
         wec_land_use = 20
