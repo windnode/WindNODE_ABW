@@ -367,16 +367,15 @@ class Region:
     def pot_areas_wec_scn(self):
         """Return WEC potential areas, aggregated by area scenario
 
-        Return None for status quo or empty WEC scenario.
+        Return None for empty WEC scenario.
         """
-        if self._cfg['scn_data']['generation']['re_potentials'][
-                'wec_land_use_scenario'] == 'SQ':
-            return None
         scn = self._cfg['scn_data']['generation'][
-            're_potentials']['wec_land_use_scenario']
+            're_potentials']['wec_land_use_scenario'].lower()
+        if scn not in ['s500f0', 's500f1', 's1000f0', 's1000f1', 'sq']:
+            return None
         return self._pot_areas_wec[
             self._pot_areas_wec.index.get_level_values(level=1) ==
-                scn.lower()]['area_ha']
+                scn]['area_ha']
 
     @property
     def demography(self):
