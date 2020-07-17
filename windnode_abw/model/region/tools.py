@@ -972,8 +972,9 @@ def calc_available_wec_capacity(region):
     config (wec_installed_power).
     """
     cfg = region.cfg['scn_data']['generation']['re_potentials']
+    areas = region.pot_areas_wec_scn(scenario=cfg['wec_land_use_scenario'])
 
-    if region.pot_areas_wec_scn is None:
+    if areas is None:
         if cfg['wec_installed_power'] == 'MAX_AREA':
             msg = 'Cannot calculate WEC potential (param wec_installed_power=' \
                   'MAX_AREA but no valid wec_land_use_scenario selected)'
@@ -987,11 +988,12 @@ def calc_available_wec_capacity(region):
             raise ValueError(msg)
         return None
 
-    areas_agg = region.pot_areas_wec_scn.groupby('ags_id').agg('sum')
+    areas_agg = areas.groupby('ags_id').agg('sum')
 
     # use SQ turbines only
     if cfg['wec_installed_power'] == 'SQ':
         return None
+
     # use all available areas from DB
     elif cfg['wec_installed_power'] == 'MAX_AREA':
         gen_count_wind = (areas_agg *
