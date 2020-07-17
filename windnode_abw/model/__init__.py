@@ -385,8 +385,7 @@ class Region:
         return self._pot_areas_wec
 
     def pot_areas_wec_scn(self, scenario):
-        """Return WEC potential areas for given scenario, aggregated by
-        scenario's WEC area scenario.
+        """Return WEC potential areas for given scenario, aggregated by mun.
 
         Returns
         -------
@@ -398,7 +397,7 @@ class Region:
             return None
         return self._pot_areas_wec[
             self._pot_areas_wec.index.get_level_values(level=1) ==
-                scn]['area_ha']
+                scn]['area_ha'].groupby('ags_id').agg('sum')
 
     @property
     def demography(self):

@@ -988,21 +988,19 @@ def calc_available_wec_capacity(region):
             raise ValueError(msg)
         return None
 
-    areas_agg = areas.groupby('ags_id').agg('sum')
-
     # use SQ turbines only
     if cfg['wec_installed_power'] == 'SQ':
         return None
 
     # use all available areas from DB
     elif cfg['wec_installed_power'] == 'MAX_AREA':
-        gen_count_wind = (areas_agg *
+        gen_count_wind = (areas *
                           cfg['wec_usable_area'] /
                           cfg['wec_land_use']).round().astype(int)
         gen_capacity_wind = gen_count_wind * cfg['wec_nom_power']
     # use given power, distribute to muns using available areas from DB
     else:
-        gen_count_wind = (areas_agg / sum(areas_agg) *
+        gen_count_wind = (areas / sum(areas) *
                           (cfg['wec_installed_power'] / cfg['wec_nom_power'])
                           ).round().astype(int)
         gen_capacity_wind = gen_count_wind * cfg['wec_nom_power']
