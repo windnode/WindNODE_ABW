@@ -982,12 +982,12 @@ def calc_available_wec_capacity(region):
     if region.pot_areas_wec_scn is None:
         if cfg['wec_installed_power'] == 'MAX_AREA':
             msg = 'Cannot calculate WEC potential (param wec_installed_power=' \
-                  'MAX_AREA but no wec_land_use_scenario selected)'
+                  'MAX_AREA but no valid wec_land_use_scenario selected)'
             logger.error(msg)
             raise ValueError(msg)
         elif isinstance(cfg['wec_installed_power'], float):
             msg = 'Cannot calculate WEC potential (param wec_installed_power ' \
-                  'is numeric but no wec_land_use_scenario selected to ' \
+                  'is numeric but no valid wec_land_use_scenario selected to ' \
                   'distribute power)'
             logger.error(msg)
             raise ValueError(msg)
