@@ -953,14 +953,13 @@ def calc_available_wec_capacity(region):
 
     Possible combinations of config params `wec_installed_power` and
     `wec_land_use_scenario`:
-    =================== ============================= ==========================================
-    wec_installed_power wec_land_use_scenario         result
-    =================== ============================= ==========================================
-    SQ                  SQ                            SQ data
-    SQ                  s1000f0/s1000f1/s500f0/s500f1 SQ data
-    MAX_AREA            s1000f0/s1000f1/s500f0/s500f1 max. potential using wec_land_use_scenario
-    VALUE               s1000f0/s1000f1/s500f0/s500f1 VALUE distrib. using wec_land_use_scenario
-    =================== ============================= ==========================================
+    =================== ================================ ==========================================
+    wec_installed_power wec_land_use_scenario            result
+    =================== ================================ ==========================================
+    SQ                  SQ/s1000f0/s1000f1/s500f0/s500f1 SQ data only
+    MAX_AREA            SQ/s1000f0/s1000f1/s500f0/s500f1 max. potential using wec_land_use_scenario
+    VALUE               SQ/s1000f0/s1000f1/s500f0/s500f1 VALUE distrib. using wec_land_use_scenario
+    =================== ================================ ==========================================
 
     Parameters
     ----------
