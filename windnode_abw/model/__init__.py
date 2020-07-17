@@ -353,6 +353,14 @@ class Region:
 
     @property
     def pot_areas_wec(self):
+        """Return WEC potential areas for of all scenarios
+
+        Notes
+        -----
+        Scenario SQ contains VR/EG only (real values), other scenarios do not
+        incorporate case-by-case decisions and need to be multiplied with
+        parameter `wec_usable_area` to get the total usable area.
+        """
         return self._pot_areas_wec
 
     @property
