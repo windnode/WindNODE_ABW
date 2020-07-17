@@ -1147,6 +1147,14 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
             ((region.pot_areas_pv_roof['area_resid_ha'].sum() * re_params["pv_roof_resid_usable_area"]) +
              (region.pot_areas_pv_roof['area_ind_ha'].sum() * re_params["pv_roof_ind_usable_area"]))
     ) * 1e2
+    highlevel["Area required rel. PV rooftop small"] = (
+            results_tables["Area required"]["pv_roof_small"].sum() /
+            (region.pot_areas_pv_roof['area_resid_ha'].sum() * re_params["pv_roof_resid_usable_area"])
+    ) * 1e2
+    highlevel["Area required rel. PV rooftop large"] = (
+            results_tables["Area required"]["pv_roof_large"].sum() /
+            (region.pot_areas_pv_roof['area_ind_ha'].sum() * re_params["pv_roof_ind_usable_area"])
+    ) * 1e2
 
     # PV ground
     percent = round(re_params['pv_usable_area_agri_max'] / 2086)
