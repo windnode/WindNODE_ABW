@@ -329,16 +329,17 @@ class Region:
         return self._batteries_small
 
     @property
-    def pot_areas_pv(self):
-        return self._pot_areas_pv
-
-    @property
     def pot_areas_pv_roof(self):
         return self._pot_areas_pv_roof
 
     @property
+    def pot_areas_pv(self):
+        return self._pot_areas_pv
+
+    @property
     def pot_areas_pv_scn(self):
-        """Return PV potential areas, aggregated by area scenario
+        """Return PV potential areas (raw, without restrictions on agricultural
+        areas), aggregated by scenario's PV ground area scenario.
 
         Return None for empty PV scenario.
         """
@@ -365,7 +366,7 @@ class Region:
 
     @property
     def pot_areas_wec_scn(self):
-        """Return WEC potential areas, aggregated by area scenario
+        """Return WEC potential areas, aggregated by scenario's WEC area scenario
 
         Return None for invalid WEC scenario.
         """
