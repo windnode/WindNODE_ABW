@@ -529,8 +529,12 @@ def flow_params_agsxtech(results_raw):
             "stubname": "stor_th",
             "bus_pattern": 'b_th_\w+_\d+(_\w+)?',
             "params": ["emissions", "nominal_value", "variable_costs"]},
+        "Grid": {
+            "node_pattern": "(?P<line_id>\d+)_b(?P<bus_from>\d+)_b(?P<bus_to>\d+)",
+            "stubname": "line",
+            "bus_pattern": 'b_el_\d+',
+            "params": ["emissions", "investment_ep_costs", "investment_existing", "nominal_value", "variable_costs"]}
     }
-
 
     params = {}
     for name, patterns in param_extractor.items():
@@ -781,6 +785,43 @@ def non_region_bus2ags(bus_id, region):
     return str(int(ags))
 
 
+def _rename_external_hv_buses(df, merged=False):
+
+    df_from = df.loc[df.index.get_level_values("bus_from").str.len() == 5]
+    idx_new_array_base = [
+        df_from.index.get_level_values(name) for name in df_from.index.names if name not in ["bus_from", "bus_to"]]
+    idx_new_bus_from = ["HV exchange " + str(i) for i in df_from.index.get_level_values("bus_to")]
+    idx_new_array = idx_new_array_base + [
+        idx_new_bus_from,
+        df_from.index.get_level_values("bus_to")]
+    df_from.index = pd.MultiIndex.from_arrays(idx_new_array, names=df_from.index.names)
+
+    df_to = df.loc[df.index.get_level_values("bus_to").str.len() == 5]
+    idx_new_array_base = [
+        df_to.index.get_level_values(name) for name in df_to.index.names if name not in ["bus_from", "bus_to"]]
+    idx_new_bus_to = ["HV exchange " + str(i) for i in df_to.index.get_level_values("bus_from")]
+    idx_new_array = idx_new_array_base + [
+        df_to.index.get_level_values("bus_from"),
+        idx_new_bus_to]
+    df_to.index = pd.MultiIndex.from_arrays(idx_new_array, names=df_to.index.names)
+
+    df_new = pd.concat(
+        [df_from, df_to])
+
+    # Extract lines of regional grid (meaning lines inside region ABW)
+    df = df.loc[
+        (df.index.get_level_values("bus_from").str.len() != 5)
+        & (df.index.get_level_values("bus_to").str.len() != 5)]
+
+    if merged:
+        df = pd.concat([df, df_new])
+
+        return df, None
+
+    else:
+        return df, df_new
+
+
 def aggregate_parameters(region, results_raw, flows):
 
     def _extract_tech_params(NAMES):
@@ -896,6 +937,22 @@ def aggregate_parameters(region, results_raw, flows):
 
     params["Installed capacity heat supply"] = pd.concat(
         [capacity_special, capacity_special_pth, capacity_special_heating], axis=1)
+
+    # Format existing capacity of grid lines
+
+    # Rename to ags
+    line_capacity = flows_params["Grid"]["investment_existing"]
+    bus2ags = {str(k): str(int(v)) for k, v in region.buses["ags"].to_dict().items() if not pd.isna(v)}
+    line_capacity.rename(index=bus2ags, inplace=True)
+    line_capacity = _rename_external_hv_buses(line_capacity, merged=True)[0]
+
+    # drop line_id
+    line_capacity.index = line_capacity.index.droplevel("line_id")
+
+    # ...and aggregate to ags level
+    line_capacity = line_capacity.sum(level=["bus_from", "bus_to"])
+    params["Installed capacity grid"] = line_capacity.loc[~
+        (line_capacity.index.get_level_values("bus_from") == line_capacity.index.get_level_values("bus_to"))]
 
     return params
 
