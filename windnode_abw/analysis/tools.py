@@ -396,39 +396,7 @@ def extract_line_flow(results_raw, region, level_flow_in=0, level_flow_out=1):
     negative.index = negative.index.droplevel("bus")
     line_flows = positive["line"] - negative["line"]
 
-    bus2ags = {str(k): str(int(v)) for k, v in region.buses["ags"].to_dict().items() if not pd.isna(v)}
-    line_flows.rename(index=bus2ags, inplace=True)
-
-    # Extract lines connecting ABW region to external, national grid via HV lines
-    exchange_lines_bus_from = line_flows.loc[line_flows.index.get_level_values("bus_from").str.len() == 5]
-    idx_new_bus_from = ["HV exchange " + str(i) for i in exchange_lines_bus_from.index.get_level_values("bus_to")]
-    idx_new_array = [
-        exchange_lines_bus_from.index.get_level_values("timestamp"),
-        exchange_lines_bus_from.index.get_level_values("line_id"),
-        idx_new_bus_from,
-        exchange_lines_bus_from.index.get_level_values("bus_to")
-    ]
-    exchange_lines_bus_from.index = pd.MultiIndex.from_arrays(idx_new_array, names=exchange_lines_bus_from.index.names)
-
-    exchange_lines_bus_to = line_flows.loc[line_flows.index.get_level_values("bus_to").str.len() == 5]
-    idx_new_bus_to = ["HV exchange " + str(i) for i in exchange_lines_bus_to.index.get_level_values("bus_from")]
-    idx_new_array = [
-        exchange_lines_bus_to.index.get_level_values("timestamp"),
-        exchange_lines_bus_to.index.get_level_values("line_id"),
-        exchange_lines_bus_to.index.get_level_values("bus_from"),
-        idx_new_bus_to
-    ]
-    exchange_lines_bus_to.index = pd.MultiIndex.from_arrays(idx_new_array, names=exchange_lines_bus_to.index.names)
-
-    line_flows_exchange = pd.concat(
-        [exchange_lines_bus_from, exchange_lines_bus_to])
-
-    # Extract lines of regional grid (meaning lines inside region ABW)
-    line_flows_region = line_flows.loc[
-        (line_flows.index.get_level_values("bus_from").str.len() != 5)
-        & (line_flows.index.get_level_values("bus_to").str.len() != 5)]
-
-    return line_flows_region, line_flows_exchange
+    return line_flows
 
 
 def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname,
@@ -708,9 +676,16 @@ def flows_timexagsxtech(results_raw, region):
 
 
     # Grid lines
-    line_flows_region_1, line_flows_exchange_1 = extract_line_flow(results_raw, region)
-    line_flows_region_2, line_flows_exchange_2 = extract_line_flow(results_raw, region, level_flow_in=1,
-                                                                   level_flow_out=0)
+    line_flows_1 = extract_line_flow(results_raw, region)
+    line_flows_2 = extract_line_flow(results_raw, region)
+    flows["Stromnetz per bus"] = pd.concat(
+        [line_flows_1.rename("out"),
+         line_flows_2.rename("in")], axis=1)
+
+    # Extract lines connecting ABW region to external, national grid via HV lines
+    line_flows_region_1, line_flows_exchange_1 = _rename_external_hv_buses(line_flows_1, region)
+    line_flows_region_2, line_flows_exchange_2 = _rename_external_hv_buses(line_flows_2, region)
+
     flows["Stromnetz"] = pd.concat(
         [line_flows_region_1.rename("out"),
          line_flows_region_2.rename("in")], axis=1)
@@ -719,18 +694,18 @@ def flows_timexagsxtech(results_raw, region):
          line_flows_exchange_2.rename("in")], axis=1)
 
     # Intra-regional exchange as export (region feeds grid) and import (region gets supplied from grid)
-    region_export_in_tmp = flows["Stromnetz"][flows["Stromnetz"]["in"] >= 0].groupby(["timestamp", "bus_from"])["in"].sum()
-    region_export_in_tmp.index.set_names("ags", level="bus_from", inplace=True)
-    region_export_out_tmp = flows["Stromnetz"][flows["Stromnetz"]["in"] < 0].abs().groupby(["timestamp", "bus_to"])["in"].sum()
-    region_export_out_tmp.index.set_names("ags", level="bus_to", inplace=True)
+    region_export_in_tmp = flows["Stromnetz"][flows["Stromnetz"]["in"] >= 0].groupby(["timestamp", "ags_from"])["in"].sum()
+    region_export_in_tmp.index.set_names("ags", level="ags_from", inplace=True)
+    region_export_out_tmp = flows["Stromnetz"][flows["Stromnetz"]["in"] < 0].abs().groupby(["timestamp", "ags_to"])["in"].sum()
+    region_export_out_tmp.index.set_names("ags", level="ags_to", inplace=True)
     region_export_tmp = region_export_in_tmp.add(region_export_out_tmp, fill_value=0)
 
-    region_import_in_tmp = flows["Stromnetz"][flows["Stromnetz"]["out"] >= 0].groupby(["timestamp", "bus_to"])[
+    region_import_in_tmp = flows["Stromnetz"][flows["Stromnetz"]["out"] >= 0].groupby(["timestamp", "ags_to"])[
         "out"].sum()
-    region_import_in_tmp.index.set_names("ags", level="bus_to", inplace=True)
-    region_import_out_tmp = flows["Stromnetz"][flows["Stromnetz"]["out"] < 0].abs().groupby(["timestamp", "bus_from"])[
+    region_import_in_tmp.index.set_names("ags", level="ags_to", inplace=True)
+    region_import_out_tmp = flows["Stromnetz"][flows["Stromnetz"]["out"] < 0].abs().groupby(["timestamp", "ags_from"])[
         "out"].sum()
-    region_import_out_tmp.index.set_names("ags", level="bus_from", inplace=True)
+    region_import_out_tmp.index.set_names("ags", level="ags_from", inplace=True)
     region_import_tmp = region_import_in_tmp.add(region_import_out_tmp, fill_value=0)
 
     flows["Intra-regional exchange"] = pd.concat([region_export_tmp, region_import_tmp], axis=1).rename(
@@ -785,7 +760,21 @@ def non_region_bus2ags(bus_id, region):
     return str(int(ags))
 
 
-def _rename_external_hv_buses(df, merged=False):
+def _rename_external_hv_buses(df, region, merged=False):
+
+    def _format_index(df):
+        # drop line_id
+        df.index = df.index.droplevel("line_id")
+
+        # ...and aggregate to ags level
+        df = df.sum(level=df.index.names)
+        df.index.set_names(["ags_from", "ags_to"], level=["bus_from", "bus_to"], inplace=True)
+
+        return df.loc[~(df.index.get_level_values("ags_from") == df.index.get_level_values("ags_to"))]
+
+    # Rename all buses with ags code where ags code is available
+    bus2ags = {str(k): str(int(v)) for k, v in region.buses["ags"].to_dict().items() if not pd.isna(v)}
+    df.rename(index=bus2ags, inplace=True)
 
     df_from = df.loc[df.index.get_level_values("bus_from").str.len() == 5]
     idx_new_array_base = [
@@ -812,6 +801,9 @@ def _rename_external_hv_buses(df, merged=False):
     df = df.loc[
         (df.index.get_level_values("bus_from").str.len() != 5)
         & (df.index.get_level_values("bus_to").str.len() != 5)]
+
+    df = _format_index(df)
+    df_new = _format_index(df_new)
 
     if merged:
         df = pd.concat([df, df_new])
@@ -938,23 +930,10 @@ def aggregate_parameters(region, results_raw, flows):
     params["Installed capacity heat supply"] = pd.concat(
         [capacity_special, capacity_special_pth, capacity_special_heating], axis=1)
 
-    # Format existing capacity of grid lines
-
     # Rename to ags
     line_capacity = flows_params["Grid"]["investment_existing"]
     params["Installed capacity grid per bus"] = line_capacity.copy()
-    bus2ags = {str(k): str(int(v)) for k, v in region.buses["ags"].to_dict().items() if not pd.isna(v)}
-    line_capacity.rename(index=bus2ags, inplace=True)
-    line_capacity = _rename_external_hv_buses(line_capacity, merged=True)[0]
-
-    # drop line_id
-    line_capacity.index = line_capacity.index.droplevel("line_id")
-
-    # ...and aggregate to ags level
-    line_capacity = line_capacity.sum(level=["bus_from", "bus_to"])
-    line_capacity.index.names = ["ags_from", "ags_to"]
-    params["Installed capacity grid"] = line_capacity.loc[~
-        (line_capacity.index.get_level_values("ags_from") == line_capacity.index.get_level_values("ags_to"))]
+    params["Installed capacity grid"] = _rename_external_hv_buses(line_capacity, region, merged=True)[0]
 
     return params
 
@@ -1010,7 +989,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Wärmenachfrage nach Gemeinde"].index = results["Wärmenachfrage nach Gemeinde"].index.astype(int)
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
-    results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["line_id", "bus_from", "bus_to"])
+    results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["ags_from", "ags_to"])
     results["Intra-regional exchange"] = extracted_results["Intra-regional exchange"].sum(level=["ags"])
     results["Intra-regional exchange"].index = results["Intra-regional exchange"].index.astype(int)
     results["Net DSM activation"] = extracted_results["DSM activation"]["Demand increase"].sum(level="ags")
