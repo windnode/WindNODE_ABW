@@ -1,4 +1,5 @@
 import pandas as pd
+from numpy import inf
 
 import logging
 logger = logging.getLogger('windnode_abw')
@@ -963,49 +964,76 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
                                       results["Wärmespeicher nach Gemeinde"]["discharge"]).unstack("level").fillna(
         0).rename(columns={"dec": "stor_th_small", "cen": "stor_th_large"})
 
-
     # Area requried by wind and PV
     re_params = region.cfg['scn_data']['generation']['re_potentials']
+
+    if re_params['wec_installed_power'] == 'SQ':
+        wind_area = pd.Series(0, index=region.muns.index, name='wind')
+    else:
+        wind_area = parameters["Installed capacity electricity supply"]["wind"] *\
+                    re_params["wec_land_use"] / re_params["wec_nom_power"]
+    if re_params['pv_installed_power'] == 'SQ':
+        pv_ground_area = pd.Series(0, index=region.muns.index, name='pv_ground')
+    else:
+        pv_ground_area = parameters["Installed capacity electricity supply"]["pv_ground"] *\
+                         re_params["pv_land_use"]
+
     results["Area required"] = pd.concat([
         parameters["Installed capacity electricity supply"]["pv_roof_small"] * re_params["pv_roof_land_use"],
         parameters["Installed capacity electricity supply"]["pv_roof_large"] * re_params["pv_roof_land_use"],
-        parameters["Installed capacity electricity supply"]["pv_ground"] * re_params["pv_land_use"],
-        parameters["Installed capacity electricity supply"]["wind"] * re_params["wec_land_use"] / re_params[
-            "wec_nom_power"],
+        pv_ground_area,
+        wind_area,
     ], axis=1)
 
-    # Relative area required by wind and PV
+    # === Relative area required by wind and PV ===
+    # PV roof
     results["Area required rel."] = pd.DataFrame()
-    results["Area required rel."]["PV rooftop small"] = results["Area required"]["pv_roof_small"] / region.pot_areas_pv_roof.sum(axis=1) * 1e2
-    results["Area required rel."]["PV rooftop large"] = results["Area required"]["pv_roof_large"] / region.pot_areas_pv_roof.sum(axis=1) * 1e2
-    results["Area required rel."]["PV ground hard"] = results["Area required"]["pv_ground"] / \
-                                            region.pot_areas_pv.loc[idx[:, ["bab_h", "rail_h"], :], "area_ha"].sum(level=0) * 1e2
-    results["Area required rel."]["PV ground hard soft"] = results["Area required"]["pv_ground"] / \
-                                            region.pot_areas_pv.loc[idx[:, ["bab_hs", "rail_hs"], :], "area_ha"].sum(level=0) * 1e2
-    results["Area required rel."]["PV ground hard 1-perc agri"] = results["Area required"]["pv_ground"] / \
-                                                       (region.pot_areas_pv.loc[
-                                                            idx[:, ["bab_h", "rail_h"], :], "area_ha"].sum(
-                                                           level=0) + 0.01 * region.pot_areas_pv.loc[
-                                                            idx[:, ["agri_h"], :], "area_ha"].sum(level=0)) * 1e2
-    results["Area required rel."]["PV ground hard soft 1-perc agri"] = results["Area required"]["pv_ground"] / \
-                                                       (region.pot_areas_pv.loc[
-                                                            idx[:, ["bab_hs", "rail_hs"], :], "area_ha"].sum(
-                                                           level=0) + 0.01 * region.pot_areas_pv.loc[
-                                                            idx[:, ["agri_hs"], :], "area_ha"].sum(level=0)) * 1e2
-    results["Area required rel."]["Wind 500m wo forest"] = results["Area required"]["wind"] / \
-                                                      region.pot_areas_wec.loc[
-                                                          idx[:, ["s500f0"], :], "area_ha"].sum(level=0) * 1e2
-    results["Area required rel."]["Wind 500m w forest"] = results["Area required"]["wind"] / \
-                                                      region.pot_areas_wec.loc[
-                                                          idx[:, ["s500f1"], :], "area_ha"].sum(level=0) * 1e2
-    results["Area required rel."]["Wind 1000m w forest"] = results["Area required"]["wind"] / \
-                                                      region.pot_areas_wec.loc[
-                                                          idx[:, ["s1000f1"], :], "area_ha"].sum(level=0) * 1e2
+    results["Area required rel."]["PV rooftop small"] = (
+            results["Area required"]["pv_roof_small"] /
+            region.pot_areas_pv_roof['area_resid_ha'] /
+            re_params["pv_roof_resid_usable_area"] * 1e2
+    ).fillna(0)
+    results["Area required rel."]["PV rooftop large"] = (
+            results["Area required"]["pv_roof_large"] /
+            region.pot_areas_pv_roof['area_ind_ha'] /
+            re_params["pv_roof_ind_usable_area"] * 1e2
+    ).fillna(0)
+
+    # PV ground
+    percent = round(re_params['pv_usable_area_agri_max'] / 2086)
+    results["Area required rel."][f"PV ground "
+                                  f"{re_params['pv_land_use_scenario']} "
+                                  f"{percent}-perc agri"] = (
+            results["Area required"]["pv_ground"] /
+            region.pot_areas_pv_scn(
+                scenario=re_params['pv_land_use_scenario'],
+                pv_usable_area_agri_max=2086
+            )['with_agri_restrictions'].groupby('ags_id').agg('sum') * 1e2
+    ).replace(inf, 0).fillna(0) \
+        if re_params['pv_land_use_scenario'] != 'SQ'\
+        else results["Area required"]["pv_ground"]
+
+    # wind
+    results["Area required rel."][f"Wind "
+                                  f"{re_params['pv_land_use_scenario']} "
+                                  f"10-perc"] = (
+            results["Area required"]["wind"] /
+            region.pot_areas_wec_scn(
+                scenario=re_params['wec_land_use_scenario']
+            ) * 1e2
+    ).replace(inf, 0).fillna(0)
+    results["Area required rel."]["Wind 1000m wo forest 10-perc (VR/EG)"] = (
+            results["Area required"]["wind"] /
+            region.pot_areas_wec_scn(scenario='SQ') * 1e2
+    ).replace(inf, 0).fillna(0)
 
     # CO2 emissions electricity
-    results_tmp_el = _calculate_co2_emissions("el.", results["Stromerzeugung nach Gemeinde"],
-                                           parameters["Installed capacity electricity supply"],
-                                           parameters["Parameters el. generators"])
+    results_tmp_el = _calculate_co2_emissions(
+        "el.",
+        results["Stromerzeugung nach Gemeinde"],
+        parameters["Installed capacity electricity supply"],
+        parameters["Parameters el. generators"])
+
     results.update(results_tmp_el)
 
     # CO2 emissions attributed to battery energy storages
@@ -1163,31 +1191,102 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Electricity storage losses"] = results_tables["Electricity storage losses"].sum().sum()
     highlevel["Heat storage losses"] = results_tables["Heat storage losses"].sum().sum()
 
-    # Area required relative to available area
-    highlevel["Area required rel. PV rooftop"] = results_tables["Area required"][["pv_roof_small", "pv_roof_large"]].sum().sum() / region.pot_areas_pv_roof.sum().sum() * 1e2
-    highlevel["Area required rel. PV ground hard"] = results_tables["Area required"]["pv_ground"].sum() / region.pot_areas_pv.loc[idx[:, ["bab_h", "rail_h"], :], "area_ha"].sum() * 1e2
-    highlevel["Area required rel. PV ground hard soft"] = results_tables["Area required"]["pv_ground"].sum() / region.pot_areas_pv.loc[idx[:, ["bab_hs", "rail_hs"], :], "area_ha"].sum() * 1e2
-    highlevel["Area required rel. PV ground hard 1-perc agri"] = results_tables["Area required"]["pv_ground"].sum() / \
-                                                                 (region.pot_areas_pv.loc[
-                                                                      idx[:, ["bab_h", "rail_h"],
-                                                                      :], "area_ha"].sum() + 0.01 *
-                                                                  region.pot_areas_pv.loc[
-                                                                      idx[:, ["agri_h"], :], "area_ha"].sum()) * 1e2
-    highlevel["Area required rel. PV ground hard soft 1-perc agri"] = results_tables["Area required"]["pv_ground"].sum() / \
-                                                                 (region.pot_areas_pv.loc[
-                                                                      idx[:, ["bab_hs", "rail_hs"],
-                                                                      :], "area_ha"].sum() + 0.01 *
-                                                                  region.pot_areas_pv.loc[
-                                                                      idx[:, ["agri_hs"], :], "area_ha"].sum()) * 1e2
-    highlevel["Area required rel. wind 500m wo forest"] = results_tables["Area required"]["wind"].sum() / \
-                                                      region.pot_areas_wec.loc[
-                                                          idx[:, ["s500f0"], :], "area_ha"].sum() * 1e2
-    highlevel["Area required rel. wind 500m w forest"] = results_tables["Area required"]["wind"].sum() / \
-                                                      region.pot_areas_wec.loc[
-                                                          idx[:, ["s500f1"], :], "area_ha"].sum() * 1e2
-    highlevel["Area required rel. wind 1000m w forest"] = results_tables["Area required"]["wind"].sum() / \
-                                                      region.pot_areas_wec.loc[
-                                                          idx[:, ["s1000f1"], :], "area_ha"].sum() * 1e2
+    # === Area required relative to available area ===
+    # PV roof
+    re_params = region.cfg['scn_data']['generation']['re_potentials']
+    highlevel["Area required rel. PV rooftop"] = (
+            results_tables["Area required"][["pv_roof_small",
+                                             "pv_roof_large"]].sum().sum() /
+            ((region.pot_areas_pv_roof['area_resid_ha'].sum() * re_params["pv_roof_resid_usable_area"]) +
+             (region.pot_areas_pv_roof['area_ind_ha'].sum() * re_params["pv_roof_ind_usable_area"]))
+    ) * 1e2
+    highlevel["Area required rel. PV rooftop small"] = (
+            results_tables["Area required"]["pv_roof_small"].sum() /
+            (region.pot_areas_pv_roof['area_resid_ha'].sum() * re_params["pv_roof_resid_usable_area"])
+    ) * 1e2
+    highlevel["Area required rel. PV rooftop large"] = (
+            results_tables["Area required"]["pv_roof_large"].sum() /
+            (region.pot_areas_pv_roof['area_ind_ha'].sum() * re_params["pv_roof_ind_usable_area"])
+    ) * 1e2
+
+    # PV ground
+    percent = round(re_params['pv_usable_area_agri_max'] / 2086)
+    highlevel[f"Area required rel. PV ground "
+              f"{re_params['pv_land_use_scenario']} {percent}-perc agri (current)"] = (
+            results_tables["Area required"]["pv_ground"].sum() /
+            region.pot_areas_pv_scn(
+                scenario=re_params['pv_land_use_scenario'],
+                pv_usable_area_agri_max=re_params['pv_usable_area_agri_max']
+            )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
+    ) if re_params['pv_land_use_scenario'] != 'SQ' else 0
+    highlevel[f"Area required rel. PV ground H 1-perc agri"] = (
+            results_tables["Area required"]["pv_ground"].sum() /
+            region.pot_areas_pv_scn(
+                scenario='H',
+                pv_usable_area_agri_max=2086
+            )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
+    )
+    highlevel[f"Area required rel. PV ground H 2-perc agri"] = (
+            results_tables["Area required"]["pv_ground"].sum() /
+            region.pot_areas_pv_scn(
+                scenario='H',
+                pv_usable_area_agri_max=2086*2
+            )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
+    )
+    highlevel[f"Area required rel. PV ground H 3-perc agri"] = (
+            results_tables["Area required"]["pv_ground"].sum() /
+            region.pot_areas_pv_scn(
+                scenario='H',
+                pv_usable_area_agri_max=2086*3
+            )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
+    )
+    highlevel[f"Area required rel. PV ground HS 1-perc agri"] = (
+            results_tables["Area required"]["pv_ground"].sum() /
+            region.pot_areas_pv_scn(
+                scenario='HS',
+                pv_usable_area_agri_max=2086
+            )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
+    )
+    highlevel[f"Area required rel. PV ground HS 2-perc agri"] = (
+            results_tables["Area required"]["pv_ground"].sum() /
+            region.pot_areas_pv_scn(
+                scenario='HS',
+                pv_usable_area_agri_max=2086*2
+            )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
+    )
+    highlevel[f"Area required rel. PV ground HS 3-perc agri"] = (
+            results_tables["Area required"]["pv_ground"].sum() /
+            region.pot_areas_pv_scn(
+                scenario='HS',
+                pv_usable_area_agri_max=2086*3
+            )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
+    )
+
+    # wind
+    highlevel["Area required rel. wind (current)"] = (
+            results_tables["Area required"]["wind"].sum() /
+            (region.pot_areas_wec_scn(
+                scenario=re_params['wec_land_use_scenario']
+            ).sum() *
+             (0.1 if re_params['wec_land_use_scenario'] != 'SQ' else 1)) * 1e2
+    )
+    highlevel["Area required rel. wind 1000m wo forest 10-perc (VR/EG)"] = (
+            results_tables["Area required"]["wind"].sum() /
+            region.pot_areas_wec_scn(scenario='SQ').sum() * 1e2
+    )
+    highlevel["Area required rel. wind 1000m w forest 10-perc"] = (
+            results_tables["Area required"]["wind"].sum() /
+            (region.pot_areas_wec_scn(scenario='s1000f1').sum() * 0.1) * 1e2
+    )
+    highlevel["Area required rel. wind 500m wo forest 10-perc"] = (
+            results_tables["Area required"]["wind"].sum() /
+            (region.pot_areas_wec_scn(scenario='s500f0').sum() * 0.1) * 1e2
+    )
+    highlevel["Area required rel. wind 500m w forest 10-perc"] = (
+            results_tables["Area required"]["wind"].sum() /
+            (region.pot_areas_wec_scn(scenario='s500f1').sum() * 0.1) * 1e2
+    )
+
     highlevel["Total costs electricity supply"] = results_t["Total costs electricity supply"].sum()
     highlevel["Total costs heat supply"] = results_t["Total costs heat supply"].sum()
     highlevel["LCOE"] = results_t["LCOE"].sum()
