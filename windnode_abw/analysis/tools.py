@@ -886,6 +886,22 @@ def aggregate_parameters(region, results_raw, flows):
     params["Installed capacity heat supply"] = pd.concat(
         [capacity_special, capacity_special_pth, capacity_special_heating], axis=1)
 
+    # Format existing capacity of grid lines
+
+    # Rename to ags
+    line_capacity = flows_params["Grid"]["investment_existing"]
+    bus2ags = {str(k): str(int(v)) for k, v in region.buses["ags"].to_dict().items() if not pd.isna(v)}
+    line_capacity.rename(index=bus2ags, inplace=True)
+    line_capacity = _rename_external_hv_buses(line_capacity, merged=True)[0]
+
+    # drop line_id
+    line_capacity.index = line_capacity.index.droplevel("line_id")
+
+    # ...and aggregate to ags level
+    line_capacity = line_capacity.sum(level=["bus_from", "bus_to"])
+    params["Installed capacity grid"] = line_capacity.loc[~
+        (line_capacity.index.get_level_values("bus_from") == line_capacity.index.get_level_values("bus_to"))]
+
     return params
 
 
