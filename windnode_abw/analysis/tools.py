@@ -942,6 +942,7 @@ def aggregate_parameters(region, results_raw, flows):
 
     # Rename to ags
     line_capacity = flows_params["Grid"]["investment_existing"]
+    params["Installed capacity grid per bus"] = line_capacity.copy()
     bus2ags = {str(k): str(int(v)) for k, v in region.buses["ags"].to_dict().items() if not pd.isna(v)}
     line_capacity.rename(index=bus2ags, inplace=True)
     line_capacity = _rename_external_hv_buses(line_capacity, merged=True)[0]
@@ -951,8 +952,9 @@ def aggregate_parameters(region, results_raw, flows):
 
     # ...and aggregate to ags level
     line_capacity = line_capacity.sum(level=["bus_from", "bus_to"])
+    line_capacity.index.names = ["ags_from", "ags_to"]
     params["Installed capacity grid"] = line_capacity.loc[~
-        (line_capacity.index.get_level_values("bus_from") == line_capacity.index.get_level_values("bus_to"))]
+        (line_capacity.index.get_level_values("ags_from") == line_capacity.index.get_level_values("ags_to"))]
 
     return params
 
