@@ -733,6 +733,43 @@ def non_region_bus2ags(bus_id, region):
     return str(int(ags))
 
 
+def _rename_external_hv_buses(df, merged=False):
+
+    df_from = df.loc[df.index.get_level_values("bus_from").str.len() == 5]
+    idx_new_array_base = [
+        df_from.index.get_level_values(name) for name in df_from.index.names if name not in ["bus_from", "bus_to"]]
+    idx_new_bus_from = ["HV exchange " + str(i) for i in df_from.index.get_level_values("bus_to")]
+    idx_new_array = idx_new_array_base + [
+        idx_new_bus_from,
+        df_from.index.get_level_values("bus_to")]
+    df_from.index = pd.MultiIndex.from_arrays(idx_new_array, names=df_from.index.names)
+
+    df_to = df.loc[df.index.get_level_values("bus_to").str.len() == 5]
+    idx_new_array_base = [
+        df_to.index.get_level_values(name) for name in df_to.index.names if name not in ["bus_from", "bus_to"]]
+    idx_new_bus_to = ["HV exchange " + str(i) for i in df_to.index.get_level_values("bus_from")]
+    idx_new_array = idx_new_array_base + [
+        df_to.index.get_level_values("bus_from"),
+        idx_new_bus_to]
+    df_to.index = pd.MultiIndex.from_arrays(idx_new_array, names=df_to.index.names)
+
+    df_new = pd.concat(
+        [df_from, df_to])
+
+    # Extract lines of regional grid (meaning lines inside region ABW)
+    df = df.loc[
+        (df.index.get_level_values("bus_from").str.len() != 5)
+        & (df.index.get_level_values("bus_to").str.len() != 5)]
+
+    if merged:
+        df = pd.concat([df, df_new])
+
+        return df, None
+
+    else:
+        return df, df_new
+
+
 def aggregate_parameters(region, results_raw, flows):
 
     def _extract_tech_params(NAMES):
