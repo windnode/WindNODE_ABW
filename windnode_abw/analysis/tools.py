@@ -747,7 +747,7 @@ def flows_timexagsxtech(results_raw, region):
 def additional_results_txaxt(flow_results, params):
 
     # Line loadings
-    flow_results["Line loading"] = flow_results["Stromnetz"].abs().max(axis=1).div(
+    flow_results["Line loading"] = pd.concat([flow_results["Stromnetz"], flow_results["Stromnetz exchange"]]).abs().max(axis=1).div(
         params["Installed capacity grid"], axis="index")
     flow_results["Line loading per bus"] = flow_results["Stromnetz per bus"].abs().max(axis=1).div(
         params["Installed capacity grid per bus"], axis="index")
