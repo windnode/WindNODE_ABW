@@ -445,7 +445,7 @@ def sample_plots(region, results):
 
 
 
-# one geoplot only fit in subplots
+# one geoplot to fit in subplots
 def plot_geoplot(name, data, region, ax, cmap='viridis'):
     """
     Parameters
@@ -486,10 +486,20 @@ def plot_geoplot(name, data, region, ax, cmap='viridis'):
 
 
 
-def plot_balance_bar(region, df_generation, df_demand):
-    """"""    
+def plot_snd_total(region, df_supply, df_demand):
+    """
+    plot barplot of yearly total supply and demand per ags
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+    df_supply : pd.DataFrame
+        yearly total per ags
+    df_demand : pd.DataFrame
+        yearly total per ags
+    """    
     fig = go.Figure()
-    for tech, data in df_generation.iteritems():
+    for tech, data in df_supply.iteritems():
         fig.add_trace(go.Bar(x=region.muns['gen'],
                              y=data,
                              name=PRINT_NAMES[tech],
@@ -515,6 +525,36 @@ def plot_balance_bar(region, df_generation, df_demand):
             tickfont_size=14),
             autosize=True)
     fig.show()
+
+def plot_rel_autarky(df_data, limit, ax):
+    """"""
+    
+    df_data = df_data.sort_values()
+    # split data
+    df_data = df_data.mul(100)
+    df_data_left = df_data[df_data < limit]
+    df_data_right = df_data[df_data >= limit]
+
+    # split subplot
+    inner = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=ax, wspace=0.35, hspace=0.2)
+    
+    # left plot
+    ax1 = plt.subplot(inner[0])
+    df_data_left.plot(kind='barh', ax=ax1)#, color=colors_hight(df_data_left.values, 'winter'))
+    ax1.set_ylabel('AGS')
+    ax1.set_xlabel('%')
+    ax1.set_xlim([0,limit])
+
+    # right plot
+    ax2 = plt.subplot(inner[1])
+    df_data_right.plot(kind='barh', ax=ax2)# color=colors_hight(df_data_right.values, 'winter'))
+    ax2.set_ylabel(None)
+    ax2.set_xlabel('%')
+
+    fig = plt.gcf()
+    fig.suptitle('rel. autarky',
+             fontsize=16,
+             fontweight='normal')
 
 def plot_timeseries(results_scn, kind='el', **kwargs):
     """"""
