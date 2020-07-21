@@ -511,6 +511,21 @@ def extract_flow_params(flow_params_raw, node_pattern, bus_pattern, stubname,
     return params_extract
 
 
+def extract_invest(vars, node_pattern, bus_pattern):
+
+    # Get an extract of relevant data
+    vars_extract = vars.loc[
+                    vars.index.get_level_values(0).str.match(node_pattern),
+                    vars.index.get_level_values(1).str.match(bus_pattern), :].astype(float)
+
+    # transform to wide-to-long format while dropping bus column level
+    vars_extract = vars_extract.droplevel(1).groupby(level=0).max()
+    vars_extract.index = pd.MultiIndex.from_frame(vars_extract.index.str.extract(node_pattern))
+    vars_extract = vars_extract.sum(level=list(range(vars_extract.index.nlevels)))
+
+    return vars_extract
+
+
 def flow_params_agsxtech(results_raw):
 
     # define extraction pattern
@@ -960,6 +975,11 @@ def aggregate_parameters(region, results_raw, flows):
     params["Installed capacity grid"] = line_capacity.loc[~
         (line_capacity.index.get_level_values("bus_from") == line_capacity.index.get_level_values("bus_to"))]
 
+    # Newly installed capacity grid
+    params["Newly installed capacity grid"] = extract_invest(
+        results_raw["invest"],
+        "line_(?P<line_id>\d+)_b(?P<bus_from>\d+)_b(?P<bus_to>\d+)",
+        'b_el_\d+')
     return params
 
 
