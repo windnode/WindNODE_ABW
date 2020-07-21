@@ -705,7 +705,7 @@ def load_results(timestamp, scenario):
     # DataFrames
     df_files = ['flows', 'vars_stat', 'params_flows']
     # Series
-    se_files = ['params_stat']
+    se_files = ['params_stat', 'invest']
 
     results = {}
     try:

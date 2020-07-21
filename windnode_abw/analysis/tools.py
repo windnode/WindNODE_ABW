@@ -166,6 +166,8 @@ def results_to_dataframes(esys, infeasible):
             :pandas:`pandas.Series`
                 Series with node parameters, (node, var) as index,
                 labels is excluded
+            :pandas:`pandas.Series`
+                Investments of a flow, (node, bus) as index,
     """
     # add params to results
     results = {
@@ -198,7 +200,7 @@ def results_to_dataframes(esys, infeasible):
         results['invest'] = pd.Series(
             {(str(from_n), str(to_n)): flow['scalars']['invest']
              for (from_n, to_n), flow in esys.results['main'].items()
-             if not flow['scalars'].empty}).rename("invest")
+             if not flow['scalars'].empty and "invest" in flow['scalars'].index.values}).rename("invest")
 
     return results
 
