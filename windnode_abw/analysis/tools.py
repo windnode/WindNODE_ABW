@@ -693,6 +693,8 @@ def flows_timexagsxtech(results_raw, region):
         [line_flows_exchange_1.rename("out"),
          line_flows_exchange_2.rename("in")], axis=1)
 
+
+
     # Intra-regional exchange as export (region feeds grid) and import (region gets supplied from grid)
     region_export_in_tmp = flows["Stromnetz"][flows["Stromnetz"]["in"] >= 0].groupby(["timestamp", "ags_from"])["in"].sum()
     region_export_in_tmp.index.set_names("ags", level="ags_from", inplace=True)
@@ -740,6 +742,15 @@ def flows_timexagsxtech(results_raw, region):
     flows["Autarky"]["relative"] = flows["Autarky"]['supply'].unstack().div(flows["Autarky"]['demand'].unstack()).stack()
 
     return flows
+
+
+def additional_results_txaxt(flow_results, params):
+
+    # Line loadings
+    flow_results["Line loading"] = flow_results["Stromnetz"].div(params["Installed capacity grid"], axis="index")
+    flow_results["Line loading per bus"] = flow_results["Stromnetz per bus"].div(params["Installed capacity grid per bus"], axis="index")
+
+    return flow_results
 
 
 def non_region_bus2ags(bus_id, region):
@@ -1165,6 +1176,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Autarky"]['relative'] = results["Autarky"]['supply'].div(results["Autarky"]['demand'])
     results["Autarky"]['hours'] = (extracted_results["Autarky"]['relative']>1).sum(level=1).astype(int)
     results["Autarky"].index = results["Autarky"].index.astype(int)
+
     return results
 
 
