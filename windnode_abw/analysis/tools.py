@@ -777,9 +777,9 @@ def additional_results_txaxt(flow_results, params):
 
     # Line loadings
     flow_results["Line loading"] = pd.concat([flow_results["Stromnetz"], flow_results["Stromnetz exchange"]]).abs().max(axis=1).div(
-        params["Installed capacity grid"], axis="index")
+        (params["Installed capacity grid"] + params["Newly installed capacity grid"]), axis="index")
     flow_results["Line loading per bus"] = flow_results["Stromnetz per bus"].abs().max(axis=1).div(
-        params["Installed capacity grid per bus"], axis="index")
+        (params["Installed capacity grid per bus"] + params["Newly installed capacity grid per bus"]), axis="index")
 
     return flow_results
 
@@ -987,7 +987,7 @@ def aggregate_parameters(region, results_raw, flows):
         'b_el_\d+')
     params["Newly installed capacity grid"] = _rename_external_hv_buses(
         params["Newly installed capacity grid per bus"].copy(),
-        region, merged=True)
+        region, merged=True)[0]
 
     # Grid's equivalent periodic costs (EPC)
     params["Line EPC"] = flows_params["Grid"]["investment_ep_costs"]
