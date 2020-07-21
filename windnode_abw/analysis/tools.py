@@ -677,7 +677,7 @@ def flows_timexagsxtech(results_raw, region):
 
     # Grid lines
     line_flows_1 = extract_line_flow(results_raw, region)
-    line_flows_2 = extract_line_flow(results_raw, region)
+    line_flows_2 = extract_line_flow(results_raw, region, level_flow_in=1, level_flow_out=0)
     flows["Stromnetz per bus"] = pd.concat(
         [line_flows_1.rename("out"),
          line_flows_2.rename("in")], axis=1)
