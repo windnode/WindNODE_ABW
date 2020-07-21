@@ -838,7 +838,12 @@ def calc_available_pv_capacity(region):
     """
     cfg = region.cfg['scn_data']['generation']['re_potentials']
 
-    if region.pot_areas_pv_scn is None:
+    areas = region.pot_areas_pv_scn(
+        scenario=cfg['pv_land_use_scenario'],
+        pv_usable_area_agri_max=cfg['pv_usable_area_agri_max']
+    )
+
+    if areas is None:
         if cfg['pv_installed_power'] == 'MAX_AREA':
             msg = 'Cannot calculate PV potential (param pv_installed_power=' \
                   'MAX_AREA but no pv_land_use_scenario selected)'
@@ -852,18 +857,7 @@ def calc_available_pv_capacity(region):
             raise ValueError(msg)
         return None
 
-    areas = region.pot_areas_pv_scn.copy()
-    areas_agri = areas[areas.index.get_level_values(level=1).str.startswith(
-        'agri_')]
-
-    # limit area on fields and meadows so that it does not exceed 1 % of the
-    # total area of fields and meadows in ABW
-    if cfg['pv_usable_area_agri_max'] != 'nolimit':
-        if areas_agri.sum() > cfg['pv_usable_area_agri_max']:
-            areas_agri *= cfg['pv_usable_area_agri_max'] / areas_agri.sum()
-            areas.update(areas_agri)
-
-    areas_agg = areas.groupby('ags_id').agg('sum')
+    areas_agg = areas['with_agri_restrictions'].groupby('ags_id').agg('sum')
 
     # use all available areas from DB
     if cfg['pv_installed_power'] == 'MAX_AREA':
@@ -978,8 +972,9 @@ def calc_available_wec_capacity(region):
     config (wec_installed_power).
     """
     cfg = region.cfg['scn_data']['generation']['re_potentials']
+    areas = region.pot_areas_wec_scn(scenario=cfg['wec_land_use_scenario'])
 
-    if region.pot_areas_wec_scn is None:
+    if areas is None:
         if cfg['wec_installed_power'] == 'MAX_AREA':
             msg = 'Cannot calculate WEC potential (param wec_installed_power=' \
                   'MAX_AREA but no valid wec_land_use_scenario selected)'
@@ -993,20 +988,19 @@ def calc_available_wec_capacity(region):
             raise ValueError(msg)
         return None
 
-    areas_agg = region.pot_areas_wec_scn.groupby('ags_id').agg('sum')
-
     # use SQ turbines only
     if cfg['wec_installed_power'] == 'SQ':
         return None
+
     # use all available areas from DB
     elif cfg['wec_installed_power'] == 'MAX_AREA':
-        gen_count_wind = (areas_agg *
+        gen_count_wind = (areas *
                           cfg['wec_usable_area'] /
                           cfg['wec_land_use']).round().astype(int)
         gen_capacity_wind = gen_count_wind * cfg['wec_nom_power']
     # use given power, distribute to muns using available areas from DB
     else:
-        gen_count_wind = (areas_agg / sum(areas_agg) *
+        gen_count_wind = (areas / sum(areas) *
                           (cfg['wec_installed_power'] / cfg['wec_nom_power'])
                           ).round().astype(int)
         gen_capacity_wind = gen_count_wind * cfg['wec_nom_power']

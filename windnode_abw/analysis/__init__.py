@@ -85,6 +85,8 @@ def analysis(run_timestamp, scenarios='ALL'):
             regions_scns[scn_id] = Region.import_data(cfg)
             results_scns[scn_id]['results_raw'] = results_raw
 
+            logger.info(f'Analyzing...')
+
             # Flows extracted to dimension time, ags code, technology (and sometimes more dimensions)
             flows_txaxt = flows_timexagsxtech(results_raw["flows"], regions_scns[scn_id])
             results_scns[scn_id]['flows_txaxt'] = flows_txaxt
