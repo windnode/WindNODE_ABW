@@ -925,6 +925,9 @@ def aggregate_parameters(region, results_raw, flows):
         orient="index",
         columns=additional_stor_columns))
 
+    # Grid parameters
+    params["Parameters grid"] = region.tech_assumptions_scn.loc["line", :]
+
     # installed capacity battery storages
     params["Installierte Kapazität Großbatterien"] = region.batteries_large
     params["Installierte Kapazität PV-Batteriespeicher"] = region.batteries_small
@@ -978,10 +981,17 @@ def aggregate_parameters(region, results_raw, flows):
     params["Installed capacity grid"] = _rename_external_hv_buses(line_capacity, region, merged=True)[0]
 
     # Newly installed capacity grid
-    params["Newly installed capacity grid"] = extract_invest(
+    params["Newly installed capacity grid per bus"] = extract_invest(
         results_raw["invest"],
         "line_(?P<line_id>\d+)_b(?P<bus_from>\d+)_b(?P<bus_to>\d+)",
         'b_el_\d+')
+    params["Newly installed capacity grid"] = _rename_external_hv_buses(
+        params["Newly installed capacity grid per bus"].copy(),
+        region, merged=True)
+
+    # Grid's equivalent periodic costs (EPC)
+    params["Line EPC"] = flows_params["Grid"]["investment_ep_costs"]
+
     return params
 
 
@@ -1006,12 +1016,15 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
         return results_tmp
 
-    def _calculate_supply_costs(capacity, generation, params):
+    def _calculate_supply_costs(capacity, generation, params, annuity=None):
         """
         .. math:
             P_{inst} \cdot (Annuity + opex_{fix}) + E_{gen} * opex_{var} + E_{commodity} * opex_{var,commodity}
         """
-        costs = (capacity * (params["annuity"] + params["opex_fix"])).fillna(0) + (generation * params["opex_var"]).fillna(0)
+        if annuity is None:
+            annuity = params["annuity"]
+
+        costs = (capacity * (annuity + params["opex_fix"])).fillna(0) + (generation * params["opex_var"]).fillna(0)
 
         if "opex_var_comm" in params and "sys_eff" in params:
             costs_commodity = (generation * params["opex_var_comm"] / params["sys_eff"]).fillna(0)
@@ -1037,6 +1050,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
     results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["ags_from", "ags_to"])
+    results["Stromnetzleitungen per bus"] = extracted_results["Stromnetz per bus"].sum(
+        level=["line_id", "bus_from", "bus_to"])
     results["Intra-regional exchange"] = extracted_results["Intra-regional exchange"].sum(level=["ags"])
     results["Intra-regional exchange"].index = results["Intra-regional exchange"].index.astype(int)
     results["Net DSM activation"] = extracted_results["DSM activation"]["Demand increase"].sum(level="ags")
@@ -1176,6 +1191,17 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         discharge_stor_el_tmp,
         parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("flex_bat"), :])
 
+    results["Total costs lines"] = _calculate_supply_costs(
+        parameters['Installed capacity grid per bus'],
+        results["Stromnetzleitungen per bus"]["in"],
+        parameters["Parameters grid"],
+        annuity=parameters["Line EPC"])
+    results["Total costs line extensions"] = _calculate_supply_costs(
+        parameters['Newly installed capacity grid per bus'],
+        results["Stromnetzleitungen per bus"]["in"],
+        parameters["Parameters grid"],
+        annuity=parameters["Line EPC"])
+
     results["Total costs electricity supply"] = pd.concat([results["Total costs electricity supply"], costs_el_storages_tmp], axis=1)
 
     # Calculate heat supply costs
@@ -1230,7 +1256,10 @@ def results_tech(results_axlxt):
     results["Total costs heat supply"] = results_axlxt["Total costs heat supply"].sum()
 
     # Calculate levelized cost of electricity
-    results["LCOE"] = results_axlxt["Total costs electricity supply"].sum() / (
+    total_costs_el_tmp = results_axlxt["Total costs electricity supply"].sum()
+    total_costs_el_tmp["grid"] = results_axlxt["Total costs lines"].sum()
+    total_costs_el_tmp["grid_new"] = results_axlxt["Total costs line extensions"].sum()
+    results["LCOE"] = total_costs_el_tmp / (
                 results_axlxt['Stromnachfrage nach Gemeinde'].sum().sum()
                 + results_axlxt['Stromnachfrage Wärme nach Gemeinde'].sum().sum())
 
