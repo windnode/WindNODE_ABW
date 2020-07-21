@@ -1203,6 +1203,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         discharge_stor_el_tmp,
         parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("flex_bat"), :])
 
+    # Calculate costs for grid
     results["Total costs lines"] = _calculate_supply_costs(
         parameters['Installed capacity grid per bus'],
         results["Stromnetzleitungen per bus"]["in"],
@@ -1269,13 +1270,12 @@ def results_tech(results_axlxt):
     results["CO2 emissions el. total"]["Grid"] = results_axlxt["CO2 emissions grid total"].sum()
     results["CO2 emissions el. total"]["Grid new"] = results_axlxt["CO2 emissions grid new total"].sum()
     results["Total costs electricity supply"] = results_axlxt["Total costs electricity supply"].sum()
+    results["Total costs electricity supply"]["Grid"] = results_axlxt["Total costs lines"].sum()
+    results["Total costs electricity supply"]["Grid new"] = results_axlxt["Total costs line extensions"].sum()
     results["Total costs heat supply"] = results_axlxt["Total costs heat supply"].sum()
 
     # Calculate levelized cost of electricity
-    total_costs_el_tmp = results_axlxt["Total costs electricity supply"].sum()
-    total_costs_el_tmp["grid"] = results_axlxt["Total costs lines"].sum()
-    total_costs_el_tmp["grid_new"] = results_axlxt["Total costs line extensions"].sum()
-    results["LCOE"] = total_costs_el_tmp / (
+    results["LCOE"] = results_axlxt["Total costs electricity supply"].sum() / (
                 results_axlxt['Stromnachfrage nach Gemeinde'].sum().sum()
                 + results_axlxt['Stromnachfrage Wärme nach Gemeinde'].sum().sum())
 
