@@ -7,6 +7,8 @@ rcParams['font.weight'] = 'normal'
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.ticker import ScalarFormatter
+import matplotlib.gridspec as gridspec
+
 
 import pandas as pd
 import geopandas as gpd
@@ -441,58 +443,47 @@ def sample_plots(region, results):
     plt.legend()
     plt.show()
 
-def plot_geoplots(region, df_data, plot_kwds):
-    """Define node colors
 
+
+# one geoplot only fit in subplots
+def plot_geoplot(name, data, region, ax, cmap='viridis'):
+    """
     Parameters
     ----------
+    name : str
+        title of plot
+    data : pd.Series
+        data to plot
     region : :class:`~.model.Region`
         Region object
-    df_data : pd.DataFrame,
-    	Data to be plotted
-    plot_kwds: dict
-        'nrows'
-    	'ncols'
-    	'figsize'
-    	'title'
-    	'legend_label'
-    	'cmap'
+    ax : matplotlib.axes
+        coordinate system
+    cmap: str
+        colormap
     """
-    df_data = df_data.rename(columns=PRINT_NAMES)
-    gdf_region = gpd.GeoDataFrame(region.muns.loc[:,['gen', 'geom']], geometry='geom')
-    gdf_region = gdf_region.join(df_data, how='inner')
-    
-    fig, axs = plt.subplots(plot_kwds['nrows'],
-                            plot_kwds['ncols'],
-                            figsize=plot_kwds['figsize'])
-    
-    for ax, tech in zip(axs.flat, gdf_region.drop(columns=['gen', 'geom'])):
-        
-        # size the colorbar to plot
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="5%", pad=0.05)
-        
-        #
-        gdf_region.plot(column=tech,
-                        ax=ax,
-                        legend=True,
-                        cmap=plot_kwds['cmap'],
-                        cax=cax,
-                        legend_kwds = {'label': plot_kwds['legend_label']}
-                       )
-        
-        # Set title, remove ticks/grid
-        ax.set_title(tech)
-        ax.set_yticklabels([])
-        ax.set_xticklabels([])
-        ax.grid(False)
+    gdf_region = gpd.GeoDataFrame(region.muns.loc[:,['gen', 'geom']],
+                                  geometry='geom')
+    gdf_region = gdf_region.join(data,
+                                 how='inner')
 
-        
-    fig.suptitle(plot_kwds['title'],
-             fontsize=16,
-             fontweight='normal')
-    plt.tight_layout()
-    plt.show()
+    # size the colorbar to plot
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+
+    #
+    gdf_region.plot(column=data.values,
+                    ax=ax,
+                    legend=True,
+                    cmap=cmap,
+                    cax=cax,
+                   )
+
+    # Set title, remove ticks/grid
+    ax.set_title(name)
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    ax.grid(False)
+
 
 
 def plot_balance_bar(region, df_generation, df_demand):
