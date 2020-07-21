@@ -195,6 +195,10 @@ def results_to_dataframes(esys, infeasible):
              if to_n is None
              for col in flow['sequences'].columns}
         )
+        results['invest'] = pd.Series(
+            {(str(from_n), str(to_n)): flow['scalars']['invest']
+             for (from_n, to_n), flow in esys.results['main'].items()
+             if not flow['scalars'].empty}).rename("invest")
 
     return results
 
