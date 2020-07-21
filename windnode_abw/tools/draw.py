@@ -517,6 +517,7 @@ def plot_snd_total(region, df_supply, df_demand):
     fig.update_layout(
         title='Power Generation and Demand',
         barmode='relative',
+        height=600,
         xaxis={'categoryorder':'category ascending'},
         xaxis_tickfont_size=14,
         yaxis=dict(title='MWh',
@@ -633,6 +634,7 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
 
     fig.update_layout(
         title='Power Generation and Demand of %s'% ags,
+        height = 700,
         #xaxis={'categoryorder':'category ascending'},
         xaxis_tickfont_size=14,
         yaxis=dict(
