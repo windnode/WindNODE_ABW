@@ -447,7 +447,7 @@ def sample_plots(region, results):
 
 # one geoplot to fit in subplots
 def plot_geoplot(name, data, region, ax, cmap='viridis'):
-    """
+    """plot geoplot from pd.Series
     Parameters
     ----------
     name : str
@@ -487,8 +487,7 @@ def plot_geoplot(name, data, region, ax, cmap='viridis'):
 
 
 def plot_snd_total(region, df_supply, df_demand):
-    """
-    plot barplot of yearly total supply and demand per ags
+    """plot barplot of yearly total supply and demand per ags
     Parameters
     ----------
     region : :class:`~.model.Region`
