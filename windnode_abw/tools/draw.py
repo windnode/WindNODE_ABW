@@ -526,24 +526,26 @@ def plot_snd_total(region, df_supply, df_demand):
     fig.show()
 
 
-def plot_split_hbar(data, limit, ax, unit=None):
+def plot_split_hbar(data, limit, ax, title=None, unit=None):
     """plot 2 horizontal barplot with data splitted at limit
     Parameters
     ----------
     data : pd.Series
-        values of 
+        indexed values to plot
     limit : int/float
         threshold to split barplot at
     ax : matplotlib.axes
         coordinate system
+    title : str
+        title describing data
     unit : str
         xlabel: unit of data
     """
-    data = data.sort_values()
     # split data
     data_left = data[data < limit]
     data_right = data[data >= limit]
 
+    ax.set_title(title)
     # split subplot
     inner = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=ax, wspace=0.35, hspace=0.2)
     
@@ -553,12 +555,16 @@ def plot_split_hbar(data, limit, ax, unit=None):
     ax1.set_ylabel('AGS')
     ax1.set_xlabel(unit)
     ax1.set_xlim([0,limit])
+    ax1.set_title(title, loc='left', fontsize=12)    
+
 
     # right plot
     ax2 = plt.subplot(inner[1])
     data_right.plot(kind='barh', ax=ax2)# color=colors_hight(df_data_right.values, 'winter'))
     ax2.set_ylabel(None)
     ax2.set_xlabel(unit)
+    ax2.set_title(title,loc='left', fontsize=12)
+
 
 
 def plot_timeseries(results_scn, kind='el', **kwargs):
