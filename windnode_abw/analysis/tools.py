@@ -1065,10 +1065,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     ).fillna(0)
 
     # PV ground
-    percent = round(re_params['pv_usable_area_agri_max'] / 2086)
-    results["Area required rel."][f"PV ground "
-                                  f"{re_params['pv_land_use_scenario']} "
-                                  f"{percent}-perc agri"] = (
+    results["Area required rel."]["PV ground"] = (
             results["Area required"]["pv_ground"] /
             region.pot_areas_pv_scn(
                 scenario=re_params['pv_land_use_scenario'],
@@ -1275,9 +1272,7 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     ) * 1e2
 
     # PV ground
-    percent = round(re_params['pv_usable_area_agri_max'] / 2086)
-    highlevel[f"Area required rel. PV ground "
-              f"{re_params['pv_land_use_scenario']} {percent}-perc agri (current)"] = (
+    highlevel["Area required rel. PV ground (current)"] = (
             results_tables["Area required"]["pv_ground"].sum() /
             region.pot_areas_pv_scn(
                 scenario=re_params['pv_land_use_scenario'],
