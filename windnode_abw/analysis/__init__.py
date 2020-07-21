@@ -13,7 +13,7 @@ from windnode_abw.tools.data_io import load_results
 from windnode_abw.model import Region
 
 from windnode_abw.analysis.tools import aggregate_flows, aggregate_parameters, flows_timexagsxtech, \
-    results_agsxlevelxtech, create_highlevel_results, results_tech
+    results_agsxlevelxtech, create_highlevel_results, results_tech, additional_results_txaxt
 
 
 def analysis(run_timestamp, scenarios='ALL'):
@@ -94,6 +94,10 @@ def analysis(run_timestamp, scenarios='ALL'):
             # Retrieve parameters from database and config file
             parameters = aggregate_parameters(regions_scns[scn_id], results_raw, flows_txaxt)
             results_scns[scn_id]['parameters'] = parameters
+
+            # Add more parameters derived from flows + parameters
+            results_scns[scn_id]['flows_txaxt'] = additional_results_txaxt(results_scns[scn_id]['flows_txaxt'],
+                                                                           results_scns[scn_id]['parameters'])
 
             # Aggregate flow results along different dimensions (outdated, see #29)
             # only used to access DSM demand increase/decrease
