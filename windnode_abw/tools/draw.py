@@ -525,35 +525,41 @@ def plot_snd_total(region, df_supply, df_demand):
             autosize=True)
     fig.show()
 
-def plot_rel_autarky(df_data, limit, ax):
-    """"""
-    
-    df_data = df_data.sort_values()
+
+def plot_split_hbar(data, limit, ax, unit=None):
+    """plot 2 horizontal barplot with data splitted at limit
+    Parameters
+    ----------
+    data : pd.Series
+        values of 
+    limit : int/float
+        threshold to split barplot at
+    ax : matplotlib.axes
+        coordinate system
+    unit : str
+        xlabel: unit of data
+    """
+    data = data.sort_values()
     # split data
-    df_data = df_data.mul(100)
-    df_data_left = df_data[df_data < limit]
-    df_data_right = df_data[df_data >= limit]
+    data_left = data[data < limit]
+    data_right = data[data >= limit]
 
     # split subplot
     inner = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=ax, wspace=0.35, hspace=0.2)
     
     # left plot
     ax1 = plt.subplot(inner[0])
-    df_data_left.plot(kind='barh', ax=ax1)#, color=colors_hight(df_data_left.values, 'winter'))
+    data_left.plot(kind='barh', ax=ax1)#, color=colors_hight(df_data_left.values, 'winter'))
     ax1.set_ylabel('AGS')
-    ax1.set_xlabel('%')
+    ax1.set_xlabel(unit)
     ax1.set_xlim([0,limit])
 
     # right plot
     ax2 = plt.subplot(inner[1])
-    df_data_right.plot(kind='barh', ax=ax2)# color=colors_hight(df_data_right.values, 'winter'))
+    data_right.plot(kind='barh', ax=ax2)# color=colors_hight(df_data_right.values, 'winter'))
     ax2.set_ylabel(None)
-    ax2.set_xlabel('%')
+    ax2.set_xlabel(unit)
 
-    fig = plt.gcf()
-    fig.suptitle('rel. autarky',
-             fontsize=16,
-             fontweight='normal')
 
 def plot_timeseries(results_scn, kind='el', **kwargs):
     """"""
