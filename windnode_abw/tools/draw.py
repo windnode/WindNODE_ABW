@@ -72,6 +72,8 @@ PRINT_NAMES = {
     "th_rca": "thermal agri-comerce",
     "hh_efh" : "singe households",
     "hh_mfh" : "multi households",
+    "ABW-export": "ABW-export",
+    "ABW-import": "ABW-import"
 
 
 
@@ -102,7 +104,8 @@ COLORS = {'bio': 'green',
           'th_hh_efh': 'plum',
           'th_hh_mfh': 'fuchsia',
           'th_rca' : 'crimson',
-
+          'ABW-export': 'mediumpurple',
+          'ABW-import': 'mediumorchid',
 
          }
 
@@ -516,7 +519,7 @@ def plot_balance_bar(region, df_generation, df_demand):
         barmode='relative',
         xaxis={'categoryorder':'category ascending'},
         xaxis_tickfont_size=14,
-        yaxis=dict(title='MW',
+        yaxis=dict(title='MWh',
             titlefont_size=16,
             tickfont_size=14),
             autosize=True)
