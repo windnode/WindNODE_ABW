@@ -1072,7 +1072,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     # wind
     results["Area required rel."][f"Wind "
-                                  f"{re_params['pv_land_use_scenario']} "
+                                  f"{re_params['wec_land_use_scenario']} "
                                   f"10-perc"] = (
             results["Area required"]["wind"] /
             region.pot_areas_wec_scn(
