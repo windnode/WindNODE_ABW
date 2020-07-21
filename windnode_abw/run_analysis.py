@@ -14,7 +14,7 @@ if __name__ == "__main__":
     # TODO: Nice-to-have: argparse
 
     # specify what to import (in path ~/.windnode_abw/)
-    run_timestamp = '2020-06-17_125728_1month'
+    run_timestamp = '2020-07-17_224437_1month'
 
     # select multiple scenarios manually or use 'ALL' to analyze all
     # scenarios found in directory
