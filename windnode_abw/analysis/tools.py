@@ -1172,6 +1172,18 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         stor_th_parameters)
     results.update(results_tmp_stor_th)
 
+    # CO2 emissions attributed to grid
+    results["CO2 emissions grid total"] = _calculate_co2_emissions(
+        "grid",
+        results["Stromnetzleitungen per bus"]["in"],
+        parameters['Installed capacity grid per bus'],
+        parameters["Parameters grid"])["CO2 emissions grid total"]
+    results["CO2 emissions grid new total"] = _calculate_co2_emissions(
+        "grid new",
+        results["Stromnetzleitungen per bus"]["in"],
+        parameters['Newly installed capacity grid per bus'],
+        parameters["Parameters grid"])["CO2 emissions grid new total"]
+
     # Calculate supply costs
     # Note: Revenues for exported electricity are considered with negative costs
     results["Total costs electricity supply"] = _calculate_supply_costs(
@@ -1251,7 +1263,11 @@ def results_tech(results_axlxt):
 
     results["Heat generation"] = results_axlxt['Wärmeerzeugung nach Gemeinde'].sum().rename(PRINT_NAMES)
     results["CO2 emissions th. total"] = pd.concat([results_axlxt["CO2 emissions th. total"].sum(), results_axlxt["CO2 emissions stor th. total"].sum()]).rename(PRINT_NAMES)
-    results["CO2 emissions el. total"] = pd.concat([results_axlxt["CO2 emissions el. total"].sum(), results_axlxt["CO2 emissions stor el. total"].sum()]).rename(PRINT_NAMES)
+    results["CO2 emissions el. total"] = pd.concat([
+        results_axlxt["CO2 emissions el. total"].sum(),
+        results_axlxt["CO2 emissions stor el. total"].sum()]).rename(PRINT_NAMES)
+    results["CO2 emissions el. total"]["Grid"] = results_axlxt["CO2 emissions grid total"].sum()
+    results["CO2 emissions el. total"]["Grid new"] = results_axlxt["CO2 emissions grid new total"].sum()
     results["Total costs electricity supply"] = results_axlxt["Total costs electricity supply"].sum()
     results["Total costs heat supply"] = results_axlxt["Total costs heat supply"].sum()
 
