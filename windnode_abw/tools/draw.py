@@ -40,6 +40,7 @@ PRINT_NAMES = {
     'pv_roof_large': "PV roof top (large)",
     'pv_roof_small': "PV roof top (small)",
     'wind': "Wind",
+    "export" : "Electricity export (national grid)",
     'import': "Electricity imports (national grid)",
     "elenergy": "Direct electric heating",
     "fuel_oil": "Oil heating",
@@ -64,7 +65,6 @@ PRINT_NAMES = {
     "hh" : "Households",
     "ind" : "Industry",
     "rca" : "Agri-comerce",
-    "export" : "Export",
     "conventional" : "Conventional",
     "el_hh" : "Electricity households",
     "el_rca" : "Electricity agri-comerce",
@@ -569,7 +569,16 @@ def plot_split_hbar(data, limit, ax, title=None, unit=None):
 
 
 def plot_timeseries(results_scn, kind='el', **kwargs):
-    """"""
+    """plot generation and demand timeseries of either 'electrical' or 'thermal' components
+    Parameters
+    ----------
+    results_scn : dict
+        scenario result
+    kind : str
+        'el' or 'th'
+    *ags : str/int
+        ags number or 'ABW' for whole region
+    """
     #start = kwargs.get('start', region.cfg['date_from'])
     #end = kwargs.get('end', region.cfg['date_to'])
     ags = kwargs.get('ags', 'ABW')
@@ -580,18 +589,33 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
     if kind =='el':
         df_feedin = results_scn['flows_txaxt']['Stromerzeugung']
         df_demand = results_scn['flows_txaxt']['Stromnachfrage']
+
+        if ags=='ABW':
+            df_feedin = df_feedin.sum(level=0)#.loc[start:end,:]
+            df_demand = df_demand.sum(level=0)#.loc[start:end,:]
+        else:
+            # add intra regional exchange
+            df_feedin = df_feedin.join(results_scn['flows_txaxt']['Intra-regional exchange']['import'].rename('ABW-import'))#.loc[(slice(None), ags)])
+            df_demand = df_demand.join(results_scn['flows_txaxt']['Intra-regional exchange']['export'].rename('ABW-export'))#.loc[(slice(None), ags)])
+
+            df_feedin = df_feedin.loc[(slice(None),ags),:].sum(level=0)#.loc[start:end,:]
+            df_demand = df_demand.loc[(slice(None),ags),:].sum(level=0)
+
     elif kind == 'th':
         df_feedin = results_scn['flows_txaxt']['Wärmeerzeugung']
         df_demand = results_scn['flows_txaxt']['Wärmenachfrage']
+
+        if ags=='ABW':
+            df_feedin = df_feedin.sum(level=0)#.loc[start:end,:]
+            df_demand = df_demand.sum(level=0)#.loc[start:end,:]
+        else:  
+            df_feedin = df_feedin.loc[(slice(None),ags),:].sum(level=0)#.loc[start:end,:]
+            df_demand = df_demand.loc[(slice(None),ags),:].sum(level=0)
+
     #else:
     #    raise ValueError("Enter either 'el' or 'th'") 
    
-    if ags=='ABW':
-        df_feedin = df_feedin.sum(level=0)#.loc[start:end,:]
-        df_demand = df_demand.sum(level=0)#.loc[start:end,:]
-    else:  
-        df_feedin = df_feedin.loc[(slice(None),ags),:].sum(level=0)#.loc[start:end,:]
-        df_demand = df_demand.loc[(slice(None),ags),:].sum(level=0)
+
 
     # what is conventional
     #df_residual_load = df_demand.sum(axis=1) - df_feedin.drop(columns=['conventional']).sum(axis=1)
@@ -638,8 +662,9 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
         #xaxis={'categoryorder':'category ascending'},
         xaxis_tickfont_size=14,
         yaxis=dict(
-        title='MW',
-        titlefont_size=16,
-        tickfont_size=14),
-        autosize=True)
+            title='MW',
+            titlefont_size=16,
+            tickfont_size=14),
+        autosize=True,
+        )
     fig.show()
