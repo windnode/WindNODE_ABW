@@ -446,7 +446,7 @@ def sample_plots(region, results):
 
 
 # one geoplot to fit in subplots
-def plot_geoplot(name, data, region, ax, cmap='viridis'):
+def plot_geoplot(name, data, region, ax, cmap='viridis', unit=None):
     """plot geoplot from pd.Series
     Parameters
     ----------
@@ -458,8 +458,10 @@ def plot_geoplot(name, data, region, ax, cmap='viridis'):
         Region object
     ax : matplotlib.axes
         coordinate system
-    cmap: str
+    cmap : str
         colormap
+    unit : str
+        label of colorbar
     """
     gdf_region = gpd.GeoDataFrame(region.muns.loc[:,['gen', 'geom']],
                                   geometry='geom')
@@ -468,7 +470,7 @@ def plot_geoplot(name, data, region, ax, cmap='viridis'):
 
     # size the colorbar to plot
     divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cax = divider.append_axes("right" , size="5%", pad=0.05)
 
     #
     gdf_region.plot(column=data.values,
@@ -476,6 +478,7 @@ def plot_geoplot(name, data, region, ax, cmap='viridis'):
                     legend=True,
                     cmap=cmap,
                     cax=cax,
+                    legend_kwds={'label': unit}
                    )
 
     # Set title, remove ticks/grid
