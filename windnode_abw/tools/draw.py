@@ -498,7 +498,7 @@ def plot_snd_total(region, df_supply, df_demand):
     fig = go.Figure()
     for tech, data in df_supply.iteritems():
         fig.add_trace(go.Bar(x=region.muns['gen'],
-                             y=data,
+                             y=data / 1e3,
                              name=PRINT_NAMES[tech],
                              marker_color=COLORS[tech]))
 
@@ -506,7 +506,7 @@ def plot_snd_total(region, df_supply, df_demand):
 
     for tech, data in df_demand.iteritems():
         fig.add_trace(go.Bar(x=region.muns['gen'],
-                             y=-data,
+                             y=-data / 1e3,
                              name=PRINT_NAMES[tech],
                              marker_color=COLORS[tech],
                             visible='legendonly'))
@@ -518,7 +518,7 @@ def plot_snd_total(region, df_supply, df_demand):
         height=600,
         xaxis={'categoryorder':'category ascending'},
         xaxis_tickfont_size=14,
-        yaxis=dict(title='MWh',
+        yaxis=dict(title='GWh',
             titlefont_size=16,
             tickfont_size=14),
             autosize=True)
