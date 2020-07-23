@@ -34,7 +34,6 @@ PRINT_NAMES = {
     'bio': "Biogas",
     'gas': "Open-cycle gas turbine",
     'gud': "Combined-cycle gas turbine",
-    'bhkw': 'CHP',
     'hydro': "Hydro",
     'pv_ground': "PV ground-mounted",
     'pv_roof_large': "PV roof top (large)",
@@ -48,7 +47,6 @@ PRINT_NAMES = {
     "natural_gas": "Gas heating",
     "solar": "Solar thermal heating",
     "solar_heat": "Solar heating",
-    "elenergy" : "electrical energy",
     "wood": "Wood heating",
     "coal": "Coal heating",
     "pth": "Power-to-heat (district heating)",
@@ -64,21 +62,18 @@ PRINT_NAMES = {
     "flex_bat_small" : "PV system battery storage",
     "hh" : "Households",
     "ind" : "Industry",
-    "rca" : "Agri-comerce",
+    "rca" : "CTS+agriculture",
     "conventional" : "Conventional",
     "el_hh" : "Electricity households",
-    "el_rca" : "Electricity agri-comerce",
+    "el_rca" : "Electricity CTS+agriculture",
     "el_ind" : "Electricity industry",
-    "th_hh_efh" : "thermal single household",
-    "th_hh_mfh" : "thermal multi household",
-    "th_rca": "thermal agri-comerce",
-    "hh_efh" : "singe households",
-    "hh_mfh" : "multi households",
-    "ABW-export": "ABW-export",
-    "ABW-import": "ABW-import"
-
-
-
+    "th_hh_efh" : "Heat single-family houses",
+    "th_hh_mfh" : "Heat apartment buildings",
+    "th_rca": "Heat CTS+agriculture",
+    "hh_efh" : "Single-family houses",
+    "hh_mfh" : "Apartment buildings",
+    "ABW-export": "Export",
+    "ABW-import": "Import"
 }
 
 # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
