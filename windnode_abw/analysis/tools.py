@@ -1175,12 +1175,12 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     # CO2 emissions attributed to grid
     results["CO2 emissions grid total"] = _calculate_co2_emissions(
         "grid",
-        results["Stromnetzleitungen per bus"]["in"],
+        results["Stromnetzleitungen per bus"]["in"].abs(),
         parameters['Installed capacity grid per bus'],
         parameters["Parameters grid"])["CO2 emissions grid total"]
     results["CO2 emissions grid new total"] = _calculate_co2_emissions(
         "grid new",
-        results["Stromnetzleitungen per bus"]["in"],
+        results["Stromnetzleitungen per bus"]["in"].abs(),
         parameters['Newly installed capacity grid per bus'],
         parameters["Parameters grid"])["CO2 emissions grid new total"]
 
@@ -1206,12 +1206,12 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     # Calculate costs for grid
     results["Total costs lines"] = _calculate_supply_costs(
         parameters['Installed capacity grid per bus'],
-        results["Stromnetzleitungen per bus"]["in"],
+        results["Stromnetzleitungen per bus"]["in"].abs(),
         parameters["Parameters grid"],
         annuity=parameters["Line EPC"])
     results["Total costs line extensions"] = _calculate_supply_costs(
         parameters['Newly installed capacity grid per bus'],
-        results["Stromnetzleitungen per bus"]["in"],
+        results["Stromnetzleitungen per bus"]["in"].abs(),
         parameters["Parameters grid"],
         annuity=parameters["Line EPC"])
 
