@@ -926,6 +926,7 @@ def aggregate_parameters(region, results_raw, flows):
     # Installed capacity from model results (include pre-calculations) gud, bhkw, gas
     capacity_special = flows_params["Stromerzeugung"]["nominal_value"].unstack("technology").fillna(0)[
         ["bhkw", "gas", "gud"]]
+    capacity_special.at['15001000', 'gud'] = 60  # manual update of GuD Dessau's nom. el. power
     capacity_special.index = capacity_special.index.astype(int)
     params["Installed capacity electricity supply"] = \
         params["Installed capacity electricity supply"].join(capacity_special, how="outer").fillna(0)
