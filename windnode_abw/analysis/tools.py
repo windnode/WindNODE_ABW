@@ -102,6 +102,9 @@ GEN_TH_NAMES = {
     "pth_GSHP": {
         "params": "heating_gshp",
         "params_comm": "elenergy"},
+    "district_heating": {
+        "params": "district_heating"
+    }
 }
 
 UNITS = {
@@ -1155,7 +1158,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     # Calculate heat supply costs
     # Note: costs for the commodity of PtH technologies (pth* and elenergy) is set to zero, because these costs are
     # already included in the electricity generation costs
-    params_heat_supply_tmp = parameters["Parameters th. generators"].copy()
+    params_heat_supply_tmp = parameters["Parameters th. generators"].loc[
+        parameters["Parameters th. generators"].index != "district_heating"].copy()
     params_heat_supply_tmp.loc[["elenergy", "pth", "pth_ASHP", "pth_GSHP"], "opex_var_comm"] = 0
     for pth_tech in ["pth_ASHP", "pth_GSHP"]:
         params_heat_supply_tmp.loc[pth_tech + "_stor"] = params_heat_supply_tmp.loc[pth_tech]
@@ -1172,6 +1176,15 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         parameters['Installed capacity heat storage'],
         discharge_stor_th_tmp,
         stor_th_parameters)
+
+    # Calculate costs for district heating, capex are multiplied with the peak load
+    idx = pd.IndexSlice
+    district_heating_dem = extracted_results["Wärmenachfrage"].loc[idx[:, "cen", :], :].sum(axis=1).rename(
+        "district_heating")
+    costs_heat_dist_heating = _calculate_supply_costs(
+        district_heating_dem.max(level="ags"),
+        district_heating_dem.sum(level="ags"),
+        parameters["Parameters th. generators"].loc["district_heating"])
 
     results["Total costs heat supply"] = pd.concat([results["Total costs heat supply"], costs_heat_storages_tmp], axis=1)
 
