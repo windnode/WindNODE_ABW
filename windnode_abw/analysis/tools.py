@@ -495,7 +495,7 @@ def extract_invest(vars, node_pattern, bus_pattern):
                     vars.index.get_level_values(1).str.match(bus_pattern), :].astype(float)
 
     # transform to wide-to-long format while dropping bus column level
-    vars_extract = vars_extract.droplevel(1).groupby(level=0).max()
+    vars_extract = vars_extract.max(level=0)
     vars_extract.index = pd.MultiIndex.from_frame(vars_extract.index.str.extract(node_pattern))
     vars_extract = vars_extract.sum(level=list(range(vars_extract.index.nlevels)))
 
