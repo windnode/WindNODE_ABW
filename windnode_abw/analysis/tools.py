@@ -1173,15 +1173,26 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results.update(results_tmp_stor_th)
 
     # CO2 emissions attributed to grid
+    line_lengths_tmp = region.lines.set_index("line_id")["length"]
+    line_lengths_tmp.index = line_lengths_tmp.index.astype(str)
+    line_capacity_length = parameters['Installed capacity grid per bus'].to_frame().join(line_lengths_tmp,
+                                                                                         on="line_id")
+    line_capacity_length = line_capacity_length["investment_existing"] * line_capacity_length["length"]
     results["CO2 emissions grid total"] = _calculate_co2_emissions(
         "grid",
         results["Stromnetzleitungen per bus"]["in"].abs(),
-        parameters['Installed capacity grid per bus'],
+        line_capacity_length,
         parameters["Parameters grid"])["CO2 emissions grid total"]
+
+    line_lengths_new_tmp = region.lines.set_index("line_id")["length"]
+    line_lengths_new_tmp.index = line_lengths_new_tmp.index.astype(str)
+    line_capacity_length_new = parameters['Newly installed capacity grid per bus'].to_frame("investment_existing").join(
+        line_lengths_new_tmp, on="line_id")
+    line_capacity_length_new = line_capacity_length_new["investment_existing"] * line_capacity_length_new["length"]
     results["CO2 emissions grid new total"] = _calculate_co2_emissions(
         "grid new",
         results["Stromnetzleitungen per bus"]["in"].abs(),
-        parameters['Newly installed capacity grid per bus'],
+        line_capacity_length_new,
         parameters["Parameters grid"])["CO2 emissions grid new total"]
 
     # Calculate supply costs
