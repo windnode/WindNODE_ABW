@@ -39,8 +39,8 @@ PRINT_NAMES = {
     'pv_roof_large': "PV roof top (large)",
     'pv_roof_small': "PV roof top (small)",
     'wind': "Wind",
-    "export" : "Electricity export (national grid)",
-    'import': "Electricity imports (national grid)",
+    "export" : "Export (national grid)",
+    'import': "Import (national grid)",
     "elenergy": "Direct electric heating",
     "fuel_oil": "Oil heating",
     "gas_boiler": "Gas (district heating)",
@@ -72,8 +72,8 @@ PRINT_NAMES = {
     "th_rca": "Heat CTS+agriculture",
     "hh_efh" : "Single-family houses",
     "hh_mfh" : "Apartment buildings",
-    "ABW-export": "Export",
-    "ABW-import": "Import"
+    "ABW-export": "Export (regional)",
+    "ABW-import": "Import (regional)"
 }
 
 # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
