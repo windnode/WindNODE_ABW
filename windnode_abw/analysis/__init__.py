@@ -66,7 +66,7 @@ def analysis(run_timestamp, scenarios='ALL'):
                                    scenario=scn_id)
 
         if results_raw is None:
-            logger.warning(f'Scenario {scn_id} not found, skipping...')
+            logger.warning(f'Scenario {scn_id} not found or file(s) malformed, skipping...')
         else:
             results_scns[scn_id] = {}
             # import region using cfg from results meta
