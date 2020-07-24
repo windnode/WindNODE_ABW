@@ -1028,6 +1028,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         if annuity is None:
             annuity = params["annuity"]
 
+        # costs_fix =
         costs = (capacity * (annuity + params["opex_fix"])).fillna(0) + (generation * params["opex_var"]).fillna(0)
 
         if "opex_var_comm" in params and "sys_eff" in params:
@@ -1269,7 +1270,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     costs_heat_dist_heating = _calculate_supply_costs(
         district_heating_dem.max(level="ags"),
         district_heating_dem.sum(level="ags"),
-        parameters["Parameters th. generators"].loc["district_heating"])
+        parameters["Parameters th. generators"].loc["district_heating"],
+        co2_certificate_cost)
 
     results["Total costs heat supply"] = pd.concat([
         results["Total costs heat supply"],
