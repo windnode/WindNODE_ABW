@@ -174,6 +174,8 @@ def results_to_dataframes(esys, infeasible):
             :pandas:`pandas.Series`
                 Series with node parameters, (node, var) as index,
                 labels is excluded
+            :pandas:`pandas.Series`
+                Investments of a flow, (node, bus) as index,
     """
     # add params to results
     results = {
@@ -203,6 +205,10 @@ def results_to_dataframes(esys, infeasible):
              if to_n is None
              for col in flow['sequences'].columns}
         )
+        results['invest'] = pd.Series(
+            {(str(from_n), str(to_n)): flow['scalars']['invest']
+             for (from_n, to_n), flow in esys.results['main'].items()
+             if not flow['scalars'].empty and "invest" in flow['scalars'].index.values}).rename("invest")
 
     return results
 
@@ -481,6 +487,21 @@ def extract_flow_params(flow_params_raw, node_pattern, bus_pattern, stubname,
     return params_extract
 
 
+def extract_invest(vars, node_pattern, bus_pattern):
+
+    # Get an extract of relevant data
+    vars_extract = vars.loc[
+                    vars.index.get_level_values(0).str.match(node_pattern),
+                    vars.index.get_level_values(1).str.match(bus_pattern), :].astype(float)
+
+    # transform to wide-to-long format while dropping bus column level
+    vars_extract = vars_extract.max(level=0)
+    vars_extract.index = pd.MultiIndex.from_frame(vars_extract.index.str.extract(node_pattern))
+    vars_extract = vars_extract.sum(level=list(range(vars_extract.index.nlevels)))
+
+    return vars_extract
+
+
 def flow_params_agsxtech(results_raw):
 
     # define extraction pattern
@@ -756,9 +777,9 @@ def additional_results_txaxt(flow_results, params):
 
     # Line loadings
     flow_results["Line loading"] = pd.concat([flow_results["Stromnetz"], flow_results["Stromnetz exchange"]]).abs().max(axis=1).div(
-        params["Installed capacity grid"], axis="index")
+        (params["Installed capacity grid"] + params["Newly installed capacity grid"]), axis="index")
     flow_results["Line loading per bus"] = flow_results["Stromnetz per bus"].abs().max(axis=1).div(
-        params["Installed capacity grid per bus"], axis="index")
+        (params["Installed capacity grid per bus"] + params["Newly installed capacity grid per bus"]), axis="index")
 
     return flow_results
 
@@ -904,6 +925,9 @@ def aggregate_parameters(region, results_raw, flows):
         orient="index",
         columns=additional_stor_columns))
 
+    # Grid parameters
+    params["Parameters grid"] = region.tech_assumptions_scn.loc["line", :]
+
     # installed capacity battery storages
     params["Installierte Kapazität Großbatterien"] = region.batteries_large
     params["Installierte Kapazität PV-Batteriespeicher"] = region.batteries_small
@@ -957,6 +981,18 @@ def aggregate_parameters(region, results_raw, flows):
     params["Installed capacity grid per bus"] = line_capacity.copy()
     params["Installed capacity grid"] = _rename_external_hv_buses(line_capacity, region, merged=True)[0]
 
+    # Newly installed capacity grid
+    params["Newly installed capacity grid per bus"] = extract_invest(
+        results_raw["invest"],
+        "line_(?P<line_id>\d+)_b(?P<bus_from>\d+)_b(?P<bus_to>\d+)",
+        'b_el_\d+')
+    params["Newly installed capacity grid"] = _rename_external_hv_buses(
+        params["Newly installed capacity grid per bus"].copy(),
+        region, merged=True)[0]
+
+    # Grid's equivalent periodic costs (EPC)
+    params["Line EPC"] = flows_params["Grid"]["investment_ep_costs"]
+
     return params
 
 
@@ -981,12 +1017,15 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
         return results_tmp
 
-    def _calculate_supply_costs(capacity, generation, params):
+    def _calculate_supply_costs(capacity, generation, params, annuity=None):
         """
         .. math:
             P_{inst} \cdot (Annuity + opex_{fix}) + E_{gen} * opex_{var} + E_{commodity} * opex_{var,commodity}
         """
-        costs = (capacity * (params["annuity"] + params["opex_fix"])).fillna(0) + (generation * params["opex_var"]).fillna(0)
+        if annuity is None:
+            annuity = params["annuity"]
+
+        costs = (capacity * (annuity + params["opex_fix"])).fillna(0) + (generation * params["opex_var"]).fillna(0)
 
         if "opex_var_comm" in params and "sys_eff" in params:
             costs_commodity = (generation * params["opex_var_comm"] / params["sys_eff"]).fillna(0)
@@ -1012,6 +1051,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
     results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["ags_from", "ags_to"])
+    results["Stromnetzleitungen per bus"] = extracted_results["Stromnetz per bus"].sum(
+        level=["line_id", "bus_from", "bus_to"])
     results["Intra-regional exchange"] = extracted_results["Intra-regional exchange"].sum(level=["ags"])
     results["Intra-regional exchange"].index = results["Intra-regional exchange"].index.astype(int)
     results["Net DSM activation"] = extracted_results["DSM activation"]["Demand increase"].sum(level="ags")
@@ -1132,6 +1173,29 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         stor_th_parameters)
     results.update(results_tmp_stor_th)
 
+    # CO2 emissions attributed to grid
+    line_lengths_tmp = region.lines.set_index("line_id")["length"]
+    line_lengths_tmp.index = line_lengths_tmp.index.astype(str)
+    line_capacity_length = parameters['Installed capacity grid per bus'].to_frame().join(line_lengths_tmp,
+                                                                                         on="line_id")
+    line_capacity_length = line_capacity_length["investment_existing"] * line_capacity_length["length"]
+    results["CO2 emissions grid total"] = _calculate_co2_emissions(
+        "grid",
+        results["Stromnetzleitungen per bus"]["in"].abs(),
+        line_capacity_length,
+        parameters["Parameters grid"])["CO2 emissions grid total"]
+
+    line_lengths_new_tmp = region.lines.set_index("line_id")["length"]
+    line_lengths_new_tmp.index = line_lengths_new_tmp.index.astype(str)
+    line_capacity_length_new = parameters['Newly installed capacity grid per bus'].to_frame("investment_existing").join(
+        line_lengths_new_tmp, on="line_id")
+    line_capacity_length_new = line_capacity_length_new["investment_existing"] * line_capacity_length_new["length"]
+    results["CO2 emissions grid new total"] = _calculate_co2_emissions(
+        "grid new",
+        results["Stromnetzleitungen per bus"]["in"].abs(),
+        line_capacity_length_new,
+        parameters["Parameters grid"])["CO2 emissions grid new total"]
+
     # Calculate supply costs
     # Note: Revenues for exported electricity are considered with negative costs
     results["Total costs electricity supply"] = _calculate_supply_costs(
@@ -1150,6 +1214,18 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         inst_cap_bat_tmp,
         discharge_stor_el_tmp,
         parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("flex_bat"), :])
+
+    # Calculate costs for grid
+    results["Total costs lines"] = _calculate_supply_costs(
+        parameters['Installed capacity grid per bus'],
+        results["Stromnetzleitungen per bus"]["in"].abs(),
+        parameters["Parameters grid"],
+        annuity=parameters["Line EPC"])
+    results["Total costs line extensions"] = _calculate_supply_costs(
+        parameters['Newly installed capacity grid per bus'],
+        results["Stromnetzleitungen per bus"]["in"].abs(),
+        parameters["Parameters grid"],
+        annuity=parameters["Line EPC"])
 
     results["Total costs electricity supply"] = pd.concat([results["Total costs electricity supply"], costs_el_storages_tmp], axis=1)
 
@@ -1200,8 +1276,14 @@ def results_tech(results_axlxt):
 
     results["Heat generation"] = results_axlxt['Wärmeerzeugung nach Gemeinde'].sum().rename(PRINT_NAMES)
     results["CO2 emissions th. total"] = pd.concat([results_axlxt["CO2 emissions th. total"].sum(), results_axlxt["CO2 emissions stor th. total"].sum()]).rename(PRINT_NAMES)
-    results["CO2 emissions el. total"] = pd.concat([results_axlxt["CO2 emissions el. total"].sum(), results_axlxt["CO2 emissions stor el. total"].sum()]).rename(PRINT_NAMES)
+    results["CO2 emissions el. total"] = pd.concat([
+        results_axlxt["CO2 emissions el. total"].sum(),
+        results_axlxt["CO2 emissions stor el. total"].sum()]).rename(PRINT_NAMES)
+    results["CO2 emissions el. total"]["Grid"] = results_axlxt["CO2 emissions grid total"].sum()
+    results["CO2 emissions el. total"]["Grid new"] = results_axlxt["CO2 emissions grid new total"].sum()
     results["Total costs electricity supply"] = results_axlxt["Total costs electricity supply"].sum()
+    results["Total costs electricity supply"]["Grid"] = results_axlxt["Total costs lines"].sum()
+    results["Total costs electricity supply"]["Grid new"] = results_axlxt["Total costs line extensions"].sum()
     results["Total costs heat supply"] = results_axlxt["Total costs heat supply"].sum()
 
     # Calculate levelized cost of electricity

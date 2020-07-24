@@ -409,9 +409,9 @@ def create_el_model(region=None, datetime_index=None):
                 outputs={
                     bus0: solph.Flow(
                         variable_costs=region.tech_assumptions_scn.loc[
-                            'line']['opex_var'],
+                            'line']['opex_var'] * row['length'],
                         emissions=region.tech_assumptions_scn.loc[
-                            'line']['emissions_var'],
+                            'line']['emissions_var'] * row['length'],
                         investment=solph.Investment(
                             ep_costs=region.tech_assumptions_scn.loc[
                                          'line']['annuity'] * row['length'],
@@ -420,9 +420,9 @@ def create_el_model(region=None, datetime_index=None):
                     ),
                     bus1: solph.Flow(
                         variable_costs=region.tech_assumptions_scn.loc[
-                            'line']['opex_var'],
+                            'line']['opex_var'] * row['length'],
                         emissions=region.tech_assumptions_scn.loc[
-                            'line']['emissions_var'],
+                            'line']['emissions_var'] * row['length'],
                         investment=solph.Investment(
                             ep_costs=region.tech_assumptions_scn.loc[
                                          'line']['annuity'] * row['length'],

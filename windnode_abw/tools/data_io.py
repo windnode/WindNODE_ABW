@@ -705,7 +705,7 @@ def load_results(timestamp, scenario):
     # DataFrames
     df_files = ['flows', 'vars_stat', 'params_flows']
     # Series
-    se_files = ['params_stat']
+    se_files = ['params_stat', 'invest']
 
     results = {}
     try:
@@ -716,7 +716,7 @@ def load_results(timestamp, scenario):
         for file in se_files:
             results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
                                         index_col=[0, 1],
-                                        header=None,
+                                        header=0,
                                         squeeze=True)
 
         with open(os.path.join(results_path, 'meta.json')) as file:
