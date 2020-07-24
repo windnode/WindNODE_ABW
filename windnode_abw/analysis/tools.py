@@ -1238,18 +1238,18 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         co2_certificate_cost)
 
     # Calculate costs for grid
-    results["Total costs lines"] = _calculate_supply_costs(
+    results["Total costs lines"] = sum([d for d in _calculate_supply_costs(
         parameters['Installed capacity grid per bus'],
         results["Stromnetzleitungen per bus"]["in"].abs(),
         parameters["Parameters grid"],
         co2_certificate_cost,
-        annuity=parameters["Line EPC"])
-    results["Total costs line extensions"] = _calculate_supply_costs(
+        annuity=parameters["Line EPC"]).values()])
+    results["Total costs line extensions"] = sum([d for d in _calculate_supply_costs(
         parameters['Newly installed capacity grid per bus'],
         results["Stromnetzleitungen per bus"]["in"].abs(),
         parameters["Parameters grid"],
         co2_certificate_cost,
-        annuity=parameters["Line EPC"])
+        annuity=parameters["Line EPC"]).values()])
 
     # Merge costs data of several el. technologies
     for k in list(costs_el_generation_tmp.keys()):
@@ -1290,7 +1290,6 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Total costs heat supply"] = results["Fix costs th."].\
         add(results["Variable costs th."], fill_value=0).\
         add(results["CO2 certificate cost th."], fill_value=0)
-
 
     # Add Autarky
     results["Autarky"] = pd.DataFrame()
