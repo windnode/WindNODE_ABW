@@ -1020,7 +1020,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
         return results_tmp
 
-    def _calculate_supply_costs(capacity, generation, params, annuity=None):
+    def _calculate_supply_costs(capacity, generation, params, co2_certificate, annuity=None):
         """
         .. math:
             P_{inst} \cdot (Annuity + opex_{fix}) + E_{gen} * opex_{var} + E_{commodity} * opex_{var,commodity}
@@ -1031,7 +1031,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         costs = (capacity * (annuity + params["opex_fix"])).fillna(0) + (generation * params["opex_var"]).fillna(0)
 
         if "opex_var_comm" in params and "sys_eff" in params:
-            costs_commodity = (generation * params["opex_var_comm"] / params["sys_eff"]).fillna(0)
+            co2_certificate_cost = params["emissions_var_comm"] * co2_certificate
+            costs_commodity = (generation * (params["opex_var_comm"] + co2_certificate_cost) / params["sys_eff"]).fillna(0)
 
             costs = costs + costs_commodity
 
@@ -1041,6 +1042,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     idx = pd.IndexSlice
 
     results = {}
+
+    co2_certificate_cost = region.tech_assumptions_scn.loc["emission"]["capex"]
 
     results["Stromerzeugung nach Gemeinde"] = extracted_results["Stromerzeugung"].sum(level="ags")
     results["Stromerzeugung nach Gemeinde"].index = results["Stromerzeugung nach Gemeinde"].index.astype(int)
@@ -1204,7 +1207,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Total costs electricity supply"] = _calculate_supply_costs(
         parameters["Installed capacity electricity supply"],
         results["Stromerzeugung nach Gemeinde"],
-        parameters["Parameters el. generators"])
+        parameters["Parameters el. generators"],
+        co2_certificate_cost)
     # Export revenues calculated with constant electricity price of 75 EUR/MWh
     # TODO: if you include it, make sure sum of LCOE calculated in create_highlevel_results() ignore these revenues
     # export_revenues = results["Stromnachfrage nach Gemeinde"]["export"] * -parameters["Parameters el. generators"].loc[
@@ -1216,18 +1220,21 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     costs_el_storages_tmp = _calculate_supply_costs(
         inst_cap_bat_tmp,
         discharge_stor_el_tmp,
-        parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("flex_bat"), :])
+        parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("flex_bat"), :],
+        co2_certificate_cost)
 
     # Calculate costs for grid
     results["Total costs lines"] = _calculate_supply_costs(
         parameters['Installed capacity grid per bus'],
         results["Stromnetzleitungen per bus"]["in"].abs(),
         parameters["Parameters grid"],
+        co2_certificate_cost,
         annuity=parameters["Line EPC"])
     results["Total costs line extensions"] = _calculate_supply_costs(
         parameters['Newly installed capacity grid per bus'],
         results["Stromnetzleitungen per bus"]["in"].abs(),
         parameters["Parameters grid"],
+        co2_certificate_cost,
         annuity=parameters["Line EPC"])
 
     results["Total costs electricity supply"] = pd.concat([results["Total costs electricity supply"], costs_el_storages_tmp], axis=1)
@@ -1246,13 +1253,15 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Total costs heat supply"] = _calculate_supply_costs(
         parameters["Installed capacity heat supply"],
         heat_generation,
-        params_heat_supply_tmp)
+        params_heat_supply_tmp,
+        co2_certificate_cost)
 
     # Calculate costs for heat storages and add to heat supply costs df
     costs_heat_storages_tmp = _calculate_supply_costs(
         parameters['Installed capacity heat storage'],
         discharge_stor_th_tmp,
-        stor_th_parameters)
+        stor_th_parameters,
+        co2_certificate_cost)
 
     # Calculate costs for district heating, capex are multiplied with the peak load
     idx = pd.IndexSlice
