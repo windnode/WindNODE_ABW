@@ -1154,7 +1154,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     # already included in the electricity generation costs
     params_heat_supply_tmp = parameters["Parameters th. generators"].loc[
         parameters["Parameters th. generators"].index != "district_heating"].copy()
-    params_heat_supply_tmp.loc[["elenergy", "pth", "pth_ASHP", "pth_GSHP"], "opex_var_comm"] = 0
+    params_heat_supply_tmp.loc[["elenergy", "pth", "pth_ASHP", "pth_GSHP"], ["opex_var_comm", "emissions_var_comm"]] = 0
     for pth_tech in ["pth_ASHP", "pth_GSHP"]:
         params_heat_supply_tmp.loc[pth_tech + "_stor"] = params_heat_supply_tmp.loc[pth_tech]
         params_heat_supply_tmp.loc[pth_tech + "_nostor"] = params_heat_supply_tmp.loc[pth_tech]
