@@ -1150,12 +1150,21 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
 
     # CO2 emissions heat
+    # Note: costs for the commodity of PtH technologies (pth* and elenergy) is set to zero, because these costs are
+    # already included in the electricity generation costs
+    params_heat_supply_tmp = parameters["Parameters th. generators"].loc[
+        parameters["Parameters th. generators"].index != "district_heating"].copy()
+    params_heat_supply_tmp.loc[["elenergy", "pth", "pth_ASHP", "pth_GSHP"], "opex_var_comm"] = 0
+    for pth_tech in ["pth_ASHP", "pth_GSHP"]:
+        params_heat_supply_tmp.loc[pth_tech + "_stor"] = params_heat_supply_tmp.loc[pth_tech]
+        params_heat_supply_tmp.loc[pth_tech + "_nostor"] = params_heat_supply_tmp.loc[pth_tech]
+        params_heat_supply_tmp.drop(pth_tech, inplace=True)
     heat_generation = results["Wärmeerzeugung nach Gemeinde"].sum(level="ags")
     heat_generation.index = heat_generation.index.astype(int)
     results_tmp_th = _calculate_co2_emissions("th.",
                                            heat_generation,
                                            parameters["Installed capacity heat supply"],
-                                           parameters["Parameters th. generators"])
+                                           params_heat_supply_tmp)
     results.update(results_tmp_th)
 
     # CO2 emissions attributed to heat storages
@@ -1230,16 +1239,6 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Total costs electricity supply"] = pd.concat([results["Total costs electricity supply"], costs_el_storages_tmp], axis=1)
 
     # Calculate heat supply costs
-    # Note: costs for the commodity of PtH technologies (pth* and elenergy) is set to zero, because these costs are
-    # already included in the electricity generation costs
-    params_heat_supply_tmp = parameters["Parameters th. generators"].loc[
-        parameters["Parameters th. generators"].index != "district_heating"].copy()
-    params_heat_supply_tmp.loc[["elenergy", "pth", "pth_ASHP", "pth_GSHP"], "opex_var_comm"] = 0
-    for pth_tech in ["pth_ASHP", "pth_GSHP"]:
-        params_heat_supply_tmp.loc[pth_tech + "_stor"] = params_heat_supply_tmp.loc[pth_tech]
-        params_heat_supply_tmp.loc[pth_tech + "_nostor"] = params_heat_supply_tmp.loc[pth_tech]
-        params_heat_supply_tmp.drop(pth_tech, inplace=True)
-
     results["Total costs heat supply"] = _calculate_supply_costs(
         parameters["Installed capacity heat supply"],
         heat_generation,
