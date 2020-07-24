@@ -329,46 +329,75 @@ class Region:
         return self._batteries_small
 
     @property
-    def pot_areas_pv(self):
-        return self._pot_areas_pv
-
-    @property
     def pot_areas_pv_roof(self):
         return self._pot_areas_pv_roof
 
     @property
-    def pot_areas_pv_scn(self):
-        """Return PV potential areas, aggregated by area scenario
+    def pot_areas_pv(self):
+        return self._pot_areas_pv
 
-        Return None for empty PV scenario.
+    def pot_areas_pv_scn(self, scenario, pv_usable_area_agri_max):
+        """Return PV potential areas (with and without restrictions on agricultural
+        areas) for given scenario, aggregated by scenario's PV ground area type.
+
+        Returns
+        -------
+        :obj:`dict` of :pandas:`pandas.DataFrame`
+            Potential areas with and without agricultural restrictions.
+            Return None for invalid or SQ scenario.
         """
-        if self._cfg['scn_data']['generation']['re_potentials'][
-                'pv_land_use_scenario'] == 'SQ':
+        scn = scenario.lower()
+        if scn not in ['hs', 'h']:
             return None
-        scn = self._cfg['scn_data']['generation'][
-            're_potentials']['pv_land_use_scenario']
-        return self._pot_areas_pv[
-            self._pot_areas_pv.index.get_level_values(level=1).str.endswith(
-                f'_{scn.lower()}')]['area_ha']
+
+        # --- w/o agri restrictions ---
+        pot_areas = {
+            'without_agri_restrictions':self._pot_areas_pv[
+                self._pot_areas_pv.index.get_level_values(
+                    level=1).str.endswith(f'_{scn}')]['area_ha']
+        }
+
+        # --- calc agri restrictions ---
+        areas = pot_areas['without_agri_restrictions'].copy()
+        areas_agri = areas[areas.index.get_level_values(level=1).str.startswith(
+            'agri_')]
+        # limit area on fields and meadows so that it does not exceed 1 % of the
+        # total area of fields and meadows in ABW
+        if pv_usable_area_agri_max != 'nolimit':
+            if areas_agri.sum() > pv_usable_area_agri_max:
+                areas_agri *= pv_usable_area_agri_max / areas_agri.sum()
+                areas.update(areas_agri)
+
+        pot_areas['with_agri_restrictions'] = areas
+
+        return pot_areas
 
     @property
     def pot_areas_wec(self):
+        """Return WEC potential areas for of all scenarios
+
+        Notes
+        -----
+        Scenario SQ contains VR/EG only (real values), other scenarios do not
+        incorporate case-by-case decisions and need to be multiplied with
+        parameter `wec_usable_area` to get the total usable area.
+        """
         return self._pot_areas_wec
 
-    @property
-    def pot_areas_wec_scn(self):
-        """Return WEC potential areas, aggregated by area scenario
+    def pot_areas_wec_scn(self, scenario):
+        """Return WEC potential areas for given scenario, aggregated by mun.
 
-        Return None for status quo or empty WEC scenario.
+        Returns
+        -------
+        :pandas:`pandas.DataFrame`
+            Potential areas, return None for invalid WEC scenario.
         """
-        if self._cfg['scn_data']['generation']['re_potentials'][
-                'wec_land_use_scenario'] == 'SQ':
+        scn = scenario.lower()
+        if scn not in ['s500f0', 's500f1', 's1000f0', 's1000f1', 'sq']:
             return None
-        scn = self._cfg['scn_data']['generation'][
-            're_potentials']['wec_land_use_scenario']
         return self._pot_areas_wec[
             self._pot_areas_wec.index.get_level_values(level=1) ==
-                scn.lower()]['area_ha']
+                scn]['area_ha'].groupby('ags_id').agg('sum')
 
     @property
     def demography(self):

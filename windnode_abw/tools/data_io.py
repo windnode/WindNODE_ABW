@@ -619,7 +619,7 @@ def load_scenario_cfg(scn_name=None):
         return convert2numeric(dict(ConfigObj(path)))
 
 
-def export_results(results, cfg, solver_meta):
+def export_results(results, cfg, solver_meta, infeasible):
     """Export results to CSV file, meta infos to JSON file
 
     A new directory is created
@@ -632,9 +632,12 @@ def export_results(results, cfg, solver_meta):
         Run and scenario config
     solver_meta : :obj:`dict`
         Meta infos from optimization
+    infeasible : :obj:`bool`
+        Model was infeasible
     """
     scenario_id = cfg['scn_data']['general']['id']
     meta = {
+        'infeasible': infeasible,
         'config': cfg,
         'memory_used_wo_solver': f'{str(log_memory_usage())} MB',
         'solver': solver_meta
@@ -648,6 +651,13 @@ def export_results(results, cfg, solver_meta):
     os.makedirs(results_path)
 
     logger.info(f'Exporting results to {results_path} ...')
+
+    # if infeasible, only use params for export
+    if infeasible:
+        results = {
+            'params_flows': results['params_flows'],
+            'params_stat': results['params_stat']
+        }
 
     for name, df in results.items():
         df.to_csv(os.path.join(results_path, f'{name}.csv'))
@@ -690,23 +700,29 @@ def load_results(timestamp, scenario):
                                 scenario
                                 )
 
+    logger.info(f'Loading raw results...')
+
     # DataFrames
     df_files = ['flows', 'vars_stat', 'params_flows']
     # Series
-    se_files = ['params_stat']
+    se_files = ['params_stat', 'invest']
 
     results = {}
-    for file in df_files:
-        results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
-                                    index_col=0,
-                                    header=[0, 1])
-    for file in se_files:
-        results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
-                                    index_col=[0, 1],
-                                    header=None,
-                                    squeeze=True)
+    try:
+        for file in df_files:
+            results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
+                                        index_col=0,
+                                        header=[0, 1])
+        for file in se_files:
+            results[file] = pd.read_csv(os.path.join(results_path, f'{file}.csv'),
+                                        index_col=[0, 1],
+                                        header=0,
+                                        squeeze=True)
 
-    with open(os.path.join(results_path, 'meta.json')) as file:
-        results['meta'] = json.load(file)
+        with open(os.path.join(results_path, 'meta.json')) as file:
+            results['meta'] = json.load(file)
+
+    except FileNotFoundError:
+        return None
 
     return results

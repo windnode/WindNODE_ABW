@@ -7,28 +7,23 @@ from windnode_abw.tools import config
 config.load_config('config_data.cfg')
 config.load_config('config_misc.cfg')
 
-from windnode_abw.tools.data_io import load_results
-from windnode_abw.analysis.tools import aggregate_flows
-from windnode_abw.model import Region
-from windnode_abw.tools.draw import sample_plots
+from windnode_abw.analysis import analysis
 
 
 if __name__ == "__main__":
+    # TODO: Nice-to-have: argparse
+
     # specify what to import (in path ~/.windnode_abw/)
-    timestamp = '200528_141225'
-    scenario = 'future'
+    run_timestamp = '2020-07-17_224437_1month'
 
-    # load raw results
-    results_raw = load_results(timestamp=timestamp,
-                               scenario=scenario)
+    # select multiple scenarios manually or use 'ALL' to analyze all
+    # scenarios found in directory
+    #scenarios = ['future', 'sq']
+    scenarios = ['ALL']
 
-    # import region using cfg from results meta
-    cfg = results_raw['meta']['config']
-    region = Region.import_data(cfg)
+    regions_scns, results_scns = analysis(run_timestamp=run_timestamp,
+                       scenarios=scenarios)
 
-    # do stuff!
-    results = aggregate_flows(results_raw)
+    logger.info('===== All done! =====')
 
-    sample_plots(region=region,
-                 results=results)
-
+    # DO STUFF WITH RESULTS (dict results_scns) HERE

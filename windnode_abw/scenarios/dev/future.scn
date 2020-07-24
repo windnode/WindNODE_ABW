@@ -83,7 +83,7 @@
         #   <VALUE>:  Nom. power in MW (if set, param 'pv_land_use_scenario'
         #             is used to distribute this power to municipalities.
         #
-        pv_installed_power = SQ
+        pv_installed_power = 800
 
         # potential area scenario to be used to build ground mounted PV
         # possible values:
@@ -96,16 +96,16 @@
         # the municipalities proportionally to the potential areas.
         # See function 'calc_available_pv_capacity()' for a list of
         # possible combinations.
-        pv_land_use_scenario = SQ
+        pv_land_use_scenario = HS
 
         # max. usable area in ha for PV installations on agricultural areas
         # (1 % of the total area of fields and meadows in ABW)
         # only used if 'pv_installed_power' = MAX_AREA
-        # leave empty for no restrictions
+        # use 'nolimit' for no restrictions
         pv_usable_area_agri_max = 2086
 
         # land use in ha/MWp
-        pv_land_use = 1.5
+        pv_land_use = 1
 
         ###################
         # ROOF-MOUNTED PV #
@@ -140,11 +140,14 @@
         #   <VALUE>:  Nom. power in MW (if set, param 'wec_land_use_scenario'
         #             is used to distribute this power to municipalities.
         #
-        wec_installed_power = SQ
+        wec_installed_power = 1000
 
         # potential area scenario to be used to build WEC
+        # (only takes effect if wec_installed_power != SQ)
         # possible values:
-        #   SQ: Status quo (existing WEC from DB only)
+        #   SQ: Status quo (VR/EG areas only)
+        #   s1000f0:  Use available areas resulting from 1000 m distance from
+        #             settlements, do not use forests (SQ regulations)
         #   s1000f1:  Use available areas resulting from 1000 m distance from
         #             settlements, do use forests
         #   s500f0:   Use available areas resulting from 500 m distance from
@@ -158,7 +161,8 @@
         wec_land_use_scenario = SQ
 
         # usable area (0..1) for WEC installations
-        wec_usable_area = 0.1
+        # use 1 if wec_land_use_scenario == SQ
+        wec_usable_area = 1
 
         # land use per WEC (E-141) in ha
         wec_land_use = 20
@@ -200,9 +204,9 @@
             # nominal thermal power
             nom_th_power = 60
             # minimal th. energy share provided by GuD in relation to demand
-            # TODO: Set back to 0.8 for annual optimization
-            min_th_energy_share = 0.8
-            #min_th_energy_share = 0
+            # CAUTION: If >0, the system might not be solvable for time ranges
+            # shorter than a full year!
+            min_th_energy_share = 0
             # cb-coefficient/back-pressure coefficient (Stromkennzahl/P-Q ratio)
             cb_coeff = 1.2
             # cv-coefficient/beta (Stromverlustkenziffer)
@@ -257,8 +261,24 @@
             inflow_conversion_factor = 1
             outflow_conversion_factor = 1
 
-    # heat storage for Dessau
+    # heat storage for district heating (except Dessau)
     [[th_cen_storage]]
+        [[[enabled]]]
+            enabled = 1
+        [[[general]]]
+            # spec. capacity in MWh/MW_th_peak (derived from Dessau)
+            capacity_spec = 5
+
+            # c-rates (derived from Dessau)
+            c_rate_charge = 0.1
+            c_rate_discharge = 0.1
+        [[[params]]]
+            loss_rate = 0.001
+            inflow_conversion_factor = 1
+            outflow_conversion_factor = 1
+
+    # heat storage for Dessau
+    [[th_cen_storage_dessau]]
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]
@@ -354,9 +374,8 @@
     [[flex_cen_pth]]
         [[[enabled]]]
             enabled = 1
-        [[[outflow]]]
-            nominal_value = 1000
         [[[params]]]
+            nom_th_power_rel_to_pl = 0.5
             conversion_factor = 0.95
 
     # demand side management in households

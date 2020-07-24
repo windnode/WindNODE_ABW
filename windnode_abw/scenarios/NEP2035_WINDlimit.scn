@@ -3,34 +3,32 @@
     year = 2035
 [commodities]
     commodities = fuel_oil, natural_gas, wood, coal, solar, methane
-    methane_share = 0
-[economics]
-    wacc = 0.06
+    methane_share = 0.55
 [demand]
     [[dem_el_general]]
         sectors = hh, rca, ind
-        saving_el_hh = 0
-        saving_el_rca = 0
-        saving_el_ind = 0
+        saving_el_hh = 0.0
+        saving_el_rca = 0.23
+        saving_el_ind = 0.23
     [[dem_el_hh]]
         profile_type = ioew
     [[dem_th_general]]
         sectors = hh_efh, hh_mfh, rca
-        saving_th_hh_efh = 0
-        saving_th_hh_mfh = 0
-        saving_th_rca = 0
+        saving_th_hh_efh = 0.125
+        saving_th_hh_mfh = 0.136
+        saving_th_rca = 0.14
 [generation]
     [[re_potentials]]
-        pv_installed_power = SQ
-        pv_land_use_scenario = SQ
+        pv_installed_power = 1268
+        pv_land_use_scenario = HS
         pv_usable_area_agri_max = 2086
-        pv_land_use = 1.5
-        pv_roof_installed_power = SQ
+        pv_land_use = 1
+        pv_roof_installed_power = 206
         pv_roof_resid_usable_area = 0.25
         pv_roof_ind_usable_area = 0.5
-        pv_roof_land_use = 0.7
-        wec_installed_power = SQ
-        wec_land_use_scenario = SQ
+        pv_roof_land_use = 0.55
+        wec_installed_power = MAX_AREA
+        wec_land_use_scenario = s500f1
         wec_usable_area = 0.1
         wec_land_use = 20
         wec_nom_power = 4.2
@@ -58,20 +56,20 @@
             nom_th_power = 110
             nom_el_power = 110
             cb_coeff = 1.2
-            cv_coeff = 0.125
+            cv_coeff = 125
             efficiency_full_cond = 0.47
             annual_th_prod = 330000
             annual_el_prod = 310000
-        [[[gas_bw]]]
-            nom_el_power = 40
-            annual_flh = 1250
+    [[gas_bw]]
+        nom_el_power = 0
+        annual_flh = 0
 [storage]
     [[th_dec_pth_storage]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[general]]]
-            pth_storage_share = 0
-            capacity_spec = 60
+            pth_storage_share = 0.71
+            capacity_spec = 74.2
             delta_temp = 40
             c_rate_charge = 6.7
             c_rate_discharge = 6.7
@@ -80,6 +78,17 @@
             inflow_conversion_factor = 1
             outflow_conversion_factor = 1
     [[th_cen_storage]]
+        [[[enabled]]]
+            enabled = 1
+        [[[general]]]
+            capacity_spec = 5
+            c_rate_charge = 0.1
+            c_rate_discharge = 0.1
+        [[[params]]]
+            loss_rate = 0.001
+            inflow_conversion_factor = 1
+            outflow_conversion_factor = 1
+    [[th_cen_storage_dessau]]
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]
@@ -92,32 +101,21 @@
             inflow_conversion_factor = 1
             outflow_conversion_factor = 1
 [grid]
-    [[lines]]
-        [[[params]]]
-            conversion_factor = 0.988
-        [[[outflow]]]
-            variable_costs = 0.0001
-    [[trafos]]
-        [[[params]]]
-            conversion_factor = 0.997
     [[extgrid]]
         [[[imex_lines]]]
-            [[[[params]]]]
-                conversion_factor = 0.988
-                power_limit = 1
-                energy_limit = 1
-            [[[[outflow]]]]
-                variable_costs = 0.0001
+            power_limit_bypass = 1.0
+        [[[import]]]
+            energy_limit = 1.0
 [flexopt]
     [[flex_bat_large]]
         [[[enabled]]]
-            enabled = 0
+            enabled = 1
         [[[inflow]]]
-            nominal_value = 0
+            nominal_value = 50
         [[[outflow]]]
-            nominal_value = 0
+            nominal_value = 50
         [[[params]]]
-            nominal_storage_capacity = 0
+            nominal_storage_capacity = 200
             loss_rate = 0.0042
             inflow_conversion_factor = 0.94
             outflow_conversion_factor = 0.93
@@ -147,14 +145,13 @@
             icing_temp = 2
     [[flex_cen_pth]]
         [[[enabled]]]
-            enabled = 0
-        [[[outflow]]]
-            nominal_value = 1000
+            enabled = 1
         [[[params]]]
+            nom_th_power_rel_to_pl = 0.5
             conversion_factor = 0.95
     [[dsm]]
         [[[params]]]
-            hh_share = 0
+            hh_share = 0.21
             method = interval
             shift_interval = 24
             delay_time = 12

@@ -38,9 +38,8 @@ def run_scenario(cfg):
 
     Returns
     -------
-    oemof.solph.EnergySystem
-        Energy system including results
-    :class:`~.model.Region`
+    :obj:`str`
+        Scenario name if model is infeasible, None otherwise.
     """
 
     # define paths
@@ -105,18 +104,29 @@ def run_scenario(cfg):
 
     log_memory_usage()
     logger.info('Processing results...')
-    # add results to energy system
-    esys.results['main'] = outputlib.processing.results(om)
-    # add meta infos
-    esys.results['meta'] = outputlib.processing.meta_results(om)
+
+    if om.solver_results.Solver.Status.key == 'ok':
+        # add results to energy system
+        esys.results['main'] = outputlib.processing.results(om)
+        # add meta infos
+        esys.results['meta'] = outputlib.processing.meta_results(om)
+        # add om flows to allow access Flow objects
+        # esys.results['om_flows'] = list(om.flows.items())
+
+        infeasible = False
+    else:
+        logger.warning('Model infeasible! Only input params and meta info '
+                       'dumped')
+        esys.results['meta'] = {}
+        infeasible = True
+
     # add initial params to energy system
     esys.results['params'] = outputlib.processing.parameter_as_dict(esys)
-    # add om flows to allow access Flow objects
-    #esys.results['om_flows'] = list(om.flows.items())
+
+    # convert results to DF
+    results = results_to_dataframes(esys, infeasible)
 
     log_memory_usage()
-
-    results = results_to_dataframes(esys)
 
     # dump esys to file
     if cfg['dump_esys']:
@@ -131,12 +141,15 @@ def run_scenario(cfg):
     if cfg['dump_results']:
         export_results(results=results,
                        cfg=cfg,
-                       solver_meta=esys.results['meta'])
+                       solver_meta=esys.results['meta'],
+                       infeasible=infeasible)
 
     logger.info(f'===== Scenario {cfg["scenario"]} done! =====')
 
     # debug_plot_results(esys=esys,
     #                    region=region)
+
+    return cfg['scenario'] if infeasible else None
 
 
 if __name__ == "__main__":
@@ -210,18 +223,28 @@ if __name__ == "__main__":
         'dump_results': True
     }
 
+    infeasible_scenarios = []
+
     # use MP
     if args.proc_count > 1:
         pool = multiprocessing.Pool(args.proc_count)
         cfgs = [dict(**c, **{'scenario': s})
                 for c, s in zip([cfg] * len(scenarios), scenarios)]
-        pool.map(run_scenario, cfgs)
+        infeasible_scenario = pool.map(run_scenario, cfgs)
         pool.close()
+        infeasible_scenarios = [_
+                                for _ in infeasible_scenario
+                                if _ is not None]
 
     # do not use MP
     else:
         for scn_id in scenarios:
             cfg['scenario'] = scn_id
-            run_scenario(cfg=cfg)
+            infeasible_scenario = run_scenario(cfg=cfg)
+            if infeasible_scenario is not None:
+                infeasible_scenarios.append(scn_id)
+
+    if len(infeasible_scenarios) > 0:
+        logger.warning(f'Infeasible scenarios: {infeasible_scenarios}')
 
     logger.info('===== All done! =====')

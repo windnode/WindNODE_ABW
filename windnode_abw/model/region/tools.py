@@ -838,10 +838,15 @@ def calc_available_pv_capacity(region):
     """
     cfg = region.cfg['scn_data']['generation']['re_potentials']
 
-    if region.pot_areas_pv_scn is None:
+    areas = region.pot_areas_pv_scn(
+        scenario=cfg['pv_land_use_scenario'],
+        pv_usable_area_agri_max=cfg['pv_usable_area_agri_max']
+    )
+
+    if areas is None:
         if cfg['pv_installed_power'] == 'MAX_AREA':
             msg = 'Cannot calculate PV potential (param pv_installed_power=' \
-                  'AVAIL_AREA but no pv_land_use_scenario selected)'
+                  'MAX_AREA but no pv_land_use_scenario selected)'
             logger.error(msg)
             raise ValueError(msg)
         elif isinstance(cfg['pv_installed_power'], float):
@@ -852,18 +857,7 @@ def calc_available_pv_capacity(region):
             raise ValueError(msg)
         return None
 
-    areas = region.pot_areas_pv_scn.copy()
-    areas_agri = areas[areas.index.get_level_values(level=1).str.startswith(
-        'agri_')]
-
-    # limit area on fields and meadows so that it does not exceed 1 % of the
-    # total area of fields and meadows in ABW
-    if cfg['pv_usable_area_agri_max'] != '':
-        if areas_agri.sum() > cfg['pv_usable_area_agri_max']:
-            areas_agri *= cfg['pv_usable_area_agri_max'] / areas_agri.sum()
-            areas.update(areas_agri)
-
-    areas_agg = areas.groupby('ags_id').agg('sum')
+    areas_agg = areas['with_agri_restrictions'].groupby('ags_id').agg('sum')
 
     # use all available areas from DB
     if cfg['pv_installed_power'] == 'MAX_AREA':
@@ -923,11 +917,17 @@ def calc_available_pv_roof_capacity(region):
 
     # use given power, distribute to muns using available areas from DB
     else:
+        # distribute power to small (resid) and large (ind) plants prop. to available rooftoparea
+        resid_ind_distribution_ratio = areas_agg.sum(axis=0)['area_resid_ha'] / \
+                                       areas_agg.sum(axis=0)['area_ind_ha']
+
         gen_capacity_pv_roof_small = (areas_agg['area_resid_ha'] /
                                       areas_agg['area_resid_ha'].sum() *
+                                      resid_ind_distribution_ratio *
                                       cfg['pv_roof_installed_power'])
         gen_capacity_pv_roof_large = (areas_agg['area_ind_ha'] /
                                       areas_agg['area_ind_ha'].sum() *
+                                      (1-resid_ind_distribution_ratio) *
                                       cfg['pv_roof_installed_power'])
 
     return pd.DataFrame({'gen_count_pv_roof_small': 0,
@@ -947,14 +947,13 @@ def calc_available_wec_capacity(region):
 
     Possible combinations of config params `wec_installed_power` and
     `wec_land_use_scenario`:
-    =================== ===================== ==========================================
-    wec_installed_power wec_land_use_scenario result
-    =================== ===================== ==========================================
-    SQ                  SQ                    SQ data
-    SQ                  s1000f1/s500f0/s500f1 SQ data
-    MAX_AREA            s1000f1/s500f0/s500f1 max. potential using wec_land_use_scenario
-    VALUE               s1000f1/s500f0/s500f1 VALUE distrib. using wec_land_use_scenario
-    =================== ===================== ==========================================
+    =================== ================================ ==========================================
+    wec_installed_power wec_land_use_scenario            result
+    =================== ================================ ==========================================
+    SQ                  SQ/s1000f0/s1000f1/s500f0/s500f1 SQ data only
+    MAX_AREA            SQ/s1000f0/s1000f1/s500f0/s500f1 max. potential using wec_land_use_scenario
+    VALUE               SQ/s1000f0/s1000f1/s500f0/s500f1 VALUE distrib. using wec_land_use_scenario
+    =================== ================================ ==========================================
 
     Parameters
     ----------
@@ -973,32 +972,35 @@ def calc_available_wec_capacity(region):
     config (wec_installed_power).
     """
     cfg = region.cfg['scn_data']['generation']['re_potentials']
+    areas = region.pot_areas_wec_scn(scenario=cfg['wec_land_use_scenario'])
 
-    if region.pot_areas_wec_scn is None:
+    if areas is None:
         if cfg['wec_installed_power'] == 'MAX_AREA':
             msg = 'Cannot calculate WEC potential (param wec_installed_power=' \
-                  'AVAIL_AREA but no wec_land_use_scenario selected)'
+                  'MAX_AREA but no valid wec_land_use_scenario selected)'
             logger.error(msg)
             raise ValueError(msg)
         elif isinstance(cfg['wec_installed_power'], float):
             msg = 'Cannot calculate WEC potential (param wec_installed_power ' \
-                  'is numeric but no wec_land_use_scenario selected to ' \
+                  'is numeric but no valid wec_land_use_scenario selected to ' \
                   'distribute power)'
             logger.error(msg)
             raise ValueError(msg)
         return None
 
-    areas_agg = region.pot_areas_wec_scn.groupby('ags_id').agg('sum')
+    # use SQ turbines only
+    if cfg['wec_installed_power'] == 'SQ':
+        return None
 
     # use all available areas from DB
-    if cfg['wec_installed_power'] == 'MAX_AREA':
-        gen_count_wind = (areas_agg *
+    elif cfg['wec_installed_power'] == 'MAX_AREA':
+        gen_count_wind = (areas *
                           cfg['wec_usable_area'] /
                           cfg['wec_land_use']).round().astype(int)
         gen_capacity_wind = gen_count_wind * cfg['wec_nom_power']
     # use given power, distribute to muns using available areas from DB
     else:
-        gen_count_wind = (areas_agg / sum(areas_agg) *
+        gen_count_wind = (areas / sum(areas) *
                           (cfg['wec_installed_power'] / cfg['wec_nom_power'])
                           ).round().astype(int)
         gen_capacity_wind = gen_count_wind * cfg['wec_nom_power']
