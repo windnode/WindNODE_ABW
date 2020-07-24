@@ -1028,14 +1028,17 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         if annuity is None:
             annuity = params["annuity"]
 
-        # costs_fix =
-        costs = (capacity * (annuity + params["opex_fix"])).fillna(0) + (generation * params["opex_var"]).fillna(0)
+        costs = {}
+
+        costs["Fix costs"] = (capacity * (annuity + params["opex_fix"])).fillna(0)
+        costs["Variable costs"] = (generation * params["opex_var"]).fillna(0)
 
         if "opex_var_comm" in params and "sys_eff" in params:
-            co2_certificate_cost = params["emissions_var_comm"] * co2_certificate
-            costs_commodity = (generation * (params["opex_var_comm"] + co2_certificate_cost) / params["sys_eff"]).fillna(0)
+            costs["CO2 certificate cost"] = (
+                    generation * params["emissions_var_comm"] * co2_certificate / params["sys_eff"]).fillna(0)
+            costs_commodity = (generation * params["opex_var_comm"] / params["sys_eff"]).fillna(0)
+            costs["Variable costs"] = costs["Variable costs"] + costs_commodity
 
-            costs = costs + costs_commodity
 
         return costs
 
@@ -1214,11 +1217,12 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     # Calculate supply costs
     # Note: Revenues for exported electricity are considered with negative costs
-    results["Total costs electricity supply"] = _calculate_supply_costs(
+    costs_el_generation_tmp = _calculate_supply_costs(
         parameters["Installed capacity electricity supply"],
         results["Stromerzeugung nach Gemeinde"],
         parameters["Parameters el. generators"],
         co2_certificate_cost)
+    # results["Total costs electricity supply"]
     # Export revenues calculated with constant electricity price of 75 EUR/MWh
     # TODO: if you include it, make sure sum of LCOE calculated in create_highlevel_results() ignore these revenues
     # export_revenues = results["Stromnachfrage nach Gemeinde"]["export"] * -parameters["Parameters el. generators"].loc[
@@ -1247,10 +1251,15 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         co2_certificate_cost,
         annuity=parameters["Line EPC"])
 
-    results["Total costs electricity supply"] = pd.concat([results["Total costs electricity supply"], costs_el_storages_tmp], axis=1)
+    # Merge costs data of several el. technologies
+    for k in list(costs_el_generation_tmp.keys()):
+        results[k + " el."] = pd.concat([c[k] for c in [costs_el_generation_tmp, costs_el_storages_tmp] if k in c], axis=1)
+    results["Total costs electricity supply"] = results["Fix costs el."].\
+        add(results["Variable costs el."], fill_value=0).\
+        add(results["CO2 certificate cost el."], fill_value=0)
 
     # Calculate heat supply costs
-    results["Total costs heat supply"] = _calculate_supply_costs(
+    costs_heat_generation_tmp = _calculate_supply_costs(
         parameters["Installed capacity heat supply"],
         heat_generation,
         params_heat_supply_tmp,
@@ -1273,10 +1282,14 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         parameters["Parameters th. generators"].loc["district_heating"],
         co2_certificate_cost)
 
-    results["Total costs heat supply"] = pd.concat([
-        results["Total costs heat supply"],
-        costs_heat_storages_tmp,
-        costs_heat_dist_heating], axis=1)
+    # Merge costs data of several heat technologies
+    for k in list(costs_heat_generation_tmp.keys()):
+        results[k + " th."] = pd.concat([c[k] for c in [costs_heat_generation_tmp,
+                                                        costs_heat_storages_tmp,
+                                                        costs_heat_dist_heating] if k in c], axis=1).fillna(0)
+    results["Total costs heat supply"] = results["Fix costs th."].\
+        add(results["Variable costs th."], fill_value=0).\
+        add(results["CO2 certificate cost th."], fill_value=0)
 
 
     # Add Autarky
