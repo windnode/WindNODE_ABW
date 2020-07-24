@@ -94,14 +94,11 @@ GEN_TH_NAMES = {
         "params": "heating_coal",
         "params_comm": "comm_coal"},
     "pth": {
-        "params": "heating_rod",
-        "params_comm": "elenergy"},
+        "params": "heating_rod"},
     "pth_ASHP": {
-        "params": "heating_ashp",
-        "params_comm": "elenergy"},
+        "params": "heating_ashp"},
     "pth_GSHP": {
-        "params": "heating_gshp",
-        "params_comm": "elenergy"},
+        "params": "heating_gshp"},
     "district_heating": {
         "params": "district_heating"
     }
