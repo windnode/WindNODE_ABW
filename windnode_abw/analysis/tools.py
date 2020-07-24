@@ -1186,7 +1186,10 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         district_heating_dem.sum(level="ags"),
         parameters["Parameters th. generators"].loc["district_heating"])
 
-    results["Total costs heat supply"] = pd.concat([results["Total costs heat supply"], costs_heat_storages_tmp], axis=1)
+    results["Total costs heat supply"] = pd.concat([
+        results["Total costs heat supply"],
+        costs_heat_storages_tmp,
+        costs_heat_dist_heating], axis=1)
 
 
     # Add Autarky
