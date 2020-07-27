@@ -109,6 +109,7 @@ GEN_TH_NAMES = {
 
 UNITS = {
     'Grid losses': 'MWh',
+    'Electricity generation': 'MWh',
     'Electricity demand': 'MWh',
     'Electricity demand for heating': 'MWh',
     'Electricity demand total': 'MWh',
