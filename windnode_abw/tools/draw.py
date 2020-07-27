@@ -41,6 +41,7 @@ PRINT_NAMES = {
     'wind': "Wind",
     "export" : "Export (national grid)",
     'import': "Import (national grid)",
+    "el_heating": "electrical Heating",
     "elenergy": "Direct electric heating",
     "fuel_oil": "Oil heating",
     "gas_boiler": "Gas (district heating)",
@@ -86,6 +87,7 @@ COLORS = {'bio': 'green',
           'wind': 'skyblue',
           'conventional':'grey',
           'solar_heat': 'peru',
+          'el_heating': 'red',
           'gud':'teal',
           'bhkw' : 'seagreen',
           'gas' : 'lightgrey',
@@ -591,6 +593,8 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
         if ags=='ABW':
             df_feedin = df_feedin.sum(level=0)#.loc[start:end,:]
             df_demand = df_demand.sum(level=0)#.loc[start:end,:]
+            df_demand = df_demand.join(results_scn['flows_txaxt']['Stromnachfrage Wärme'].sum(level=2).sum(axis=1).rename('el_heating'))
+
         else:
             # add intra regional exchange
             df_feedin = df_feedin.join(results_scn['flows_txaxt']['Intra-regional exchange']['import'].rename('ABW-import'))#.loc[(slice(None), ags)])
@@ -598,6 +602,8 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
 
             df_feedin = df_feedin.loc[(slice(None),ags),:].sum(level=0)#.loc[start:end,:]
             df_demand = df_demand.loc[(slice(None),ags),:].sum(level=0)
+            el_heating = results_scn['flows_txaxt']['Stromnachfrage Wärme'].loc[(slice(None),slice(None),ags),:].sum(level='timestamp')
+            df_demand['el_heating'] = el_heating.sum(axis=1)
 
     elif kind == 'th':
         df_feedin = results_scn['flows_txaxt']['Wärmeerzeugung']
