@@ -1,5 +1,7 @@
 import pandas as pd
 from numpy import inf
+import papermill as pm
+import os
 
 import logging
 logger = logging.getLogger('windnode_abw')
@@ -1360,3 +1362,18 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel.index= mindex
     
     return highlevel
+
+
+def create_scenario_notebook(scenario, run_id, template="scenario_analysis_template.ipynb",
+                             output_path=""):
+
+    # define data and paths
+    output_name = "scenario_analysis_{scenario}.ipynb".format(scenario=scenario)
+    output_notebook = os.path.join(output_path, output_name)
+
+    # execute notebook with specific parameter
+    pm.execute_notebook(template, output_notebook,
+                        parameters={
+                            "scenario": scenario,
+                            "run_timestamp": run_id},
+                        request_save_on_cell_execute=True)

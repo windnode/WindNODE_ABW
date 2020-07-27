@@ -33,7 +33,8 @@ setup(
         'descartes',
         'psutil',
         'seaborn',
-        'plotly'
+        'plotly',
+        'papermill'
     ],
     # package_data={
     #     'config': [
