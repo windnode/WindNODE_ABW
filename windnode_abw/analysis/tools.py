@@ -2,6 +2,9 @@ import pandas as pd
 from numpy import inf
 import papermill as pm
 import os
+from windnode_abw import __path__ as wn_path
+import multiprocessing as mp
+
 
 import logging
 logger = logging.getLogger('windnode_abw')
@@ -1380,6 +1383,19 @@ def create_scenario_notebook(scenario, run_id, template, output_path=""):
 
 def create_multiple_scenario_notebooks(scenarios, run_id, template="scenario_analysis_template.ipynb", output_path="",
                                        num_processes=None):
+
+    # get list of available scenarios
+    avail_scenarios = [file.split('.')[0]
+                       for file in os.listdir(os.path.join(wn_path[0],
+                                                           'scenarios'))
+                       if file.endswith(".scn")]
+    avail_scenarios_str = ''.join(
+        [(s+',\n  ' if (n%5 == 0 and n > 0) else s+', ')
+         for n, s in enumerate(avail_scenarios)])
+
+    # create scenario list
+    if scenarios == 'all':
+        scenarios = avail_scenarios
 
     pool = mp.Pool(processes=num_processes)
 
