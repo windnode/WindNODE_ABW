@@ -313,6 +313,12 @@ def create_el_model(region=None, datetime_index=None):
     imex_bus = solph.Bus(label='b_el_imex')
     nodes.append(imex_bus)
 
+    # calc costs and emissions
+    costs_var = region.tech_assumptions_scn.loc[
+        'elenergy']['capex']
+    emissions_var = region.tech_assumptions_scn.loc[
+        'elenergy']['emissions_var']
+
     for idx, row in region.buses[~region.buses['region_bus']].iterrows():
         bus = buses[idx]
 
@@ -324,8 +330,7 @@ def create_el_model(region=None, datetime_index=None):
                     v_level='hv' if row['v_nom'] == 110 else 'ehv'
                 ),
                 inputs={bus: solph.Flow(
-                    variable_costs=-region.tech_assumptions_scn.loc[
-                        'elenergy']['capex']
+                    variable_costs=-costs_var
                 )})
         )
         nodes.append(
@@ -335,10 +340,10 @@ def create_el_model(region=None, datetime_index=None):
                     v_level='hv' if row['v_nom'] == 110 else 'ehv'
                 ),
                 outputs={bus: solph.Flow(
-                    variable_costs=region.tech_assumptions_scn.loc[
-                        'elenergy']['capex'],
-                    emissions=region.tech_assumptions_scn.loc[
-                        'elenergy']['emissions_var']
+                    variable_costs=(costs_var + emissions_var *
+                                    region.tech_assumptions_scn.loc[
+                                        'emission']['capex']),
+                    emissions=emissions_var
                 )})
         )
 
@@ -409,9 +414,9 @@ def create_el_model(region=None, datetime_index=None):
                 outputs={
                     bus0: solph.Flow(
                         variable_costs=region.tech_assumptions_scn.loc[
-                            'line']['opex_var'],
+                            'line']['opex_var'] * row['length'],
                         emissions=region.tech_assumptions_scn.loc[
-                            'line']['emissions_var'],
+                            'line']['emissions_var'] * row['length'],
                         investment=solph.Investment(
                             ep_costs=region.tech_assumptions_scn.loc[
                                          'line']['annuity'] * row['length'],
@@ -420,9 +425,9 @@ def create_el_model(region=None, datetime_index=None):
                     ),
                     bus1: solph.Flow(
                         variable_costs=region.tech_assumptions_scn.loc[
-                            'line']['opex_var'],
+                            'line']['opex_var'] * row['length'],
                         emissions=region.tech_assumptions_scn.loc[
-                            'line']['emissions_var'],
+                            'line']['emissions_var'] * row['length'],
                         investment=solph.Investment(
                             ep_costs=region.tech_assumptions_scn.loc[
                                          'line']['annuity'] * row['length'],
@@ -526,13 +531,17 @@ def create_th_model(region=None, datetime_index=None, esys_nodes=None):
             continue
         if es not in ['elenergy', 'dist_heating']:
             bus = solph.Bus(label=f'b_{es}')
+            costs_var = region.tech_assumptions_scn.loc[
+                'comm_' + es]['capex'] if es != 'solar' else 0
+            emissions_var = region.tech_assumptions_scn.loc[
+                'comm_' + es]['emissions_var'] if es != 'solar' else 0
             com = solph.Source(
                 label=es,
                 outputs={bus: solph.Flow(
-                    variable_costs=region.tech_assumptions_scn.loc[
-                        'comm_' + es]['capex'] if es != 'solar' else 0,
-                    emissions=region.tech_assumptions_scn.loc[
-                        'comm_' + es]['emissions_var']  if es != 'solar' else 0
+                    variable_costs=(costs_var + emissions_var *
+                                    region.tech_assumptions_scn.loc[
+                                        'emission']['capex']),
+                    emissions=emissions_var
                 )
                 }
             )

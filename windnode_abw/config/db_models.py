@@ -374,7 +374,10 @@ class WnAbwTechAssumptions(Base):
     year : :class:`sqlalchemy.sql.schema.Column`
         Year
     capex : :class:`sqlalchemy.sql.schema.Column`
-        CAPEX in EUR/kw
+        CAPEX, units:
+            * For systems in EUR/kW
+            * For commodities in EUR/kWh
+            * For emissions in EUR/g
     opex_fix : :class:`sqlalchemy.sql.schema.Column`
         Fixed OPEX in EUR/(kWh*a), apples to systems only
     opex_var : :class:`sqlalchemy.sql.schema.Column`
@@ -389,6 +392,10 @@ class WnAbwTechAssumptions(Base):
         Annual system efficiency, apples to systems only
     wacc : :class:`sqlalchemy.sql.schema.Column`
         Weighted Average Cost of Capital
+
+    Notes
+    -----
+    The units are converted to MW and kg on import (cf. data_io).
     """
     __tablename__ = 'wn_abw_tech_assumptions'
     __table_args__ = {'schema': 'windnode'}
