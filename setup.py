@@ -31,7 +31,9 @@ setup(
         'pygraphviz',
         'configobj',
         'descartes',
-        'psutil'
+        'psutil',
+        'seaborn',
+        'plotly'
     ],
     # package_data={
     #     'config': [

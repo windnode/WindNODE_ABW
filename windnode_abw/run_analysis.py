@@ -19,7 +19,8 @@ if __name__ == "__main__":
     # select multiple scenarios manually or use 'ALL' to analyze all
     # scenarios found in directory
     #scenarios = ['future', 'sq']
-    scenarios = ['ALL']
+    #scenarios = ['ALL']
+    scenarios = ['NEP2035']
 
     regions_scns, results_scns = analysis(run_timestamp=run_timestamp,
                        scenarios=scenarios)

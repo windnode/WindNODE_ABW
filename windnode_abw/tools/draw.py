@@ -6,16 +6,107 @@ rcParams['font.sans-serif'] = 'Roboto'
 rcParams['font.weight'] = 'normal'
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.ticker import ScalarFormatter
+import matplotlib.gridspec as gridspec
+
 
 import pandas as pd
 import geopandas as gpd
 import os
+
+import seaborn as sns
+# set seaborn style
+sns.set()
+
+import plotly.express as px
+import plotly.io as pio
+import plotly.graph_objs as go
+import plotly.offline as pltly
 
 from oemof.outputlib import views
 from oemof.graph import create_nx_graph
 
 import logging
 logger = logging.getLogger('windnode_abw')
+
+PRINT_NAMES = {
+    'bhkw': "Large-scale CHP",
+    'bio': "Biogas",
+    'gas': "Open-cycle gas turbine",
+    'gud': "Combined-cycle gas turbine",
+    'hydro': "Hydro",
+    'pv_ground': "PV ground-mounted",
+    'pv_roof_large': "PV roof top (large)",
+    'pv_roof_small': "PV roof top (small)",
+    'wind': "Wind",
+    "export" : "Export (national grid)",
+    'import': "Import (national grid)",
+    "el_heating": "electrical Heating",
+    "elenergy": "Direct electric heating",
+    "fuel_oil": "Oil heating",
+    "gas_boiler": "Gas (district heating)",
+    "natural_gas": "Gas heating",
+    "solar": "Solar thermal heating",
+    "solar_heat": "Solar heating",
+    "wood": "Wood heating",
+    "coal": "Coal heating",
+    "pth": "Power-to-heat (district heating)",
+    "pth_ASHP" : "Air source heat pump",
+    "pth_ASHP_nostor" : "Air source heat pump, no storage",
+    "pth_ASHP_stor" : "Air source heat pump, storage",
+    "pth_GSHP" : "Ground source heat pump",
+    "pth_GSHP_nostor" :"Ground source heat pump, no storage",
+    "pth_GSHP_stor" : "Ground source heat pump, storage",
+    "stor_th_large" : "Thermal storage (district heating)",
+    "stor_th_small" : "Thermal storage",
+    "flex_bat_large" : "Large-scale battery storage",
+    "flex_bat_small" : "PV system battery storage",
+    "hh" : "Households",
+    "ind" : "Industry",
+    "rca" : "CTS+agriculture",
+    "conventional" : "Conventional",
+    "el_hh" : "Electricity households",
+    "el_rca" : "Electricity CTS+agriculture",
+    "el_ind" : "Electricity industry",
+    "th_hh_efh" : "Heat single-family houses",
+    "th_hh_mfh" : "Heat apartment buildings",
+    "th_rca": "Heat CTS+agriculture",
+    "hh_efh" : "Single-family houses",
+    "hh_mfh" : "Apartment buildings",
+    "ABW-export": "Export (regional)",
+    "ABW-import": "Import (regional)"
+}
+
+# https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
+# https://plotly.com/python/builtin-colorscales/
+COLORS = {'bio': 'green',
+          'hydro': 'royalblue',
+          'pv_ground' : 'goldenrod',
+          'pv_roof_large' : 'gold',
+          'pv_roof_small' : 'darkorange',
+          'wind': 'skyblue',
+          'conventional':'grey',
+          'solar_heat': 'peru',
+          'el_heating': 'red',
+          'gud':'teal',
+          'bhkw' : 'seagreen',
+          'gas' : 'lightgrey',
+          'import' : 'maroon',
+          'export' : 'olive',
+          'demand' : 'darkgray',
+          'rca': 'gray',
+          'hh': 'darkmagenta',
+          'ind': 'darkslategray',
+          'el_rca': 'gray',
+          'el_hh': 'darkmagenta',
+          'el_ind': 'darkslategray',
+          'th_hh_efh': 'plum',
+          'th_hh_mfh': 'fuchsia',
+          'th_rca' : 'crimson',
+          'ABW-export': 'mediumpurple',
+          'ABW-import': 'mediumorchid',
+
+         }
 
 
 def draw_graph(grph, mun_ags=None,
@@ -348,3 +439,236 @@ def sample_plots(region, results):
     ax.set_ylim(0)
     plt.legend()
     plt.show()
+
+
+
+# one geoplot to fit in subplots
+def plot_geoplot(name, data, region, ax, cmap='viridis', unit=None):
+    """plot geoplot from pd.Series
+    Parameters
+    ----------
+    name : str
+        title of plot
+    data : pd.Series
+        data to plot
+    region : :class:`~.model.Region`
+        Region object
+    ax : matplotlib.axes
+        coordinate system
+    cmap : str
+        colormap
+    unit : str
+        label of colorbar
+    """
+    gdf_region = gpd.GeoDataFrame(region.muns.loc[:,['gen', 'geom']],
+                                  geometry='geom')
+    gdf_region = gdf_region.join(data,
+                                 how='inner')
+
+    # size the colorbar to plot
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right" , size="5%", pad=0.05)
+
+    #
+    gdf_region.plot(column=data.values,
+                    ax=ax,
+                    legend=True,
+                    cmap=cmap,
+                    cax=cax,
+                    legend_kwds={'label': unit}
+                   )
+
+    # Set title, remove ticks/grid
+    ax.set_title(name)
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    ax.grid(False)
+
+
+
+def plot_snd_total(region, df_supply, df_demand):
+    """plot barplot of yearly total supply and demand per ags
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+    df_supply : pd.DataFrame
+        yearly total per ags
+    df_demand : pd.DataFrame
+        yearly total per ags
+    """    
+    fig = go.Figure()
+    for tech, data in df_supply.iteritems():
+        fig.add_trace(go.Bar(x=region.muns['gen'],
+                             y=data / 1e3,
+                             name=PRINT_NAMES[tech],
+                             marker_color=COLORS[tech]))
+
+
+
+    for tech, data in df_demand.iteritems():
+        fig.add_trace(go.Bar(x=region.muns['gen'],
+                             y=-data / 1e3,
+                             name=PRINT_NAMES[tech],
+                             marker_color=COLORS[tech],
+                            visible='legendonly'))
+
+
+    fig.update_layout(
+        title='Power Generation and Demand',
+        barmode='relative',
+        height=600,
+        xaxis={'categoryorder':'category ascending'},
+        xaxis_tickfont_size=14,
+        yaxis=dict(title='GWh',
+            titlefont_size=16,
+            tickfont_size=14),
+            autosize=True)
+    fig.show()
+
+
+def plot_split_hbar(data, limit, ax, title=None, unit=None):
+    """plot 2 horizontal barplot with data splitted at limit
+    Parameters
+    ----------
+    data : pd.Series
+        indexed values to plot
+    limit : int/float
+        threshold to split barplot at
+    ax : matplotlib.axes
+        coordinate system
+    title : str
+        title describing data
+    unit : str
+        xlabel: unit of data
+    """
+    # split data
+    data_left = data[data < limit]
+    data_right = data[data >= limit]
+
+    ax.set_title(title)
+    # split subplot
+    inner = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=ax, wspace=0.35, hspace=0.2)
+    
+    # left plot
+    ax1 = plt.subplot(inner[0])
+    data_left.plot(kind='barh', ax=ax1)#, color=colors_hight(df_data_left.values, 'winter'))
+    ax1.set_ylabel('AGS')
+    ax1.set_xlabel(unit)
+    ax1.set_xlim([0,limit])
+    ax1.set_title(title, loc='left', fontsize=12)    
+
+
+    # right plot
+    ax2 = plt.subplot(inner[1])
+    data_right.plot(kind='barh', ax=ax2)# color=colors_hight(df_data_right.values, 'winter'))
+    ax2.set_ylabel(None)
+    ax2.set_xlabel(unit)
+    ax2.set_title(title,loc='left', fontsize=12)
+
+
+
+def plot_timeseries(results_scn, kind='el', **kwargs):
+    """plot generation and demand timeseries of either 'electrical' or 'thermal' components
+    Parameters
+    ----------
+    results_scn : dict
+        scenario result
+    kind : str
+        'el' or 'th'
+    *ags : str/int
+        ags number or 'ABW' for whole region
+    """
+    #start = kwargs.get('start', region.cfg['date_from'])
+    #end = kwargs.get('end', region.cfg['date_to'])
+    ags = kwargs.get('ags', 'ABW')
+    
+    # remove if ags in multiindex is converted to int
+    ags = str(ags)
+    
+    if kind =='el':
+        df_feedin = results_scn['flows_txaxt']['Stromerzeugung']
+        df_demand = results_scn['flows_txaxt']['Stromnachfrage']
+
+        if ags=='ABW':
+            df_feedin = df_feedin.sum(level=0)#.loc[start:end,:]
+            df_demand = df_demand.sum(level=0)#.loc[start:end,:]
+            df_demand = df_demand.join(results_scn['flows_txaxt']['Stromnachfrage Wärme'].sum(level=2).sum(axis=1).rename('el_heating'))
+
+        else:
+            # add intra regional exchange
+            df_feedin = df_feedin.join(results_scn['flows_txaxt']['Intra-regional exchange']['import'].rename('ABW-import'))#.loc[(slice(None), ags)])
+            df_demand = df_demand.join(results_scn['flows_txaxt']['Intra-regional exchange']['export'].rename('ABW-export'))#.loc[(slice(None), ags)])
+
+            df_feedin = df_feedin.loc[(slice(None),ags),:].sum(level=0)#.loc[start:end,:]
+            df_demand = df_demand.loc[(slice(None),ags),:].sum(level=0)
+            el_heating = results_scn['flows_txaxt']['Stromnachfrage Wärme'].loc[(slice(None),slice(None),ags),:].sum(level='timestamp')
+            df_demand['el_heating'] = el_heating.sum(axis=1)
+
+    elif kind == 'th':
+        df_feedin = results_scn['flows_txaxt']['Wärmeerzeugung']
+        df_demand = results_scn['flows_txaxt']['Wärmenachfrage']
+
+        if ags=='ABW':
+            df_feedin = df_feedin.sum(level=0)#.loc[start:end,:]
+            df_demand = df_demand.sum(level=0)#.loc[start:end,:]
+        else:  
+            df_feedin = df_feedin.loc[(slice(None),ags),:].sum(level=0)#.loc[start:end,:]
+            df_demand = df_demand.loc[(slice(None),ags),:].sum(level=0)
+
+    #else:
+    #    raise ValueError("Enter either 'el' or 'th'") 
+   
+
+
+    # what is conventional
+    #df_residual_load = df_demand.sum(axis=1) - df_feedin.drop(columns=['conventional']).sum(axis=1)
+
+    fig = go.Figure()
+
+    for tech, data in df_feedin.iteritems():
+        fig.add_trace(go.Scatter(x=data.index,
+                                 y=data.values,
+                                 name=PRINT_NAMES[tech],
+                                 fill='tonexty',
+                                 mode='none',
+                                 #fillcolor=COLORS[tech],
+                                stackgroup='one'))
+
+    for tech, data in df_demand.iteritems():
+        fig.add_trace(go.Scatter(x=data.index,
+                                 y=(-data.values),
+                                 name=PRINT_NAMES[tech],
+                                 fill='tonexty',
+                                 mode='none',
+                                 #fillcolor=COLORS[tech],
+                                stackgroup='two'))
+
+
+    fig.update_xaxes(
+        title='Zoom',
+        rangeslider_visible=True,
+        rangeselector=dict(
+            buttons=list([
+                dict(count=6, label="6m", step="month", stepmode="backward"),
+                dict(count=1, label="1m", step="month", stepmode="backward"),
+                dict(count=14, label="2w", step="day", stepmode="backward"),
+                dict(count=7, label="1w", step="day", stepmode="backward"),
+                dict(count=3, label="3d", step="day", stepmode="backward"),
+                #dict(step="all")
+            ])
+        )
+    )
+
+    fig.update_layout(
+        title='Power Generation and Demand of %s'% ags,
+        height = 700,
+        #xaxis={'categoryorder':'category ascending'},
+        xaxis_tickfont_size=14,
+        yaxis=dict(
+            title='MW',
+            titlefont_size=16,
+            tickfont_size=14),
+        autosize=True,
+        )
+    fig.show()

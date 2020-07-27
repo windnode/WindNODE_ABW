@@ -1333,8 +1333,12 @@ def results_tech(results_axlxt):
     # Calculate levelized cost of heat
     results["LCOH"] = results_axlxt["Total costs heat supply"].sum() / results_axlxt['Wärmenachfrage nach Gemeinde'].sum().sum()
 
-    return results
+    # Autarky
+    results["Autarky"] = results_axlxt["Autarky"].loc[:,['supply','demand']].sum(axis=0).rename("ABW")
+    results["Autarky"]["relative"] = results["Autarky"]['supply'] / results["Autarky"]['demand']
 
+
+    return results
 
 def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     """Aggregate results to scalar values for each scenario"""
