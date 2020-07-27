@@ -1343,6 +1343,11 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
 
     # TODO: Netzverluste af IMEX lines fehlen, müssen aber berücksichtigt werden, da sie bei Stromimport/-export anfallen
     highlevel["Grid losses"] = (results_tables["Stromnetzleitungen"]["in"] - results_tables["Stromnetzleitungen"]["out"]).abs().sum()
+    highlevel["Electricity generation"] = results_tables["Stromerzeugung nach Gemeinde"][
+        [col
+         for col in results_tables["Stromerzeugung nach Gemeinde"]
+         if col != 'import']
+    ].sum().sum()
     highlevel["Electricity demand"] = results_tables["Stromnachfrage nach Gemeinde"].sum().sum()
     highlevel["Electricity demand for heating"] = results_tables["Stromnachfrage Wärme nach Gemeinde"].sum().sum()
     highlevel["Electricity demand total"] = highlevel["Electricity demand"] + highlevel["Electricity demand for heating"]
