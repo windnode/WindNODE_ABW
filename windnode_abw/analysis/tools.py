@@ -1364,8 +1364,7 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     return highlevel
 
 
-def create_scenario_notebook(scenario, run_id, template="scenario_analysis_template.ipynb",
-                             output_path=""):
+def create_scenario_notebook(scenario, run_id, template, output_path=""):
 
     # define data and paths
     output_name = "scenario_analysis_{scenario}.ipynb".format(scenario=scenario)
@@ -1377,3 +1376,14 @@ def create_scenario_notebook(scenario, run_id, template="scenario_analysis_templ
                             "scenario": scenario,
                             "run_timestamp": run_id},
                         request_save_on_cell_execute=True)
+
+
+def create_multiple_scenario_notebooks(scenarios, run_id, template="scenario_analysis_template.ipynb", output_path="",
+                                       num_processes=None):
+
+    pool = mp.Pool(processes=num_processes)
+
+    for scen in scenarios:
+        pool.apply_async(create_scenario_notebook, args=(scen, run_id, template,), kwds={"output_path": output_path})
+    pool.close()
+    pool.join()
