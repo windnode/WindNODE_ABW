@@ -1409,6 +1409,8 @@ def create_multiple_scenario_notebooks(scenarios, run_id, template="scenario_ana
     if scenarios == ['all']:
         scenarios = avail_scenarios
 
+    logger.info(f'Creating notebooks for {len(scenarios)} scenarios...')
+
     pool = mp.Pool(processes=num_processes)
 
     for scen in scenarios:
