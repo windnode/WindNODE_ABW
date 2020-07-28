@@ -1,5 +1,10 @@
 import pandas as pd
 from numpy import inf
+import papermill as pm
+import os
+from windnode_abw import __path__ as wn_path
+import multiprocessing as mp
+
 
 import logging
 logger = logging.getLogger('windnode_abw')
@@ -1487,3 +1492,67 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel.index= mindex
     
     return highlevel
+
+
+def create_scenario_notebook(scenario, run_id,
+                             template="scenario_analysis_template.ipynb",
+                             path=os.path.join(wn_path[0], 'jupy')):
+
+    # define data and paths
+    input_template = os.path.join(path, 'templates', template)
+    output_name = "scenario_analysis_{scenario}.ipynb".format(scenario=scenario)
+    output_notebook = os.path.join(path, output_name)
+
+    # execute notebook with specific parameter
+    try:
+        pm.execute_notebook(input_template, output_notebook,
+                            parameters={
+                                "scenario": scenario,
+                                "run_timestamp": run_id},
+                            request_save_on_cell_execute=True)
+    except FileNotFoundError:
+        logger.warning(f'Template not found, skipping...')
+        return scenario
+    except Exception as ex:
+        logger.warning(f'Scenario {scenario}: An exception of type {type(ex).__name__} occurred:')
+        logger.warning(ex)
+        logger.warning(f'Scenario {scenario} skipped...')
+        return scenario
+    else:
+        logger.info(f'Notebook created for scenario: {scenario}...')
+
+
+def create_multiple_scenario_notebooks(scenarios, run_id,
+                                       template="scenario_analysis_template.ipynb",
+                                       path=os.path.join(wn_path[0], 'jupy'),
+                                       num_processes=None):
+
+    if isinstance(scenarios, str):
+        scenarios = [scenarios]
+
+    # get list of available scenarios
+    avail_scenarios = [file.split('.')[0]
+                       for file in os.listdir(os.path.join(wn_path[0],
+                                                           'scenarios'))
+                       if file.endswith(".scn")]
+
+    # create scenario list
+    if scenarios == ['all']:
+        scenarios = avail_scenarios
+
+    logger.info(f'Creating notebooks for {len(scenarios)} scenarios...')
+
+    pool = mp.Pool(processes=num_processes)
+
+    errors = None
+    for scen in scenarios:
+        errors = pool.apply_async(create_scenario_notebook,
+                                  args=(scen, run_id, template,),
+                                  kwds={"path": path}).get()
+    pool.close()
+    pool.join()
+
+    if errors is not None:
+        logger.warning(f'Errors occured during creation of notebooks.')
+    else:
+        logger.info(f'Notebooks for {len(scenarios)} scenarios created without errors.')
