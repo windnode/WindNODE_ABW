@@ -1367,15 +1367,17 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     return highlevel
 
 
-def create_scenario_notebook(scenario, run_id, template, output_path=""):
+def create_scenario_notebook(scenario, run_id, template,
+                             path=os.path.join(wn_path[0], 'jupy')):
 
     # define data and paths
+    input_template = os.path.join(path, template)
     output_name = "scenario_analysis_{scenario}.ipynb".format(scenario=scenario)
-    output_notebook = os.path.join(output_path, output_name)
+    output_notebook = os.path.join(path, output_name)
 
     # execute notebook with specific parameter
     try:
-        pm.execute_notebook(template, output_notebook,
+        pm.execute_notebook(input_template, output_notebook,
                             parameters={
                                 "scenario": scenario,
                                 "run_timestamp": run_id},
