@@ -52,5 +52,13 @@ You can then further convert to the executed notebook to HTML by
 .. note::
 
     * Some plots (those generated with plotly) in the generated notebooks may won't show up initially.
-      This can be solved by simply clicking `File -> Trust Notebook`.
+      This can be solved by clicking `File -> Trust Notebook`. To trust all notebooks in the notebook
+      directory, you can use
+
+      .. code-block:: python
+
+        jupyter trust *.ipynb
+
+      before you start the jupyter notebook server.
+
     * If no path is specified, the standard path `/path/to/windnode/repo/windnode_abw/jupy/` is used.
