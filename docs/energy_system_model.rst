@@ -43,8 +43,14 @@ or for multiple scenarios using multiprocessing (in this case all)
         num_processes=None
    )
 
-Notes
+You can then further convert to the executed notebook to HTML by
 
-* Some plots (those generated with plotly) in the generated notebooks may won't show up initially.
-  This can be solved by simply clicking `File -> Trust Notebook`.
-* If no path is specified, the standard path `/path/to/windnode/repo/windnode_abw/jupy/` is used.
+.. code-block:: python
+
+   jupyter nbconvert scenario_analysis_NEP2035.ipynb
+
+.. note::
+
+    * Some plots (those generated with plotly) in the generated notebooks may won't show up initially.
+      This can be solved by simply clicking `File -> Trust Notebook`.
+    * If no path is specified, the standard path `/path/to/windnode/repo/windnode_abw/jupy/` is used.
