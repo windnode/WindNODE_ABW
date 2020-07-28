@@ -1367,7 +1367,8 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     return highlevel
 
 
-def create_scenario_notebook(scenario, run_id, template,
+def create_scenario_notebook(scenario, run_id,
+                             template="scenario_analysis_template.ipynb",
                              path=os.path.join(wn_path[0], 'jupy')):
 
     # define data and paths
