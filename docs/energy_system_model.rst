@@ -43,4 +43,8 @@ or for multiple scenarios using multiprocessing (in this case all)
         num_processes=None
    )
 
-Note: If no path is specified, the standard path `/path/to/windnode/repo/windnode_abw/jupy/` is used.
+Notes
+
+* Some plots (those generated with plotly) in the generated notebooks may won't show up initially.
+  This can be solved by simply clicking `File -> Trust Notebook`.
+* If no path is specified, the standard path `/path/to/windnode/repo/windnode_abw/jupy/` is used.
