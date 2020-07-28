@@ -1357,7 +1357,8 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Grid losses"] = (results_tables["Stromnetzleitungen"]["in"] - results_tables["Stromnetzleitungen"]["out"]).abs().sum()
     highlevel["Electricity generation"] = results_tables[
         "Stromerzeugung nach Gemeinde"].drop(columns='import').sum().sum()
-    highlevel["Electricity demand"] = results_tables["Stromnachfrage nach Gemeinde"].sum().sum()
+    highlevel["Electricity demand"] = results_tables[
+        "Stromnachfrage nach Gemeinde"].drop(columns='export').sum().sum()
     highlevel["Electricity demand for heating"] = results_tables["Stromnachfrage Wärme nach Gemeinde"].sum().sum()
     highlevel["Electricity demand total"] = highlevel["Electricity demand"] + highlevel["Electricity demand for heating"]
     highlevel["Heating demand"] = results_tables["Wärmenachfrage nach Gemeinde"].sum().sum()
