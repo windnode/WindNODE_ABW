@@ -1374,11 +1374,18 @@ def create_scenario_notebook(scenario, run_id, template, output_path=""):
     output_notebook = os.path.join(output_path, output_name)
 
     # execute notebook with specific parameter
-    pm.execute_notebook(template, output_notebook,
-                        parameters={
-                            "scenario": scenario,
-                            "run_timestamp": run_id},
-                        request_save_on_cell_execute=True)
+    try:
+        pm.execute_notebook(template, output_notebook,
+                            parameters={
+                                "scenario": scenario,
+                                "run_timestamp": run_id},
+                            request_save_on_cell_execute=True)
+    except FileNotFoundError:
+        logger.warning(f'Scenario {scenario} not found, skipping...')
+    except:
+        logger.warning(f'Unspecified error during creation of scenario {scenario}, skipping...')
+    else:
+        logger.info(f'Notebook created for scenario: {scenario}...')
 
 
 def create_multiple_scenario_notebooks(scenarios, run_id, template="scenario_analysis_template.ipynb", output_path="",
