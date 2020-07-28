@@ -1385,8 +1385,12 @@ def create_scenario_notebook(scenario, run_id,
                             request_save_on_cell_execute=True)
     except FileNotFoundError:
         logger.warning(f'Scenario {scenario} not found, skipping...')
-    except:
-        logger.warning(f'Unspecified error during creation of scenario {scenario}, skipping...')
+        return scenario
+    except Exception as ex:
+        logger.warning(f'Scenario {scenario}: An exception of type {type(ex).__name__} occurred:')
+        logger.warning(ex)
+        logger.warning(f'Scenario {scenario} skipped...')
+        return scenario
     else:
         logger.info(f'Notebook created for scenario: {scenario}...')
 
@@ -1413,7 +1417,15 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
 
     pool = mp.Pool(processes=num_processes)
 
+    errors = None
     for scen in scenarios:
-        pool.apply_async(create_scenario_notebook, args=(scen, run_id, template,), kwds={"path": path})
+        errors = pool.apply_async(create_scenario_notebook,
+                                  args=(scen, run_id, template,),
+                                  kwds={"path": path}).get()
     pool.close()
     pool.join()
+
+    if errors is not None:
+        logger.warning(f'Errors occured in scenarios: {errors}')
+    else:
+        logger.info(f'Notebooks for {len(scenarios)} scenarios created without errors.')
