@@ -1384,7 +1384,7 @@ def create_scenario_notebook(scenario, run_id,
                                 "run_timestamp": run_id},
                             request_save_on_cell_execute=True)
     except FileNotFoundError:
-        logger.warning(f'Scenario {scenario} not found, skipping...')
+        logger.warning(f'Template not found, skipping...')
         return scenario
     except Exception as ex:
         logger.warning(f'Scenario {scenario}: An exception of type {type(ex).__name__} occurred:')
@@ -1426,6 +1426,6 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
     pool.join()
 
     if errors is not None:
-        logger.warning(f'Errors occured in scenarios: {errors}')
+        logger.warning(f'Errors occured during creation of notebooks.')
     else:
         logger.info(f'Notebooks for {len(scenarios)} scenarios created without errors.')
