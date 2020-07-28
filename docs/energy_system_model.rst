@@ -55,7 +55,7 @@ You can then further convert to the executed notebook to HTML by
       This can be solved by clicking `File -> Trust Notebook`. To trust all notebooks in the notebook
       directory, you can use
 
-      .. code-block:: python
+      .. code-block:: bash
 
         jupyter trust *.ipynb
 
