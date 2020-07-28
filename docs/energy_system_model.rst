@@ -61,4 +61,5 @@ You can then further convert to the executed notebook to HTML by
 
       before you start the jupyter notebook server.
 
-    * If no path is specified, the standard path `/path/to/windnode/repo/windnode_abw/jupy/` is used.
+    * If parameter `output_path` is not passed, the standard path `/path/to/windnode/repo/windnode_abw/jupy/`
+      is used.
