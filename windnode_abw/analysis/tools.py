@@ -3,6 +3,7 @@ from numpy import inf
 import papermill as pm
 import os
 from windnode_abw import __path__ as wn_path
+from windnode_abw.tools import config
 import multiprocessing as mp
 
 
@@ -1530,11 +1531,24 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
     if isinstance(scenarios, str):
         scenarios = [scenarios]
 
-    # get list of available scenarios
+    # get list of available scenarios in run id folder
+    result_base_path = os.path.join(config.get_data_root_dir(),
+                                    config.get('user_dirs',
+                                               'results_dir')
+                                    )
     avail_scenarios = [file.split('.')[0]
-                       for file in os.listdir(os.path.join(wn_path[0],
-                                                           'scenarios'))
-                       if file.endswith(".scn")]
+                       for file in os.listdir(os.path.join(result_base_path,
+                                                           run_id))]
+    # get list of available scenarios for comparison
+    all_scenarios = [file.split('.')[0]
+                     for file in os.listdir(os.path.join(wn_path[0],
+                                                         'scenarios'))
+                     if file.endswith(".scn")]
+
+    if len(all_scenarios) > len(avail_scenarios):
+        logger.info(f'Available scenarios ({len(avail_scenarios)}) in run '
+                    f'{run_id} differ from the total number of scenarios '
+                    f'({len(all_scenarios)}).')
 
     # create scenario list
     if scenarios == ['all']:
