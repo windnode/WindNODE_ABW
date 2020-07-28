@@ -30,7 +30,7 @@ A single notebook for each scenario can be produced best by using papermill. Eit
 
    create_scenario_notebook("NEP2035",
                             '2020-07-24_104145_1month',
-                            "windnode_abw/jupy/scenario_analysis_template.ipynb")
+                            template="scenario_analysis_template.ipynb")
 
 or for multiple scenarios using multiprocessing (in this case all)
 
@@ -39,7 +39,8 @@ or for multiple scenarios using multiprocessing (in this case all)
    create_multiple_scenario_notebooks(
         "all",
         '2020-07-24_104145_1month',
-        template="windnode_abw/jupy/scenario_analysis_template.ipynb",
+        template="scenario_analysis_template.ipynb",
         num_processes=None
    )
 
+Note: If no path is specified, the standard path `/path/to/windnode/repo/windnode_abw/jupy/` is used.
