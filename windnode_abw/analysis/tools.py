@@ -1393,6 +1393,9 @@ def create_scenario_notebook(scenario, run_id, template,
 def create_multiple_scenario_notebooks(scenarios, run_id, template="scenario_analysis_template.ipynb", output_path="",
                                        num_processes=None):
 
+    if isinstance(scenarios, str):
+        scenarios = [scenarios]
+
     # get list of available scenarios
     avail_scenarios = [file.split('.')[0]
                        for file in os.listdir(os.path.join(wn_path[0],
@@ -1403,7 +1406,7 @@ def create_multiple_scenario_notebooks(scenarios, run_id, template="scenario_ana
          for n, s in enumerate(avail_scenarios)])
 
     # create scenario list
-    if scenarios == 'all':
+    if scenarios == ['all']:
         scenarios = avail_scenarios
 
     pool = mp.Pool(processes=num_processes)
