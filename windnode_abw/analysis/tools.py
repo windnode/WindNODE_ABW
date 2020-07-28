@@ -1391,7 +1391,9 @@ def create_scenario_notebook(scenario, run_id,
         logger.info(f'Notebook created for scenario: {scenario}...')
 
 
-def create_multiple_scenario_notebooks(scenarios, run_id, template="scenario_analysis_template.ipynb", output_path="",
+def create_multiple_scenario_notebooks(scenarios, run_id,
+                                       template="scenario_analysis_template.ipynb",
+                                       path=os.path.join(wn_path[0], 'jupy'),
                                        num_processes=None):
 
     if isinstance(scenarios, str):
@@ -1415,6 +1417,6 @@ def create_multiple_scenario_notebooks(scenarios, run_id, template="scenario_ana
     pool = mp.Pool(processes=num_processes)
 
     for scen in scenarios:
-        pool.apply_async(create_scenario_notebook, args=(scen, run_id, template,), kwds={"output_path": output_path})
+        pool.apply_async(create_scenario_notebook, args=(scen, run_id, template,), kwds={"path": path})
     pool.close()
     pool.join()
