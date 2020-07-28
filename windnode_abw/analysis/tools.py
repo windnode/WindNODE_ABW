@@ -1404,9 +1404,6 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
                        for file in os.listdir(os.path.join(wn_path[0],
                                                            'scenarios'))
                        if file.endswith(".scn")]
-    avail_scenarios_str = ''.join(
-        [(s+',\n  ' if (n%5 == 0 and n > 0) else s+', ')
-         for n, s in enumerate(avail_scenarios)])
 
     # create scenario list
     if scenarios == ['all']:
