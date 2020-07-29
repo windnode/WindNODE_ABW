@@ -993,6 +993,14 @@ def aggregate_parameters(region, results_raw, flows):
         "cen": "stor_th_large", "dec": "stor_th_small"})
     params["Installed capacity heat storage"].index = params["Installed capacity heat storage"].index.astype(int)
 
+    # extract static vars from nodes
+    stat_params = stat_params_agsxtech(results_raw['params_stat'])
+
+    # Installed capacity heat storage
+    params["Installed capacity heat storage"] = stat_params["Wärmespeicher"].astype(float).groupby(
+        ['ags', 'level']).sum().unstack("level").droplevel(0, axis=1).rename(
+        columns={"cen": "stor_th_large", "dec": "stor_th_small"}).fillna(0)
+
     # Installed capacity electricity supply
     params["Installed capacity electricity supply"] = \
         region.muns.loc[:, region.muns.columns.str.startswith("gen_capacity")]
