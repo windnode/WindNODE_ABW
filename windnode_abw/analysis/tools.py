@@ -1164,7 +1164,30 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         "el.",
         results["Stromerzeugung nach Gemeinde"],
         parameters["Installed capacity electricity supply"],
-        parameters["Parameters el. generators"])
+        parameters["Parameters el. generators"]
+    )
+
+    # fix el. emissions for GuD Dessau and BHKWs manually,
+    # cf. https://github.com/windnode/WindNODE_ABW/issues/33
+    results_tmp_el["CO2 emissions el. var"].at[15001000, 'gud'] = (
+        extracted_results["GuD Dessau"]['out_el'] /
+        (extracted_results["GuD Dessau"]['out_el'] + extracted_results["GuD Dessau"]['out_th']) *
+        extracted_results["GuD Dessau"]['in_gas'] *
+        parameters["Parameters el. generators"].at["gud", "emissions_var_comm"]
+    ).sum() / 1e3
+    bhkw_gas_in = results["Stromerzeugung nach Gemeinde"]["bhkw"] / \
+                  parameters["Parameters el. generators"].at["bhkw", "sys_eff"]
+    results_tmp_el["CO2 emissions el. var"]["bhkw"] = (
+        bhkw_gas_in *
+        parameters["Parameters el. generators"].at["bhkw", "sys_eff"] / (
+            parameters["Parameters el. generators"].at["bhkw", "sys_eff"] +
+            parameters["Parameters th. generators"].at["bhkw", "sys_eff"]
+            ) *
+        parameters["Parameters el. generators"].at["bhkw", "emissions_var_comm"]
+    ) / 1e3
+    results_tmp_el["CO2 emissions el. total"] = \
+        results_tmp_el["CO2 emissions el. fix"] + \
+        results_tmp_el["CO2 emissions el. var"]
 
     results.update(results_tmp_el)
 
@@ -1182,7 +1205,6 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("flex_bat"), :])
     results.update(results_tmp_stor_el)
 
-
     # CO2 emissions heat
     # Note: costs for the commodity of PtH technologies (pth* and elenergy) is set to zero, because these costs are
     # already included in the electricity generation costs
@@ -1195,10 +1217,32 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         params_heat_supply_tmp.drop(pth_tech, inplace=True)
     heat_generation = results["Wärmeerzeugung nach Gemeinde"].sum(level="ags")
     heat_generation.index = heat_generation.index.astype(int)
-    results_tmp_th = _calculate_co2_emissions("th.",
-                                           heat_generation,
-                                           parameters["Installed capacity heat supply"],
-                                           params_heat_supply_tmp)
+    results_tmp_th = _calculate_co2_emissions(
+        "th.",
+        heat_generation,
+        parameters["Installed capacity heat supply"],
+        params_heat_supply_tmp)
+
+    # fix th. emissions for GuD Dessau and BHKWs manually,
+    # cf. https://github.com/windnode/WindNODE_ABW/issues/33
+    results_tmp_th["CO2 emissions th. var"].at[15001000, 'gud'] = (
+        extracted_results["GuD Dessau"]['out_th'] /
+        (extracted_results["GuD Dessau"]['out_el'] + extracted_results["GuD Dessau"]['out_th']) *
+        extracted_results["GuD Dessau"]['in_gas'] *
+        parameters["Parameters th. generators"].at["gud", "emissions_var_comm"]
+    ).sum() / 1e3
+    results_tmp_th["CO2 emissions th. var"]["bhkw"] = (
+        bhkw_gas_in *
+        parameters["Parameters th. generators"].at["bhkw", "sys_eff"] / (
+            parameters["Parameters el. generators"].at["bhkw", "sys_eff"] +
+            parameters["Parameters th. generators"].at["bhkw", "sys_eff"]
+            ) *
+        parameters["Parameters th. generators"].at["bhkw", "emissions_var_comm"]
+    ) / 1e3
+    results_tmp_th["CO2 emissions th. total"] = \
+        results_tmp_th["CO2 emissions th. fix"] + \
+        results_tmp_th["CO2 emissions th. var"]
+
     results.update(results_tmp_th)
 
     # CO2 emissions attributed to heat storages
