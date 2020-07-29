@@ -108,7 +108,11 @@ COLORS = {'bio': 'green',
 
          }
 
+UNITS = {"relative": "%",
+        "hours": "h",
 
+
+}
 def draw_graph(grph, mun_ags=None,
                edge_labels=True, node_color='#AFAFAF',
                edge_color='#CFCFCF', plot=True, node_size=2000,
