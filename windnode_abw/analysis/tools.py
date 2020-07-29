@@ -899,6 +899,18 @@ def aggregate_parameters(region, results_raw, flows):
         params["Parameters th. generators"].loc[["bhkw", "gud", "gas_boiler", "natural_gas"], "emissions_var_comm"] * (
                 1 - region.cfg['scn_data']['commodities']['methane_share'])
 
+    # overwrite opex_var of natural_gas incorporating the assumed methane share
+    params["Parameters el. generators"].loc[["bhkw", "gud", "gas"], "opex_var_comm"] = (
+        params["Parameters el. generators"].loc[["bhkw", "gud", "gas"], "opex_var_comm"] * (
+                    1 - region.cfg['scn_data']['commodities']['methane_share']) +
+        region.tech_assumptions_scn.loc["comm_methane", "capex"] *
+        region.cfg['scn_data']['commodities']['methane_share'])
+    params["Parameters th. generators"].loc[["bhkw", "gud", "gas_boiler", "natural_gas"], "opex_var_comm"] = (
+        params["Parameters th. generators"].loc[["bhkw", "gud", "gas_boiler", "natural_gas"], "opex_var_comm"] * (
+                    1 - region.cfg['scn_data']['commodities']['methane_share']) +
+        region.tech_assumptions_scn.loc["comm_methane", "capex"] *
+        region.cfg['scn_data']['commodities']['methane_share'])
+
     # overwrite gud efficiencies by one calculated as in model.py
     gud_cfg = region.cfg['scn_data']['generation']['gen_th_cen']['gud_dessau']
     th_eff_max_ex = gud_cfg['efficiency_full_cond'] / (gud_cfg['cb_coeff'] + gud_cfg['cv_coeff'])
