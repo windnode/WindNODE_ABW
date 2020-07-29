@@ -1170,21 +1170,25 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     # fix el. emissions for GuD Dessau and BHKWs manually,
     # cf. https://github.com/windnode/WindNODE_ABW/issues/33
     results_tmp_el["CO2 emissions el. var"].at[15001000, 'gud'] = (
-        extracted_results["GuD Dessau"]['out_el'] /
-        (extracted_results["GuD Dessau"]['out_el'] + extracted_results["GuD Dessau"]['out_th']) *
-        extracted_results["GuD Dessau"]['in_gas'] *
-        parameters["Parameters el. generators"].at["gud", "emissions_var_comm"]
-    ).sum() / 1e3
+        (extracted_results["GuD Dessau"]['out_el'].sum() *
+         parameters["Parameters el. generators"].at["gud", "emissions_var"]) +
+        (extracted_results["GuD Dessau"]['out_el'] /
+         (extracted_results["GuD Dessau"]['out_el'] + extracted_results["GuD Dessau"]['out_th']) *
+         extracted_results["GuD Dessau"]['in_gas'] *
+         parameters["Parameters el. generators"].at["gud", "emissions_var_comm"]
+        ).sum()) / 1e3
     bhkw_gas_in = results["Stromerzeugung nach Gemeinde"]["bhkw"] / \
                   parameters["Parameters el. generators"].at["bhkw", "sys_eff"]
     results_tmp_el["CO2 emissions el. var"]["bhkw"] = (
-        bhkw_gas_in *
-        parameters["Parameters el. generators"].at["bhkw", "sys_eff"] / (
-            parameters["Parameters el. generators"].at["bhkw", "sys_eff"] +
-            parameters["Parameters th. generators"].at["bhkw", "sys_eff"]
-            ) *
-        parameters["Parameters el. generators"].at["bhkw", "emissions_var_comm"]
-    ) / 1e3
+        (results["Stromerzeugung nach Gemeinde"]["bhkw"] *
+         parameters["Parameters el. generators"].at["bhkw", "emissions_var"]) +
+        (bhkw_gas_in *
+         parameters["Parameters el. generators"].at["bhkw", "sys_eff"] / (
+         parameters["Parameters el. generators"].at["bhkw", "sys_eff"] +
+         parameters["Parameters th. generators"].at["bhkw", "sys_eff"]
+         ) *
+         parameters["Parameters el. generators"].at["bhkw", "emissions_var_comm"]
+    )) / 1e3
     results_tmp_el["CO2 emissions el. total"] = \
         results_tmp_el["CO2 emissions el. fix"] + \
         results_tmp_el["CO2 emissions el. var"]
