@@ -9,7 +9,10 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.ticker import ScalarFormatter
 import matplotlib.gridspec as gridspec
 
+from matplotlib import cm
+from matplotlib.colors import ListedColormap
 
+import numpy as np
 import pandas as pd
 import geopandas as gpd
 import os
@@ -447,7 +450,7 @@ def sample_plots(region, results):
 
 
 # one geoplot to fit in subplots
-def plot_geoplot(name, data, region, ax, cmap='viridis', unit=None):
+def plot_geoplot(name, data, region, ax, unit=None):
     """plot geoplot from pd.Series
     Parameters
     ----------
@@ -459,11 +462,12 @@ def plot_geoplot(name, data, region, ax, cmap='viridis', unit=None):
         Region object
     ax : matplotlib.axes
         coordinate system
-    cmap : str
-        colormap
     unit : str
         label of colorbar
     """
+    cmap = cm.GnBu_r(np.linspace(0,1,40))
+    cmap = ListedColormap(cmap[:32,:-1])
+
     gdf_region = gpd.GeoDataFrame(region.muns.loc[:,['gen', 'geom']],
                                   geometry='geom')
     gdf_region = gdf_region.join(data,
