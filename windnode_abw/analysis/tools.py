@@ -650,6 +650,13 @@ def flows_timexagsxtech(results_raw, region):
             "unstack_col": None,
             "level_flow_in": 1,
             "level_flow_out": 0},
+        "GuD Dessau": {
+            "node_pattern": "(th_cen_15001000_gud)",
+            "stubname": "gen",
+            "bus_pattern": 'b_gas',
+            "unstack_col": None,
+            "level_flow_in": 1,
+            "level_flow_out": 0}
     }
 
     flows = {}
@@ -779,6 +786,16 @@ def flows_timexagsxtech(results_raw, region):
     flows["Autarky"]["supply"] = flows['Stromerzeugung'].drop(columns='import').sum(axis=1)
     flows["Autarky"]["demand"] = flows['Stromnachfrage'].drop(columns='export').sum(axis=1)
     flows["Autarky"]["relative"] = flows["Autarky"]['supply'].unstack().div(flows["Autarky"]['demand'].unstack()).stack()
+
+    # Join Dessau GuD data into one DF, need for extraction of variable efficiency,
+    # cf. https://github.com/windnode/WindNODE_ABW/issues/33
+    flows['GuD Dessau'] = (
+        flows['GuD Dessau'].rename(columns={'gen': 'in_gas'}).reset_index(level=1, drop=True).join([
+            flows['Stromerzeugung'].xs(
+                '15001000', level='ags').rename(columns={'gud': 'out_el'})['out_el'],
+            flows['Wärmeerzeugung'].xs(
+                '15001000', level='ags').xs('cen', level='level').rename(columns={'gud': 'out_th'})['out_th']
+    ]))
 
     return flows
 
