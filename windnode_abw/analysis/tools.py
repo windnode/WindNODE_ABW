@@ -1346,6 +1346,7 @@ def results_tech(results_axlxt):
 
     return results
 
+
 def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     """Aggregate results to scalar values for each scenario"""
 
@@ -1354,12 +1355,10 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
 
     # TODO: Netzverluste af IMEX lines fehlen, müssen aber berücksichtigt werden, da sie bei Stromimport/-export anfallen
     highlevel["Grid losses"] = (results_tables["Stromnetzleitungen"]["in"] - results_tables["Stromnetzleitungen"]["out"]).abs().sum()
-    highlevel["Electricity generation"] = results_tables["Stromerzeugung nach Gemeinde"][
-        [col
-         for col in results_tables["Stromerzeugung nach Gemeinde"]
-         if col != 'import']
-    ].sum().sum()
-    highlevel["Electricity demand"] = results_tables["Stromnachfrage nach Gemeinde"].sum().sum()
+    highlevel["Electricity generation"] = results_tables[
+        "Stromerzeugung nach Gemeinde"].drop(columns='import').sum().sum()
+    highlevel["Electricity demand"] = results_tables[
+        "Stromnachfrage nach Gemeinde"].drop(columns='export').sum().sum()
     highlevel["Electricity demand for heating"] = results_tables["Stromnachfrage Wärme nach Gemeinde"].sum().sum()
     highlevel["Electricity demand total"] = highlevel["Electricity demand"] + highlevel["Electricity demand for heating"]
     highlevel["Heating demand"] = results_tables["Wärmenachfrage nach Gemeinde"].sum().sum()
@@ -1374,7 +1373,7 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
         highlevel["Electricity imports"] / highlevel["Electricity demand total"])) * 100
     highlevel["Self-consumption hourly"] = ((1 - (
             results_txaxt["Stromimport"].sum(level="timestamp").sum(axis=1) / (
-            results_txaxt["Stromnachfrage"].sum(level="timestamp").sum(axis=1) +
+            results_txaxt["Stromnachfrage"].drop(columns='export').sum(level="timestamp").sum(axis=1) +
             results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)))) * 100).mean()
     for re in results_tables["Area required"].columns:
         highlevel["Area required " + re] = results_tables["Area required"][re].sum()
