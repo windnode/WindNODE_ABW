@@ -1497,12 +1497,12 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
 
 def create_scenario_notebook(scenario, run_id,
                              template="scenario_analysis_template.ipynb",
-                             path=os.path.join(wn_path[0], 'jupy')):
+                             output_path=os.path.join(wn_path[0], 'jupy')):
 
     # define data and paths
-    input_template = os.path.join(path, 'templates', template)
+    input_template = os.path.join(wn_path[0], 'jupy', 'templates', template)
     output_name = "scenario_analysis_{scenario}.ipynb".format(scenario=scenario)
-    output_notebook = os.path.join(path, output_name)
+    output_notebook = os.path.join(output_path, output_name)
 
     # execute notebook with specific parameter
     try:
@@ -1512,7 +1512,7 @@ def create_scenario_notebook(scenario, run_id,
                                 "run_timestamp": run_id},
                             request_save_on_cell_execute=True)
     except FileNotFoundError:
-        logger.warning(f'Template not found, skipping...')
+        logger.warning(f'Template or output path not found, skipping...')
         return scenario
     except Exception as ex:
         logger.warning(f'Scenario {scenario}: An exception of type {type(ex).__name__} occurred:')
@@ -1525,7 +1525,7 @@ def create_scenario_notebook(scenario, run_id,
 
 def create_multiple_scenario_notebooks(scenarios, run_id,
                                        template="scenario_analysis_template.ipynb",
-                                       path=os.path.join(wn_path[0], 'jupy'),
+                                       output_path=os.path.join(wn_path[0], 'jupy'),
                                        num_processes=None):
 
     if isinstance(scenarios, str):
@@ -1554,7 +1554,7 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
     if scenarios == ['all']:
         scenarios = avail_scenarios
 
-    logger.info(f'Creating notebooks for {len(scenarios)} scenarios...')
+    logger.info(f'Creating notebooks for {len(scenarios)} scenarios in {output_path} ...')
 
     pool = mp.Pool(processes=num_processes)
 
@@ -1562,7 +1562,7 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
     for scen in scenarios:
         errors = pool.apply_async(create_scenario_notebook,
                                   args=(scen, run_id, template,),
-                                  kwds={"path": path}).get()
+                                  kwds={"output_path": output_path}).get()
     pool.close()
     pool.join()
 
