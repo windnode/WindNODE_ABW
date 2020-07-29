@@ -987,11 +987,11 @@ def aggregate_parameters(region, results_raw, flows):
     params["Installierte Kapazität Großbatterien"] = region.batteries_large
     params["Installierte Kapazität PV-Batteriespeicher"] = region.batteries_small
 
-    # Installed capacity heat storage
-    params["Installed capacity heat storage"] = flows_params["Wärmespeicher"][
+    # Installed discharge(!) power heat storage
+    params["Discharge power heat storage"] = flows_params["Wärmespeicher"][
         "nominal_value"].unstack("level").fillna(0).rename(columns={
         "cen": "stor_th_large", "dec": "stor_th_small"})
-    params["Installed capacity heat storage"].index = params["Installed capacity heat storage"].index.astype(int)
+    params["Discharge power heat storage"].index = params["Discharge power heat storage"].index.astype(int)
 
     # extract static vars from nodes
     stat_params = stat_params_agsxtech(results_raw['params_stat'])
