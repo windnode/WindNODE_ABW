@@ -497,6 +497,21 @@ def extract_flow_params(flow_params_raw, node_pattern, bus_pattern, stubname,
     return params_extract
 
 
+def extract_stat_params(stat_params_raw, node_pattern, stubname, params=None):
+
+    pattern = "_".join([stubname, node_pattern])
+
+    params_extract = stat_params_raw.loc[
+        stat_params_raw.index.get_level_values(0).str.match(pattern)]
+
+    # transform to wide-to-long format and create multiindex from pattern groups
+    params_extract = params_extract.unstack().droplevel(0, axis=1)
+    params_extract.index = pd.MultiIndex.from_frame(
+        params_extract.index.get_level_values(0).str.extract(pattern))
+
+    return params_extract[params]
+
+
 def extract_invest(vars, node_pattern, bus_pattern):
 
     # Get an extract of relevant data
@@ -546,6 +561,24 @@ def flow_params_agsxtech(results_raw):
     params = {}
     for name, patterns in param_extractor.items():
         params[name] = extract_flow_params(results_raw, **patterns)
+
+    return params
+
+
+def stat_params_agsxtech(results_raw):
+
+    # define extraction pattern
+    param_extractor = {
+        "Wärmespeicher": {
+            "node_pattern": "(?P<level>\w{3})(?:_pth)?_(?P<ags>\d+)(?:_)?(?P<sector>hh_efh|hh_mfh|rca)?",
+            "stubname": "stor_th",
+            "params": ["nominal_storage_capacity"]}
+    }
+
+    params = {}
+    results_raw = pd.DataFrame(results_raw)
+    for name, patterns in param_extractor.items():
+        params[name] = extract_stat_params(results_raw, **patterns)
 
     return params
 
