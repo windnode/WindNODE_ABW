@@ -832,6 +832,14 @@ def flows_timexagsxtech(results_raw, region):
     flows["Stromnetz via external grid"] = pd.concat(
         [line_flows_imex_1.rename("out"),
          line_flows_imex_2.rename("in")], axis=1)
+    region_export_imex = flows["Stromnetz via external grid"][flows["Stromnetz via external grid"]["in"] >= 0]["in"].rename("export")
+    region_import_imex = flows["Stromnetz via external grid"][flows["Stromnetz via external grid"]["out"] <= 0]["out"].abs().rename("import")
+    region_imex = pd.concat([region_export_imex, region_import_imex], axis=1)
+    non_region_bus_translation = {_: non_region_bus2ags(_, region) for _ in
+                                  region_imex.index.get_level_values("non_region_bus").unique()}
+    region_imex = region_imex.rename(index=non_region_bus_translation)
+    region_imex.index.set_names("ags", level="non_region_bus", inplace=True)
+
     # Intra-regional exchange as export (region feeds grid) and import (region gets supplied from grid)
     region_export_in_tmp = flows["Stromnetz"][flows["Stromnetz"]["in"] >= 0].groupby(["timestamp", "ags_from"])["in"].sum()
     region_export_in_tmp.index.set_names("ags", level="ags_from", inplace=True)
@@ -849,6 +857,8 @@ def flows_timexagsxtech(results_raw, region):
 
     flows["Intra-regional exchange"] = pd.concat([region_export_tmp, region_import_tmp], axis=1).rename(
         columns={"in": "export", "out": "import"}).fillna(0)
+    flows["Intra-regional exchange"] = pd.concat([flows['Intra-regional exchange'], region_imex]).sum(
+        level=["timestamp", "ags"])
 
     # Assign electricity import/export (shortage/excess) to region's ags
     # and merge into Erzeugung/Nachfrage
