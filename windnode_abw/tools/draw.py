@@ -25,6 +25,7 @@ import plotly.express as px
 import plotly.io as pio
 import plotly.graph_objs as go
 import plotly.offline as pltly
+from plotly.subplots import make_subplots
 
 from oemof.outputlib import views
 from oemof.graph import create_nx_graph
@@ -110,6 +111,8 @@ COLORS = {'bio': 'green',
           'ABW-import': 'mediumorchid',
 
          }
+
+CMAP = px.colors.sequential.GnBu_r
 
 UNITS = {"relative": "%", "hours": "h", "Storage Usage Rate":"%", "Total Cycles":"times", "Full Load Hours":"h"}
 
@@ -685,7 +688,7 @@ def get_timesteps(region):
     steps = len(timestamps)
     return steps
 
-def get_storage_ratios(storage_figures):
+def get_storage_ratios(storage_figures, region):
     """calculate storage ratios for heat or electricity
     Parameters
     ----------
@@ -706,7 +709,7 @@ def get_storage_ratios(storage_figures):
     total_cycle = total_cycle.fillna(0)
 
     # max
-    steps = get_timesteps(regions_scns[scenario])
+    steps = get_timesteps(region)
     max_cycle = (1/2 * steps *  storage_figures.power_discharge) / storage_figures.capacity
     max_cycle = max_cycle.fillna(0)
 
@@ -721,12 +724,16 @@ def get_storage_ratios(storage_figures):
     
     return storage_ratios
 
-def plot_storage_ratios(storage_ratios, title):
+def plot_storage_ratios(storage_ratios, region, title):
     """plot storage ratios of either heat or electricity
     Parameters
     ----------
     storage_ratios : pd.DataFrame
         including 'Full Load Hours', 'Total Cycles', 'Storage Usage Rate'
+    region : 
+        region
+    title : str
+        title of the figures
     """
     fig = make_subplots(rows=1, cols=2,
                         horizontal_spacing=0.1,
@@ -743,7 +750,7 @@ def plot_storage_ratios(storage_ratios, title):
 
             df = df[df!=0].dropna()
             ags = df.index
-            df = df.rename(index=MUN_NAMES)
+            df = df.rename(index=region.muns.gen.to_dict())
 
             hovertemplate = f'{key}: '+'%{y:.2f}'+f' {UNITS[key]}'
 
@@ -755,7 +762,7 @@ def plot_storage_ratios(storage_ratios, title):
                        name=key,
                        legendgroup=key,
                        customdata=ags,
-                       marker_color=bar_colors[col+i],
+                       marker_color=CMAP[col+i],
                        opacity=0.7,
                       showlegend=bool(col),
                        visible=visible,
@@ -771,7 +778,7 @@ def plot_storage_ratios(storage_ratios, title):
                            orientation='v',
                            name='ABW',
                            legendgroup="ABW",
-                           marker_color=bar_colors[col],
+                           marker_color=CMAP[col],
                            showlegend=bool(col),
                            visible='legendonly',
                           hovertemplate = hovertemplate,),
