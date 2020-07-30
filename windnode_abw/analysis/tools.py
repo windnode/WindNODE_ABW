@@ -711,9 +711,9 @@ def flows_timexagsxtech(results_raw, region):
                     index=pd.MultiIndex.from_product(
                         [results_raw.index,
                          ['large', 'small'],
-                         region.muns.index], names=['timestamp',
-                                                    'level',
-                                                    'ags'])
+                         region.muns.index.astype(str)], names=['timestamp',
+                                                                'level',
+                                                                'ags'])
                 )
 
             # create zero-filled DF for th. storages
@@ -724,18 +724,18 @@ def flows_timexagsxtech(results_raw, region):
                     index=pd.MultiIndex.from_product(
                         [results_raw.index,
                          ['cen', 'dec'],
-                         region.muns.index], names=['timestamp',
-                                                    'level',
-                                                    'ags'])
+                         region.muns.index.astype(str)], names=['timestamp',
+                                                                'level',
+                                                                'ags'])
                 )
-                # create zero-filled DF for th. storages
+            # create zero-filled DF for DSM demand
             elif name in ["Stromnachfrage DSM HH"]:
                 flows[name] = pd.DataFrame(
                     {'flex_dsm': 0},
                     index=pd.MultiIndex.from_product(
                         [results_raw.index,
-                         region.muns.index], names=['timestamp',
-                                                    'ags'])
+                         region.muns.index.astype(str)], names=['timestamp',
+                                                                'ags'])
                 )
 
             pass
@@ -771,8 +771,6 @@ def flows_timexagsxtech(results_raw, region):
     flows["Stromnetz exchange"] = pd.concat(
         [line_flows_exchange_1.rename("out"),
          line_flows_exchange_2.rename("in")], axis=1)
-
-
 
     # Intra-regional exchange as export (region feeds grid) and import (region gets supplied from grid)
     region_export_in_tmp = flows["Stromnetz"][flows["Stromnetz"]["in"] >= 0].groupby(["timestamp", "ags_from"])["in"].sum()
