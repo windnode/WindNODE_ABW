@@ -680,3 +680,10 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
         autosize=True,
         )
     fig.show()
+
+    def get_timesteps(region):
+    timestamps = pd.date_range(start=region._cfg['date_from'],
+                               end=region._cfg['date_to'],
+                               freq=region._cfg['freq'])
+    steps = len(timestamps)
+    return steps
