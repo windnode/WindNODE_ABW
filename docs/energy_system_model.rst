@@ -63,3 +63,6 @@ You can then further convert to the executed notebook to HTML by
 
     * If parameter `output_path` is not passed, the standard path `/path/to/windnode/repo/windnode_abw/jupy/`
       is used.
+
+    * If you get an error like `WARNING: No such kernel named ...` try to open the template notebook and
+      save it manually to set your current kernel name.
