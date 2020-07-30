@@ -111,11 +111,8 @@ COLORS = {'bio': 'green',
 
          }
 
-UNITS = {"relative": "%",
-        "hours": "h",
+UNITS = {"relative": "%", "hours": "h", "Storage Usage Rate":"%", "Total Cycles":"times", "Full Load Hours":"h"}
 
-
-}
 def draw_graph(grph, mun_ags=None,
                edge_labels=True, node_color='#AFAFAF',
                edge_color='#CFCFCF', plot=True, node_size=2000,
@@ -724,7 +721,7 @@ def get_storage_ratios(storage_figures):
     
     return storage_ratios
 
-def plot_storage_ratios(storage_ratios):
+def plot_storage_ratios(storage_ratios, title):
     """plot storage ratios of either heat or electricity
     Parameters
     ----------
@@ -782,7 +779,7 @@ def plot_storage_ratios(storage_ratios):
                     secondary_y=secondary_y)        
 
     # === Layout ===
-    fig.update_layout(title='Heat storage charge-cycles',
+    fig.update_layout(title=title,
                         autosize=True,
                        hovermode="x unified",
                       legend=dict(orientation="h",
