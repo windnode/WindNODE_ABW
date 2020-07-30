@@ -687,3 +687,39 @@ def get_timesteps(region):
                                freq=region._cfg['freq'])
     steps = len(timestamps)
     return steps
+
+def get_storage_ratios(storage_figures):
+    """calculate storage ratios for heat or electricity
+    Parameters
+    ----------
+    storage_figures : pd.DataFrame
+        DF including: discharge, capacity, power_discharge
+    
+    Return
+    ---------
+    storage_ratios : pd.DataFrame
+        'Full Load Hours', 'Total Cycles', 'Storage Usage Rate'
+    """
+    # full load hours
+    full_load_hours = storage_figures.discharge / storage_figures.power_discharge
+    full_load_hours = full_load_hours.fillna(0)
+
+    # total 
+    total_cycle = storage_figures.discharge / storage_figures.capacity
+    total_cycle = total_cycle.fillna(0)
+
+    # max
+    steps = get_timesteps(regions_scns[scenario])
+    max_cycle = (1/2 * steps *  storage_figures.power_discharge) / storage_figures.capacity
+    max_cycle = max_cycle.fillna(0)
+
+    # relative
+    storage_usage_rate  = total_cycle / max_cycle * 100
+    storage_usage_rate = storage_usage_rate.fillna(0)
+
+    # combine
+    storage_ratios = pd.concat([full_load_hours, total_cycle, storage_usage_rate], axis=1,
+                                     keys=['Full Load Hours', 'Total Cycles', 'Storage Usage Rate'])
+    storage_ratios = storage_ratios.swaplevel(axis=1)
+    
+    return storage_ratios
