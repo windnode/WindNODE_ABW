@@ -723,3 +723,74 @@ def get_storage_ratios(storage_figures):
     storage_ratios = storage_ratios.swaplevel(axis=1)
     
     return storage_ratios
+
+def plot_storage_ratios(storage_ratios):
+    """plot storage ratios of either heat or electricity
+    Parameters
+    ----------
+    storage_ratios : pd.DataFrame
+        including 'Full Load Hours', 'Total Cycles', 'Storage Usage Rate'
+    """
+    fig = make_subplots(rows=1, cols=2,
+                        horizontal_spacing=0.1,
+                        column_widths=[0.2, 0.8],
+                        subplot_titles=("Central", "Decentral"),
+                       specs=[[{"secondary_y": True}, {"secondary_y": True}]])
+
+    for col, (stor, df) in enumerate(storage_ratios.groupby(level=0, axis=1)):
+
+        for i, (key, df) in enumerate(df[stor].items()):
+
+            secondary_y = True if key == 'Storage Usage Rate'else False
+            visible = 'legendonly' if key == 'Full Load Hours' else True
+
+            df = df[df!=0].dropna()
+            ags = df.index
+            df = df.rename(index=MUN_NAMES)
+
+            hovertemplate = f'{key}: '+'%{y:.2f}'+f' {UNITS[key]}'
+
+    # --- total ---
+            fig.add_trace(
+                go.Bar(x=df.index,
+                       y=df.values, 
+                       orientation='v',
+                       name=key,
+                       legendgroup=key,
+                       customdata=ags,
+                       marker_color=bar_colors[col+i],
+                       opacity=0.7,
+                      showlegend=bool(col),
+                       visible=visible,
+                      hovertemplate = hovertemplate + '<extra>%{customdata}</extra>',),
+                row=1, col=col+1,
+                secondary_y=secondary_y)
+
+    # --- ABW ---
+            if key == 'Total Cycles':
+                fig.add_trace(
+                    go.Bar(x=['ABW'],
+                           y=[df.sum()],
+                           orientation='v',
+                           name='ABW',
+                           legendgroup="ABW",
+                           marker_color=bar_colors[col],
+                           showlegend=bool(col),
+                           visible='legendonly',
+                          hovertemplate = hovertemplate,),
+                    row=1, col=col+1,
+                    secondary_y=secondary_y)        
+
+    # === Layout ===
+    fig.update_layout(title='Heat storage charge-cycles',
+                        autosize=True,
+                       hovermode="x unified",
+                      legend=dict(orientation="h",
+                                    yanchor="bottom",
+                                    y=1.05,
+                                    xanchor="right",
+                                    x=1))
+    fig.update_yaxes(title_text="total", row=1, col=1, anchor="x", secondary_y=False)
+    fig.update_yaxes(title_text="relative in %", row=1, col=2, anchor="x2", secondary_y=True)
+    fig.update_xaxes(type='category', tickangle=45)
+    fig.show()
