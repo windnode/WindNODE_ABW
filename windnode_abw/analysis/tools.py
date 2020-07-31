@@ -834,7 +834,7 @@ def flows_timexagsxtech(results_raw, region):
          line_flows_imex_2.rename("in")], axis=1)
     region_export_imex = flows["Stromnetz via external grid"][flows["Stromnetz via external grid"]["in"] >= 0]["in"].rename("export")
     region_import_imex = flows["Stromnetz via external grid"][flows["Stromnetz via external grid"]["out"] <= 0]["out"].abs().rename("import")
-    region_imex = pd.concat([region_export_imex, region_import_imex], axis=1)
+    region_imex = pd.concat([region_export_imex, region_import_imex], axis=1).fillna(0)
     non_region_bus_translation = {_: non_region_bus2ags(_, region) for _ in
                                   region_imex.index.get_level_values("non_region_bus").unique()}
     region_imex = region_imex.rename(index=non_region_bus_translation)
