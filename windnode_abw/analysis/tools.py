@@ -423,6 +423,59 @@ def extract_line_flow(results_raw, region, level_flow_in=0, level_flow_out=1):
     return line_flows
 
 
+def extract_line_flow_imex(results_raw, level_flow_in=0, level_flow_out=1):
+
+    stubname = "line"
+
+    bus_pattern = "b_el_(?P<bus>(?:imex|\d+))"
+    line_suffix = 'b(?P<non_region_bus>\d+)_b_el_(?P<imex>imex)'
+
+    line_pattern = "_".join([stubname, line_suffix])
+    line_bus_suffix = "_".join([line_suffix, bus_pattern])
+
+    flows_extract = results_raw.loc[:,
+                    results_raw.columns.get_level_values(level_flow_in).str.match(line_pattern)
+                    & results_raw.columns.get_level_values(level_flow_out).str.match(bus_pattern)]
+
+    if level_flow_in == 0:
+        flows_extract.columns = [i + "_" + j for i, j in flows_extract.columns]
+    else:
+        flows_extract.columns = [j + "_" + i for i, j in flows_extract.columns]
+
+
+    # format to long
+    flows_extract.index.name = "timestamp"
+    flows_extract = flows_extract.reset_index()
+    flows_extracted_long = pd.wide_to_long(flows_extract,
+                                           stubnames=stubname,
+                                           i="timestamp", j="ags_tech", sep="_",
+                                           suffix=line_bus_suffix)
+
+    # introduce ags and technology as new index levels
+    idx_new = [list(flows_extracted_long.index.get_level_values(0))]
+    idx_split = flows_extracted_long.index.get_level_values(1).str.extract(line_bus_suffix)
+    [idx_new.append(c[1].tolist()) for c in idx_split.iteritems()]
+    flows_extracted_long.index = pd.MultiIndex.from_arrays(
+        idx_new,
+        names=["timestamp"] + list(idx_split.columns))
+
+    # combine to separate flows on same line into one flow. direction is distinguished by sign:
+    # positive: power goes from "from" to "to"; negative: power goes from "to" to "from"
+    index_nlevels = flows_extracted_long.index.nlevels - 1
+    positive = flows_extracted_long.loc[
+                flows_extracted_long.index.get_level_values(index_nlevels - 1 - level_flow_in)
+                == flows_extracted_long.index.get_level_values(index_nlevels)]
+    positive.index = positive.index.droplevel("bus")
+    negative = flows_extracted_long.loc[
+                flows_extracted_long.index.get_level_values(index_nlevels - 1 - level_flow_out)
+                == flows_extracted_long.index.get_level_values(index_nlevels)]
+    negative.index = negative.index.droplevel("bus")
+    line_flows = positive["line"] - negative["line"]
+    line_flows.index = line_flows.index.droplevel("imex")
+
+    return line_flows
+
+
 def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname,
                         level_flow_in=0, level_flow_out=1, unstack_col="technology"):
     """
@@ -772,6 +825,21 @@ def flows_timexagsxtech(results_raw, region):
         [line_flows_exchange_1.rename("out"),
          line_flows_exchange_2.rename("in")], axis=1)
 
+    # Extract IMEX lines
+    line_flows_imex_1 = extract_line_flow_imex(results_raw)
+    line_flows_imex_2 = extract_line_flow_imex(results_raw, level_flow_in=1, level_flow_out=0)
+
+    flows["Stromnetz via external grid"] = pd.concat(
+        [line_flows_imex_1.rename("out"),
+         line_flows_imex_2.rename("in")], axis=1)
+    region_export_imex = flows["Stromnetz via external grid"][flows["Stromnetz via external grid"]["in"] >= 0]["in"].rename("export")
+    region_import_imex = flows["Stromnetz via external grid"][flows["Stromnetz via external grid"]["out"] <= 0]["out"].abs().rename("import")
+    region_imex = pd.concat([region_export_imex, region_import_imex], axis=1).fillna(0)
+    non_region_bus_translation = {_: non_region_bus2ags(_, region) for _ in
+                                  region_imex.index.get_level_values("non_region_bus").unique()}
+    region_imex = region_imex.rename(index=non_region_bus_translation)
+    region_imex.index.set_names("ags", level="non_region_bus", inplace=True)
+
     # Intra-regional exchange as export (region feeds grid) and import (region gets supplied from grid)
     region_export_in_tmp = flows["Stromnetz"][flows["Stromnetz"]["in"] >= 0].groupby(["timestamp", "ags_from"])["in"].sum()
     region_export_in_tmp.index.set_names("ags", level="ags_from", inplace=True)
@@ -789,6 +857,8 @@ def flows_timexagsxtech(results_raw, region):
 
     flows["Intra-regional exchange"] = pd.concat([region_export_tmp, region_import_tmp], axis=1).rename(
         columns={"in": "export", "out": "import"}).fillna(0)
+    flows["Intra-regional exchange"] = pd.concat([flows['Intra-regional exchange'], region_imex]).sum(
+        level=["timestamp", "ags"])
 
     # Assign electricity import/export (shortage/excess) to region's ags
     # and merge into Erzeugung/Nachfrage
