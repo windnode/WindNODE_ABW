@@ -735,10 +735,11 @@ def plot_storage_ratios(storage_ratios, region, title):
     title : str
         title of the figures
     """
+    sub_titles = storage_ratios.columns.get_level_values(level=0).unique()
     fig = make_subplots(rows=1, cols=2,
                         horizontal_spacing=0.1,
                         column_widths=[0.2, 0.8],
-                        subplot_titles=("Central", "Decentral"),
+                        subplot_titles=(sub_titles[0], sub_titles[1]),
                        specs=[[{"secondary_y": True}, {"secondary_y": True}]])
 
     for col, (stor, df) in enumerate(storage_ratios.groupby(level=0, axis=1)):
