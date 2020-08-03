@@ -1682,7 +1682,8 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
 
 def create_scenario_notebook(scenario, run_id,
                              template="scenario_analysis_template.ipynb",
-                             output_path=os.path.join(wn_path[0], 'jupy')):
+                             output_path=os.path.join(wn_path[0], 'jupy'),
+                             kernel_name=None):
 
     # define data and paths
     input_template = os.path.join(wn_path[0], 'jupy', 'templates', template)
@@ -1695,7 +1696,8 @@ def create_scenario_notebook(scenario, run_id,
                             parameters={
                                 "scenario": scenario,
                                 "run_timestamp": run_id},
-                            request_save_on_cell_execute=True)
+                            request_save_on_cell_execute=True,
+                            kernel_name=kernel_name)
     except FileNotFoundError:
         logger.warning(f'Template or output path not found, skipping...')
         return scenario
@@ -1711,7 +1713,8 @@ def create_scenario_notebook(scenario, run_id,
 def create_multiple_scenario_notebooks(scenarios, run_id,
                                        template="scenario_analysis_template.ipynb",
                                        output_path=os.path.join(wn_path[0], 'jupy'),
-                                       num_processes=None):
+                                       num_processes=None,
+                                       kernel_name=None):
 
     if isinstance(scenarios, str):
         scenarios = [scenarios]
@@ -1747,7 +1750,8 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
     for scen in scenarios:
         errors = pool.apply_async(create_scenario_notebook,
                                   args=(scen, run_id, template,),
-                                  kwds={"output_path": output_path}).get()
+                                  kwds={"output_path": output_path,
+                                        "kernel_name": kernel_name}).get()
     pool.close()
     pool.join()
 
