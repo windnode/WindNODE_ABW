@@ -114,7 +114,7 @@ COLORS = {'bio': 'green',
 
 CMAP = px.colors.sequential.GnBu_r
 
-UNITS = {"relative": "%", "hours": "h", "Storage Usage Rate":"%", "Total Cycles":"times", "Full Load Hours":"h"}
+UNITS = {"relative": "%", "hours": "h", "Storage Usage Rate":"%", "Total Cycles":"times", "Full Load Hours":"h", "RE":"MWh", "DSM":"MWh", "Import":"MWh", "Lineload":"%"}
 
 def draw_graph(grph, mun_ags=None,
                edge_labels=True, node_color='#AFAFAF',
