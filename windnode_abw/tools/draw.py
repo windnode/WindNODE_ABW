@@ -9,7 +9,10 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.ticker import ScalarFormatter
 import matplotlib.gridspec as gridspec
 
+from matplotlib import cm
+from matplotlib.colors import ListedColormap
 
+import numpy as np
 import pandas as pd
 import geopandas as gpd
 import os
@@ -22,6 +25,7 @@ import plotly.express as px
 import plotly.io as pio
 import plotly.graph_objs as go
 import plotly.offline as pltly
+from plotly.subplots import make_subplots
 
 from oemof.outputlib import views
 from oemof.graph import create_nx_graph
@@ -108,6 +112,9 @@ COLORS = {'bio': 'green',
 
          }
 
+CMAP = px.colors.sequential.GnBu_r
+
+UNITS = {"relative": "%", "hours": "h", "Storage Usage Rate":"%", "Total Cycles":"times", "Full Load Hours":"h", "RE":"MWh", "DSM":"MWh", "Import":"MWh", "Lineload":"%"}
 
 def draw_graph(grph, mun_ags=None,
                edge_labels=True, node_color='#AFAFAF',
@@ -443,7 +450,7 @@ def sample_plots(region, results):
 
 
 # one geoplot to fit in subplots
-def plot_geoplot(name, data, region, ax, cmap='viridis', unit=None):
+def plot_geoplot(name, data, region, ax, unit=None):
     """plot geoplot from pd.Series
     Parameters
     ----------
@@ -455,11 +462,12 @@ def plot_geoplot(name, data, region, ax, cmap='viridis', unit=None):
         Region object
     ax : matplotlib.axes
         coordinate system
-    cmap : str
-        colormap
     unit : str
         label of colorbar
     """
+    cmap = cm.GnBu_r(np.linspace(0,1,40))
+    cmap = ListedColormap(cmap[:32,:-1])
+
     gdf_region = gpd.GeoDataFrame(region.muns.loc[:,['gen', 'geom']],
                                   geometry='geom')
     gdf_region = gdf_region.join(data,
@@ -671,4 +679,123 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
             tickfont_size=14),
         autosize=True,
         )
+    fig.show()
+
+def get_timesteps(region):
+    timestamps = pd.date_range(start=region._cfg['date_from'],
+                               end=region._cfg['date_to'],
+                               freq=region._cfg['freq'])
+    steps = len(timestamps)
+    return steps
+
+def get_storage_ratios(storage_figures, region):
+    """calculate storage ratios for heat or electricity
+    Parameters
+    ----------
+    storage_figures : pd.DataFrame
+        DF including: discharge, capacity, power_discharge
+    
+    Return
+    ---------
+    storage_ratios : pd.DataFrame
+        'Full Load Hours', 'Total Cycles', 'Storage Usage Rate'
+    """
+    # full load hours
+    full_load_hours = storage_figures.discharge / storage_figures.power_discharge
+    full_load_hours = full_load_hours.fillna(0)
+
+    # total 
+    total_cycle = storage_figures.discharge / storage_figures.capacity
+    total_cycle = total_cycle.fillna(0)
+
+    # max
+    steps = get_timesteps(region)
+    max_cycle = (1/2 * steps *  storage_figures.power_discharge) / storage_figures.capacity
+    max_cycle = max_cycle.fillna(0)
+
+    # relative
+    storage_usage_rate  = total_cycle / max_cycle * 100
+    storage_usage_rate = storage_usage_rate.fillna(0)
+
+    # combine
+    storage_ratios = pd.concat([full_load_hours, total_cycle, storage_usage_rate], axis=1,
+                                     keys=['Full Load Hours', 'Total Cycles', 'Storage Usage Rate'])
+    storage_ratios = storage_ratios.swaplevel(axis=1)
+    
+    return storage_ratios
+
+def plot_storage_ratios(storage_ratios, region, title):
+    """plot storage ratios of either heat or electricity
+    Parameters
+    ----------
+    storage_ratios : pd.DataFrame
+        including 'Full Load Hours', 'Total Cycles', 'Storage Usage Rate'
+    region : 
+        region
+    title : str
+        title of the figures
+    """
+    sub_titles = storage_ratios.columns.get_level_values(level=0).unique()
+    fig = make_subplots(rows=1, cols=2,
+                        horizontal_spacing=0.1,
+                        column_widths=[0.2, 0.8],
+                        subplot_titles=(sub_titles[0], sub_titles[1]),
+                       specs=[[{"secondary_y": True}, {"secondary_y": True}]])
+
+    for col, (stor, df) in enumerate(storage_ratios.groupby(level=0, axis=1)):
+
+        for i, (key, df) in enumerate(df[stor].items()):
+
+            secondary_y = True if key == 'Storage Usage Rate'else False
+            visible = 'legendonly' if key == 'Full Load Hours' else True
+
+            df = df[df!=0].dropna()
+            ags = df.index
+            df = df.rename(index=region.muns.gen.to_dict())
+
+            hovertemplate = f'{key}: '+'%{y:.2f}'+f' {UNITS[key]}'
+
+    # --- total ---
+            fig.add_trace(
+                go.Bar(x=df.index,
+                       y=df.values, 
+                       orientation='v',
+                       name=key,
+                       legendgroup=key,
+                       customdata=ags,
+                       marker_color=CMAP[col+i],
+                       opacity=0.7,
+                      showlegend= not bool(col),
+                       visible=visible,
+                      hovertemplate = hovertemplate + '<extra>%{customdata}</extra>',),
+                row=1, col=col+1,
+                secondary_y=secondary_y)
+
+    # --- ABW ---
+            if key == 'Total Cycles':
+                fig.add_trace(
+                    go.Bar(x=['ABW'],
+                           y=[df.sum()],
+                           orientation='v',
+                           name='ABW',
+                           legendgroup="ABW",
+                           marker_color=CMAP[col],
+                           showlegend= not bool(col),
+                           visible='legendonly',
+                          hovertemplate = hovertemplate,),
+                    row=1, col=col+1,
+                    secondary_y=secondary_y)        
+
+    # === Layout ===
+    fig.update_layout(title=title,
+                        autosize=True,
+                       hovermode="x unified",
+                      legend=dict(orientation="h",
+                                    yanchor="bottom",
+                                    y=1.05,
+                                    xanchor="right",
+                                    x=1))
+    fig.update_yaxes(title_text="total", row=1, col=1, anchor="x", secondary_y=False)
+    fig.update_yaxes(title_text="relative in %", row=1, col=2, anchor="x2", secondary_y=True)
+    fig.update_xaxes(type='category', tickangle=45)
     fig.show()

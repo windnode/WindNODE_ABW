@@ -156,7 +156,7 @@ UNITS = {
     "Total costs heat supply": "EUR",
     "LCOE": "EUR/MWh",
     "LCOH": "EUR/MWh",
-}
+    }
 
 
 def results_to_dataframes(esys, infeasible):
