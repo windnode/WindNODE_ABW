@@ -1683,7 +1683,8 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
 def create_scenario_notebook(scenario, run_id,
                              template="scenario_analysis_template.ipynb",
                              output_path=os.path.join(wn_path[0], 'jupy'),
-                             kernel_name=None):
+                             kernel_name=None,
+                             force_new_results=False):
 
     # define data and paths
     input_template = os.path.join(wn_path[0], 'jupy', 'templates', template)
@@ -1695,7 +1696,9 @@ def create_scenario_notebook(scenario, run_id,
         pm.execute_notebook(input_template, output_notebook,
                             parameters={
                                 "scenario": scenario,
-                                "run_timestamp": run_id},
+                                "run_timestamp": run_id,
+                                "force_new_results": force_new_results
+                            },
                             request_save_on_cell_execute=True,
                             kernel_name=kernel_name)
     except FileNotFoundError:
@@ -1714,7 +1717,8 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
                                        template="scenario_analysis_template.ipynb",
                                        output_path=os.path.join(wn_path[0], 'jupy'),
                                        num_processes=None,
-                                       kernel_name=None):
+                                       kernel_name=None,
+                                       force_new_results=False):
 
     if isinstance(scenarios, str):
         scenarios = [scenarios]
@@ -1751,7 +1755,9 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
         errors = pool.apply_async(create_scenario_notebook,
                                   args=(scen, run_id, template,),
                                   kwds={"output_path": output_path,
-                                        "kernel_name": kernel_name}).get()
+                                        "kernel_name": kernel_name,
+                                        "force_new_results": force_new_results}
+                                  ).get()
     pool.close()
     pool.join()
 
