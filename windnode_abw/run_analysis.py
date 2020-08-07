@@ -23,8 +23,7 @@ if __name__ == "__main__":
     scenarios = ['NEP2035']
 
     regions_scns, results_scns = analysis(run_timestamp=run_timestamp,
-                       scenarios=scenarios)
+                                          scenarios=scenarios)
 
     logger.info('===== All done! =====')
 
-    # DO STUFF WITH RESULTS (dict results_scns) HERE
