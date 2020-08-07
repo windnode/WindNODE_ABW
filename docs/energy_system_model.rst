@@ -21,6 +21,44 @@ Model details
 Usage notes
 -----------
 
+Run Optimization
+^^^^^^^^^^^^^^^^
+
+To start the optimization, you can use the command line interface: run script
+`run_scenario.py` from the shell:
+
+.. code-block:: bash
+
+   python run_scenario.py [-h] [--mp [NUMBER]] [SCENARIO [SCENARIO ...]]
+
+where `NUMBER` is the number of threads and `SCENARIOS` the scenarios to be executed. For example,
+to run all scenarios in 4 processes, use
+
+.. code-block:: bash
+
+   python run_scenario.py --mp 4 all
+
+To get help on parameters and available scenarios you can use
+
+.. code-block:: bash
+
+   python run_scenario.py -h
+
+Depending on the system settings, the optimization takes about 1-2 hours for each scenario.
+
+By default, raw results are written to `~/.windnode_abw/results/`, a subdirectory with a timestamp
+(run id) is created (e.g. `~/.windnode_abw/results/2020-08-05_024335/`).
+
+Post-processing results
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The results, aggregated on different temporal and spatial levels, are calculated by post-processing
+the raw results from above. These post-processed data is stored as pickle file in subdirectory
+`./processed` of the run id folder and can be quickly loaded, e.g. from the jupyter notebooks.
+
+By default, this step is automatically performed after the optimization run but can be manually
+triggered by passing `force_new_results=True` to the notebook creation functions (see below).
+
 Analyzing results
 ^^^^^^^^^^^^^^^^^
 
