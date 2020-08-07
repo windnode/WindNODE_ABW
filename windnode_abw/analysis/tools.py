@@ -1765,3 +1765,64 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
         logger.warning(f'Errors occured during creation of notebooks.')
     else:
         logger.info(f'Notebooks for {len(scenarios)} scenarios created without errors.')
+
+
+def create_comparative_notebook(scenarios, run_id,
+                                template="scenario_analysis_comparative_template.ipynb",
+                                output_path=os.path.join(wn_path[0], 'jupy'),
+                                kernel_name=None,
+                                force_new_results=False):
+    """Create comparative jupyter notebook with all scenarios"""
+
+    if isinstance(scenarios, str):
+        scenarios = [scenarios]
+
+    # get list of available scenarios in run id folder
+    result_base_path = os.path.join(config.get_data_root_dir(),
+                                    config.get('user_dirs',
+                                               'results_dir')
+                                    )
+    avail_scenarios = [file.split('.')[0]
+                       for file in os.listdir(os.path.join(result_base_path,
+                                                           run_id))]
+    # get list of available scenarios for comparison
+    all_scenarios = [file.split('.')[0]
+                     for file in os.listdir(os.path.join(wn_path[0],
+                                                         'scenarios'))
+                     if file.endswith(".scn")]
+
+    if len(all_scenarios) > len(avail_scenarios):
+        logger.info(f'Available scenarios ({len(avail_scenarios)}) in run '
+                    f'{run_id} differ from the total number of scenarios '
+                    f'({len(all_scenarios)}).')
+
+    # create scenario list
+    if scenarios == ['all']:
+        scenarios = avail_scenarios
+
+    logger.info(f'Creating comparative notebook for {len(scenarios)} scenarios in {output_path} ...')
+
+    # define data and paths
+    input_template = os.path.join(wn_path[0], 'jupy', 'templates', template)
+    output_name = "scenario_analysis_comparative.ipynb"
+    output_notebook = os.path.join(output_path, output_name)
+
+    # execute notebook with specific parameters
+    try:
+        pm.execute_notebook(input_template, output_notebook,
+                            parameters={
+                                "scenarios": scenarios,
+                                "run_timestamp": run_id,
+                                "force_new_results": force_new_results
+                            },
+                            request_save_on_cell_execute=True,
+                            kernel_name=kernel_name)
+    except FileNotFoundError:
+        logger.error(f'Template or output path not found.')
+        raise FileNotFoundError
+    except Exception as ex:
+        logger.error(f'An exception of type {type(ex).__name__} occurred:')
+        logger.error(ex)
+        raise Exception
+    else:
+        logger.info(f'Comparative notebook successfully created!')
