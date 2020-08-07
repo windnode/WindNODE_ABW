@@ -12,6 +12,7 @@ from windnode_abw.model import Region
 from windnode_abw.model.region.model import simulate, create_oemof_model
 from windnode_abw.model.region.tools import calc_line_loading
 from windnode_abw.model.region.tools import grid_graph
+from windnode_abw.analysis import analysis
 from windnode_abw.analysis.tools import results_to_dataframes
 
 # load configs
@@ -144,6 +145,10 @@ def run_scenario(cfg):
                        solver_meta=esys.results['meta'],
                        infeasible=infeasible)
 
+    if cfg['do_analysis']:
+        analysis(run_timestamp=cfg['run_timestamp'],
+                 scenarios=cfg['scn_data']['general']['id'])
+
     logger.info(f'===== Scenario {cfg["scenario"]} done! =====')
 
     # debug_plot_results(esys=esys,
@@ -220,7 +225,8 @@ if __name__ == "__main__":
         'save_lp': False,
         'dump_esys': False,
         'load_esys': False,
-        'dump_results': True
+        'dump_results': True,
+        'do_analysis': True
     }
 
     infeasible_scenarios = []
