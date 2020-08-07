@@ -448,7 +448,6 @@ def sample_plots(region, results):
     plt.show()
 
 
-
 # one geoplot to fit in subplots
 def plot_geoplot(name, data, region, ax, unit=None):
     """plot geoplot from pd.Series
@@ -491,7 +490,6 @@ def plot_geoplot(name, data, region, ax, unit=None):
     ax.set_yticklabels([])
     ax.set_xticklabels([])
     ax.grid(False)
-
 
 
 def plot_snd_total(region, df_supply, df_demand):
@@ -573,7 +571,6 @@ def plot_split_hbar(data, limit, ax, title=None, unit=None):
     ax2.set_ylabel(None)
     ax2.set_xlabel(unit)
     ax2.set_title(title,loc='left', fontsize=12)
-
 
 
 def plot_timeseries(results_scn, kind='el', **kwargs):
@@ -681,12 +678,14 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
         )
     fig.show()
 
+
 def get_timesteps(region):
     timestamps = pd.date_range(start=region._cfg['date_from'],
                                end=region._cfg['date_to'],
                                freq=region._cfg['freq'])
     steps = len(timestamps)
     return steps
+
 
 def get_storage_ratios(storage_figures, region):
     """calculate storage ratios for heat or electricity
@@ -723,6 +722,7 @@ def get_storage_ratios(storage_figures, region):
     storage_ratios = storage_ratios.swaplevel(axis=1)
     
     return storage_ratios
+
 
 def plot_storage_ratios(storage_ratios, region, title):
     """plot storage ratios of either heat or electricity
