@@ -125,8 +125,6 @@ UNITS = {
     'Electricity imports % of demand': '%',
     'Electricity exports % of demand': '%',
     'Balance': 'MWh',
-    'Self-consumption annual': '%',
-    'Self-consumption hourly': '%',
     'Area required pv_roof_small': 'ha',
     'Area required pv_roof_large': 'ha',
     'Area required pv_ground': 'ha',
@@ -1580,10 +1578,6 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Autarky"] = (1 - (
         highlevel["Electricity imports"] / highlevel["Electricity demand total"])) * 100
     highlevel["Autark hours"] = results_tables["Autark hours"].mean()
-    highlevel["Self-consumption hourly"] = ((1 - (
-            results_txaxt["Stromimport"].sum(level="timestamp").sum(axis=1) / (
-            results_txaxt["Stromnachfrage"].drop(columns='export').sum(level="timestamp").sum(axis=1) +
-            results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)))) * 100).mean()
     for re in results_tables["Area required"].columns:
         highlevel["Area required " + re] = results_tables["Area required"][re].sum()
 
