@@ -372,6 +372,10 @@ def aggregate_flows(results_raw):
                 index=results['Strombedarf nach Gemeinde'].index,
                 columns=results['Strombedarf nach Gemeinde'].columns)
 
+    for key, val in results.items():
+        if key.endswith("nach Gemeinde"):
+            val.columns= val.columns.astype(int)
+
     return results
 
 
