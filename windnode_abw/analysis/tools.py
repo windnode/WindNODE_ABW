@@ -883,10 +883,12 @@ def flows_timexagsxtech(results_raw, region):
     flows.pop("Stromnachfrage DSM HH")
 
     # Add autarky
-    flows["Autarky"] = pd.DataFrame()
-    flows["Autarky"]["supply"] = flows['Stromerzeugung'].drop(columns='import').sum(axis=1)
-    flows["Autarky"]["demand"] = flows['Stromnachfrage'].drop(columns='export').sum(axis=1)
-    flows["Autarky"]["relative"] = flows["Autarky"]['supply'].unstack().div(flows["Autarky"]['demand'].unstack()).stack()
+    flows["Autarky"] = (1 - (flows['Stromerzeugung']['import'] + flows["Intra-regional exchange"]["import"] +
+                        flows["Batteriespeicher"].sum(level=["timestamp", "ags"])["discharge"]).div(
+        flows['Stromnachfrage'].drop(columns='export').sum(axis=1) + flows['Stromnachfrage Wärme'].sum(axis=1).sum(
+            level=["timestamp", "ags"]) + flows["Intra-regional exchange"]["export"] +
+        flows["Batteriespeicher"].sum(level=["timestamp", "ags"])["charge"])) * 100
+    flows["Autark hours"] = flows["Autarky"] >= 100
 
     # Join Dessau GuD data into one DF, need for extraction of variable efficiency,
     # cf. https://github.com/windnode/WindNODE_ABW/issues/33
