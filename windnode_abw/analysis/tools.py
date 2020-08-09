@@ -1509,11 +1509,13 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         add(results["CO2 certificate cost th."], fill_value=0)
 
     # Add Autarky
-    results["Autarky"] = pd.DataFrame()
-    results["Autarky"]['supply'] = extracted_results["Autarky"]['supply'].sum(level=1)
-    results["Autarky"]['demand'] = extracted_results["Autarky"]['demand'].sum(level=1)
-    results["Autarky"]['relative'] = results["Autarky"]['supply'].div(results["Autarky"]['demand'])
-    results["Autarky"]['hours'] = (extracted_results["Autarky"]['relative'] > 1).sum(level=1)
+    results["Autarky"] = (1 - (
+                results['Stromerzeugung nach Gemeinde']['import'] + results['Intra-regional exchange']['import'] +
+                results['Batteriespeicher nach Gemeinde'].sum(level="ags")["discharge"]).div(
+        results['Stromnachfrage nach Gemeinde'].drop(columns='export').sum(axis=1) + results[
+            'Stromnachfrage Wärme nach Gemeinde'].sum(axis=1) + results['Intra-regional exchange']['export'] +
+        results['Batteriespeicher nach Gemeinde'].sum(level="ags")["charge"])) * 100
+    results["Autark hours"] = extracted_results["Autark hours"].mean(level="ags") * 100
 
     return results
 
