@@ -156,6 +156,8 @@ UNITS = {
     "Total costs heat supply": "EUR",
     "LCOE": "EUR/MWh",
     "LCOH": "EUR/MWh",
+    "Autarky": "%",
+    "Autark hours": "%",
     }
 
 
@@ -1575,8 +1577,9 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Electricity exports % of demand"] = results_tables["Stromnachfrage nach Gemeinde"]["export"].sum() / \
                                            highlevel["Electricity demand total"] * 1e2
     highlevel["Balance"] = highlevel["Electricity imports"] - highlevel["Electricity exports"]
-    highlevel["Self-consumption annual"] = (1 - (
+    highlevel["Autarky"] = (1 - (
         highlevel["Electricity imports"] / highlevel["Electricity demand total"])) * 100
+    highlevel["Autark hours"] = results_tables["Autark hours"].mean()
     highlevel["Self-consumption hourly"] = ((1 - (
             results_txaxt["Stromimport"].sum(level="timestamp").sum(axis=1) / (
             results_txaxt["Stromnachfrage"].drop(columns='export').sum(level="timestamp").sum(axis=1) +
