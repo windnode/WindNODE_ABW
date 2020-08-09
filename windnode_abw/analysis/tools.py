@@ -1550,11 +1550,6 @@ def results_tech(results_axlxt):
     # Calculate levelized cost of heat
     results["LCOH"] = results_axlxt["Total costs heat supply"].sum() / results_axlxt['Wärmenachfrage nach Gemeinde'].sum().sum()
 
-    # Autarky
-    results["Autarky"] = results_axlxt["Autarky"].loc[:,['supply','demand']].sum(axis=0).rename("ABW")
-    results["Autarky"]["relative"] = results["Autarky"]['supply'] / results["Autarky"]['demand']
-
-
     return results
 
 
