@@ -524,6 +524,9 @@ def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname
         idx_new,
         names=["timestamp"] + list(idx_split.columns))
 
+    # convert level ags to int
+    flows_extracted_long.index = _ags_index2int(flows_extracted_long.index)
+
     # Sum over buses (aggregation) in one region and unstack technology
     flows_formatted = flows_extracted_long.sum(level=list(range(len(idx_new))))
     if unstack_col:
@@ -547,6 +550,9 @@ def extract_flow_params(flow_params_raw, node_pattern, bus_pattern, stubname,
     params_extract.index = pd.MultiIndex.from_frame(params_extract.index.str.extract(pattern))
     params_extract = params_extract.sum(level=list(range(params_extract.index.nlevels)))
 
+    # convert level ags to int
+    params_extract.index = _ags_index2int(params_extract.index)
+
     return params_extract
 
 
@@ -561,6 +567,9 @@ def extract_stat_params(stat_params_raw, node_pattern, stubname, params=None):
     params_extract = params_extract.unstack().droplevel(0, axis=1)
     params_extract.index = pd.MultiIndex.from_frame(
         params_extract.index.get_level_values(0).str.extract(pattern))
+
+    # convert level ags to int
+    params_extract.index = _ags_index2int(params_extract.index)
 
     return params_extract[params]
 
@@ -893,9 +902,9 @@ def flows_timexagsxtech(results_raw, region):
     flows['GuD Dessau'] = (
         flows['GuD Dessau'].rename(columns={'gen': 'in_gas'}).reset_index(level=1, drop=True).join([
             flows['Stromerzeugung'].xs(
-                '15001000', level='ags').rename(columns={'gud': 'out_el'})['out_el'],
+                15001000, level='ags').rename(columns={'gud': 'out_el'})['out_el'],
             flows['Wärmeerzeugung'].xs(
-                '15001000', level='ags').xs('cen', level='level').rename(columns={'gud': 'out_th'})['out_th']
+                15001000, level='ags').xs('cen', level='level').rename(columns={'gud': 'out_th'})['out_th']
     ]))
 
     return flows
@@ -927,7 +936,7 @@ def non_region_bus2ags(bus_id, region):
 
         ags = region.buses.loc[region_bus, "ags"]
 
-    return str(int(ags))
+    return int(ags)
 
 
 def _rename_external_hv_buses(df, region, merged=False):
@@ -982,6 +991,30 @@ def _rename_external_hv_buses(df, region, merged=False):
 
     else:
         return df, df_new
+    
+    
+def _ags_index2int(idx):
+    """Convert values ags index level ags to int"""
+    # idx = pd.MultiIndex.from_arrays(
+    #     idx_new,
+    #     names=["timestamp"] + list(idx_split.columns))
+
+    # Convert values ags index level ags to int
+    new_level_names = []
+    new_level_values = []
+    for level in idx.levels:
+        if level.name == "ags":
+            new_level_values.append(idx.get_level_values(level.name).astype(int))
+        else:
+            new_level_values.append(idx.get_level_values(level.name))
+        new_level_names.append(level.name)
+    idx = pd.MultiIndex.from_arrays(
+        new_level_values,
+        names=new_level_names)
+
+    # flows_extracted_long.index = idx
+
+    return idx
 
 
 def aggregate_parameters(region, results_raw, flows):
