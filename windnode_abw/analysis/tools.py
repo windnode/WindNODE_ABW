@@ -1506,6 +1506,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Autarky"]['supply'] = extracted_results["Autarky"]['supply'].sum(level=1)
     results["Autarky"]['demand'] = extracted_results["Autarky"]['demand'].sum(level=1)
     results["Autarky"]['relative'] = results["Autarky"]['supply'].div(results["Autarky"]['demand'])
+    results["Autarky"]['hours'] = (extracted_results["Autarky"]['relative'] > 1).sum(level=1)
 
     return results
 
