@@ -1109,7 +1109,6 @@ def aggregate_parameters(region, results_raw, flows):
     params["Discharge power heat storage"] = flows_params["Wärmespeicher"][
         "nominal_value"].unstack("level").fillna(0).rename(columns={
         "cen": "stor_th_large", "dec": "stor_th_small"})
-    params["Discharge power heat storage"].index = params["Discharge power heat storage"].index.astype(int)
 
     # extract static vars from nodes
     stat_params = stat_params_agsxtech(results_raw['params_stat'])
@@ -1132,27 +1131,21 @@ def aggregate_parameters(region, results_raw, flows):
     capacity_special = flows_params["Stromerzeugung"]["nominal_value"].unstack("technology").fillna(0)[
         ["bhkw", "gas", "gud"]]
     capacity_special.at['15001000', 'gud'] = 60  # manual update of GuD Dessau's nom. el. power
-    capacity_special.index = capacity_special.index.astype(int)
     params["Installed capacity electricity supply"] = \
         params["Installed capacity electricity supply"].join(capacity_special, how="outer").fillna(0)
-    params["Installed capacity electricity supply"].index = params[
-        "Installed capacity electricity supply"].index.astype(int)
 
     # Installed capacity from model results (include pre-calculations) gud, bhkw, gas
     capacity_special = flows_params["Wärmeerzeugung"]["nominal_value"].sum(
         level=["ags", "technology"]).unstack("technology").fillna(0)[
         ["bhkw", "gas_boiler", "gud"]]
-    capacity_special.index = capacity_special.index.astype(int)
     capacity_special_pth = flows_params["Wärmeerzeugung PtH"]["nominal_value"].sum(
         level=["ags", "technology"]).unstack("technology").fillna(0)
-    capacity_special_pth.index = capacity_special_pth.index.astype(int)
     capacity_special_heating = flows['Wärmeerzeugung'].xs(
         "dec", level='level').groupby('ags').max()[
         [col for col in
          ["fuel_oil", "natural_gas", "elenergy", "solar", "wood"]
          if col in flows['Wärmeerzeugung']]
     ]
-    capacity_special_heating.index = capacity_special_heating.index.astype(int)
 
     params["Installed capacity heat supply"] = pd.concat(
         [capacity_special, capacity_special_pth, capacity_special_heating], axis=1)
@@ -1228,21 +1221,16 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     co2_certificate_cost = region.tech_assumptions_scn.loc["emission"]["capex"]
 
     results["Stromerzeugung nach Gemeinde"] = extracted_results["Stromerzeugung"].sum(level="ags")
-    results["Stromerzeugung nach Gemeinde"].index = results["Stromerzeugung nach Gemeinde"].index.astype(int)
     results["Stromnachfrage nach Gemeinde"] = extracted_results["Stromnachfrage"].sum(level="ags")
-    results["Stromnachfrage nach Gemeinde"].index = results["Stromnachfrage nach Gemeinde"].index.astype(int)
     results["Stromnachfrage Wärme nach Gemeinde"] = extracted_results["Stromnachfrage Wärme"].sum(level="ags")
-    results["Stromnachfrage Wärme nach Gemeinde"].index = results["Stromnachfrage Wärme nach Gemeinde"].index.astype(int)
     results["Wärmeerzeugung nach Gemeinde"] = extracted_results["Wärmeerzeugung"].sum(level=["level", "ags"])
     results["Wärmenachfrage nach Gemeinde"] = extracted_results["Wärmenachfrage"].sum(level=["ags"])
-    results["Wärmenachfrage nach Gemeinde"].index = results["Wärmenachfrage nach Gemeinde"].index.astype(int)
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
     results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["ags_from", "ags_to"])
     results["Stromnetzleitungen per bus"] = extracted_results["Stromnetz per bus"].sum(
         level=["line_id", "bus_from", "bus_to"])
     results["Intra-regional exchange"] = extracted_results["Intra-regional exchange"].sum(level=["ags"])
-    results["Intra-regional exchange"].index = results["Intra-regional exchange"].index.astype(int)
     results["Net DSM activation"] = extracted_results["DSM activation"]["Demand increase"].sum(level="ags")
 
     # Losses in energy storages
@@ -1355,7 +1343,6 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         parameters['Installierte Kapazität PV-Batteriespeicher']["capacity"].rename("flex_bat_small")], axis=1)
     discharge_stor_el_tmp = results['Batteriespeicher nach Gemeinde']["discharge"].unstack("level").rename(
         columns={"large": "flex_bat_large", "small": "flex_bat_small"})
-    discharge_stor_el_tmp.index = discharge_stor_el_tmp.index.astype(int)
     results_tmp_stor_el = _calculate_co2_emissions(
         "stor el.",
         discharge_stor_el_tmp,
@@ -1374,7 +1361,6 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         params_heat_supply_tmp.loc[pth_tech + "_nostor"] = params_heat_supply_tmp.loc[pth_tech]
         params_heat_supply_tmp.drop(pth_tech, inplace=True)
     heat_generation = results["Wärmeerzeugung nach Gemeinde"].sum(level="ags")
-    heat_generation.index = heat_generation.index.astype(int)
     results_tmp_th = _calculate_co2_emissions(
         "th.",
         heat_generation,
@@ -1406,7 +1392,6 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     # CO2 emissions attributed to heat storages
     discharge_stor_th_tmp = results['Wärmespeicher nach Gemeinde']["discharge"].unstack("level").rename(
         columns={"cen": "stor_th_large", "dec": "stor_th_small"})
-    discharge_stor_th_tmp.index = discharge_stor_th_tmp.index.astype(int)
     stor_th_parameters = parameters["Parameters storages"].loc[
                          parameters["Parameters storages"].index.str.startswith("th_"), :].rename(
         index={"th_cen_storage": "stor_th_large",
@@ -1453,7 +1438,6 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     # TODO: if you include it, make sure sum of LCOE calculated in create_highlevel_results() ignore these revenues
     # export_revenues = results["Stromnachfrage nach Gemeinde"]["export"] * -parameters["Parameters el. generators"].loc[
     #     "import", "opex_var_comm"]
-    # export_revenues.index = export_revenues.index.astype(int)
     # results["Total costs electricity supply"]["export"] = export_revenues
 
     # Calculate costs for electricity storages and add to el. supply costs df
@@ -1522,8 +1506,6 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Autarky"]['supply'] = extracted_results["Autarky"]['supply'].sum(level=1)
     results["Autarky"]['demand'] = extracted_results["Autarky"]['demand'].sum(level=1)
     results["Autarky"]['relative'] = results["Autarky"]['supply'].div(results["Autarky"]['demand'])
-    results["Autarky"]['hours'] = (extracted_results["Autarky"]['relative']>1).sum(level=1).astype(int)
-    results["Autarky"].index = results["Autarky"].index.astype(int)
 
     return results
 
