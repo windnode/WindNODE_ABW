@@ -868,6 +868,7 @@ def flows_timexagsxtech(results_raw, region):
         columns={"in": "export", "out": "import"}).fillna(0)
     flows["Intra-regional exchange"] = pd.concat([flows['Intra-regional exchange'], region_imex]).sum(
         level=["timestamp", "ags"])
+    flows["Intra-regional exchange"].index = _ags_index2int(flows["Intra-regional exchange"].index)
 
     # Assign electricity import/export (shortage/excess) to region's ags
     # and merge into Erzeugung/Nachfrage
