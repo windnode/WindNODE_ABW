@@ -825,10 +825,10 @@ def calc_dsm_cap(region):
     """
     dsm_cap_up = {ags:calc_dsm_cap_up(region.dsm_ts, ags,
                      mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in region.muns.index}
-    df_dsm_cap_up = pd.DataFrame(dsm_cap_up).loc[region._cfg['date_from']:region._cfg['date_to']]
+    df_dsm_cap_up = pd.DataFrame(dsm_cap_up).loc[region.cfg['date_from']:region.cfg['date_to']]
     
     dsm_cap_down = {ags:calc_dsm_cap_down(region.dsm_ts, ags,
                      mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in region.muns.index}
-    df_dsm_cap_down = pd.DataFrame(dsm_cap_down).loc[region._cfg['date_from']:region._cfg['date_to']]
+    df_dsm_cap_down = pd.DataFrame(dsm_cap_down).loc[region.cfg['date_from']:region.cfg['date_to']]
     
     return df_dsm_cap_up, df_dsm_cap_down
