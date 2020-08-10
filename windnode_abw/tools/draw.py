@@ -30,6 +30,8 @@ from plotly.subplots import make_subplots
 from oemof.outputlib import views
 from oemof.graph import create_nx_graph
 
+from windnode_abw.model.region.tools import calc_dsm_cap_up, calc_dsm_cap_down
+
 import logging
 logger = logging.getLogger('windnode_abw')
 
@@ -806,3 +808,27 @@ def plot_storage_ratios(storage_ratios, region, title):
     fig.update_yaxes(title_text="relative in %", row=1, col=2, anchor="x2", secondary_y=True)
     fig.update_xaxes(type='category', tickangle=45)
     fig.show()
+
+def calc_dsm_cap(region):
+    """calculate max dsm potential for each municipality
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+    Return
+    ---------
+    df_dsm_cap_up : pd.DataFrame
+        max demand increase potential
+    df_dsm_cap_down : pd.DataFrame
+        max demand decrease potential
+    
+    """
+    dsm_cap_up = {ags:calc_dsm_cap_up(region.dsm_ts, ags,
+                     mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in region.muns.index}
+    df_dsm_cap_up = pd.DataFrame(dsm_cap_up).loc[region._cfg['date_from']:region._cfg['date_to']]
+    
+    dsm_cap_down = {ags:calc_dsm_cap_down(region.dsm_ts, ags,
+                     mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in region.muns.index}
+    df_dsm_cap_down = pd.DataFrame(dsm_cap_down).loc[region._cfg['date_from']:region._cfg['date_to']]
+    
+    return df_dsm_cap_up, df_dsm_cap_down
