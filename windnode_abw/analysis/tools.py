@@ -412,6 +412,10 @@ def extract_line_flow(results_raw, region, level_flow_in=0, level_flow_out=1):
         idx_new,
         names=["timestamp"] + list(idx_split.columns))
 
+    # convert level line_id and bus_id to int
+    flows_extracted_long.index = _ags_index2int(flows_extracted_long.index,
+                                                levels=["line_id", "bus_from", "bus_to", "bus"])
+
     # combine to separate flows on same line into one flow. direction is distinguished by sign:
     # positive: power goes from "from" to "to"; negative: power goes from "to" to "from"
     positive = flows_extracted_long.loc[
@@ -555,7 +559,7 @@ def extract_flow_params(flow_params_raw, node_pattern, bus_pattern, stubname,
     params_extract = params_extract.sum(level=list(range(params_extract.index.nlevels)))
 
     # convert level ags to int
-    params_extract.index = _ags_index2int(params_extract.index)
+    params_extract.index = _ags_index2int(params_extract.index, levels=["line_id", "bus_from", "bus_to"])
 
     return params_extract
 
@@ -589,6 +593,9 @@ def extract_invest(vars, node_pattern, bus_pattern):
     vars_extract = vars_extract.max(level=0)
     vars_extract.index = pd.MultiIndex.from_frame(vars_extract.index.str.extract(node_pattern))
     vars_extract = vars_extract.sum(level=list(range(vars_extract.index.nlevels)))
+
+    # convert level ags to int
+    vars_extract.index = _ags_index2int(vars_extract.index, levels=["line_id", "bus_from", "bus_to"])
 
     return vars_extract
 
@@ -957,10 +964,10 @@ def _rename_external_hv_buses(df, region, merged=False):
         return df.loc[~(df.index.get_level_values("ags_from") == df.index.get_level_values("ags_to"))]
 
     # Rename all buses with ags code where ags code is available
-    bus2ags = {str(k): str(int(v)) for k, v in region.buses["ags"].to_dict().items() if not pd.isna(v)}
+    bus2ags = {int(k): int(v) for k, v in region.buses["ags"].to_dict().items() if not pd.isna(v)}
     df.rename(index=bus2ags, inplace=True)
 
-    df_from = df.loc[df.index.get_level_values("bus_from").str.len() == 5]
+    df_from = df.loc[df.index.get_level_values("bus_from").map(lambda x: str(x)).str.len() == 5]
     idx_new_array_base = [
         df_from.index.get_level_values(name) for name in df_from.index.names if name not in ["bus_from", "bus_to"]]
     idx_new_bus_from = ["HV exchange " + str(i) for i in df_from.index.get_level_values("bus_to")]
@@ -969,7 +976,7 @@ def _rename_external_hv_buses(df, region, merged=False):
         df_from.index.get_level_values("bus_to")]
     df_from.index = pd.MultiIndex.from_arrays(idx_new_array, names=df_from.index.names)
 
-    df_to = df.loc[df.index.get_level_values("bus_to").str.len() == 5]
+    df_to = df.loc[df.index.get_level_values("bus_to").map(lambda x: str(x)).str.len() == 5]
     idx_new_array_base = [
         df_to.index.get_level_values(name) for name in df_to.index.names if name not in ["bus_from", "bus_to"]]
     idx_new_bus_to = ["HV exchange " + str(i) for i in df_to.index.get_level_values("bus_from")]
@@ -983,8 +990,8 @@ def _rename_external_hv_buses(df, region, merged=False):
 
     # Extract lines of regional grid (meaning lines inside region ABW)
     df = df.loc[
-        (df.index.get_level_values("bus_from").str.len() != 5)
-        & (df.index.get_level_values("bus_to").str.len() != 5)]
+        (df.index.get_level_values("bus_from").map(lambda x: str(x)).str.len() != 5)
+        & (df.index.get_level_values("bus_to").map(lambda x: str(x)).str.len() != 5)]
 
     df = _format_index(df)
     df_new = _format_index(df_new)
@@ -998,17 +1005,17 @@ def _rename_external_hv_buses(df, region, merged=False):
         return df, df_new
     
     
-def _ags_index2int(idx):
+def _ags_index2int(idx, levels="ags"):
     """Convert values ags index level ags to int"""
-    # idx = pd.MultiIndex.from_arrays(
-    #     idx_new,
-    #     names=["timestamp"] + list(idx_split.columns))
+
+    if isinstance(levels, str):
+        levels = [levels]
 
     # Convert values ags index level ags to int
     new_level_names = []
     new_level_values = []
     for level in idx.levels:
-        if level.name == "ags":
+        if level.name in levels:
             new_level_values.append(idx.get_level_values(level.name).astype(int))
         else:
             new_level_values.append(idx.get_level_values(level.name))
