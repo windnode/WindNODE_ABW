@@ -859,5 +859,3 @@ def plot_essential_scenario_results(results_scns, scenarios):
         ax.yaxis.grid(True)
 
     sns.despine(left=True, bottom=True)
-
-    print('haha')
