@@ -801,7 +801,7 @@ def plot_storage_ratios(storage_ratios, region, title):
     fig.show()
 
 
-def plot_key_scenario_results(results_scns, scenarios):
+def plot_key_scenario_results(results_scns, scenarios, cmap_name):
 
     plots = {
         1: {'highlevel_results': [('Total costs electricity supply', 'EUR'),
@@ -927,7 +927,8 @@ def plot_key_scenario_results(results_scns, scenarios):
 
         # Draw a dot plot using the stripplot function
         g.map(sns.stripplot, size=10, orient="h",
-              palette="ch:s=1,r=-.1,h=1_r", linewidth=1, edgecolor="w")
+              palette=sns.color_palette(cmap_name, len(scenarios)),
+              linewidth=1, edgecolor="w")
 
         # Set 2nd title for columns (top)
         titles = list(data.columns[1:])
