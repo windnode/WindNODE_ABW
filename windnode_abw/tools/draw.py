@@ -921,8 +921,9 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
                          height=10, aspect=.25)
 
         plt.subplots_adjust(top=0.9)
-        plt.suptitle(f'Key Results {no}/{len(plots.keys())}: {params["title"]}',
-                     size=16,
+        #plt.suptitle(f'Key Results {no}/{len(plots.keys())}: {params["title"]}',
+        plt.suptitle(f'Key Results {no}/{len(plots.keys())}',
+                     size=20,
                      horizontalalignment='left')
 
         # Draw a dot plot using the stripplot function
