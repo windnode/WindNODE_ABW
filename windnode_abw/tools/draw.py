@@ -30,6 +30,8 @@ from plotly.subplots import make_subplots
 from oemof.outputlib import views
 from oemof.graph import create_nx_graph
 
+from windnode_abw.model.region.tools import calc_dsm_cap_up, calc_dsm_cap_down
+
 import logging
 logger = logging.getLogger('windnode_abw')
 
@@ -736,9 +738,16 @@ def plot_storage_ratios(storage_ratios, region, title):
         title of the figures
     """
     sub_titles = storage_ratios.columns.get_level_values(level=0).unique()
+    rows = storage_ratios.sum(level=0, axis=1)
+    subplot_size = (rows!= 0).sum() / (rows!= 0).sum().sum()
+    subplot_size = subplot_size.replace(np.inf, 0)
+    subplot_size = subplot_size.where(subplot_size<=0.8, 0.8)
+    subplot_size = subplot_size.where(subplot_size>=0.2, 0.2)
+
     fig = make_subplots(rows=1, cols=2,
                         horizontal_spacing=0.1,
-                        column_widths=[0.2, 0.8],
+                        column_widths=list(subplot_size),
+                        #column_widths=[0.2, 0.8],
                         subplot_titles=(sub_titles[0], sub_titles[1]),
                        specs=[[{"secondary_y": True}, {"secondary_y": True}]])
 
@@ -943,3 +952,98 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
             ax.yaxis.grid(True)
 
         sns.despine(left=True, bottom=True)
+def plot_essential_scenario_results(results_scns, scenarios):
+
+    highlevel_result_list = [
+        ('Total costs electricity supply', 'EUR'),
+        ('Total costs heat supply', 'EUR'),
+        ('LCOE', 'EUR/MWh'),
+        ('LCOH', 'EUR/MWh'),
+        ('CO2 emissions el.', 'tCO2'),
+        ('CO2 emissions th.', 'tCO2'),
+        # ('Self-consumption annual', '%'),
+        # ('Area required rel. wind 1000m wo forest 10-perc (VR/EG)', '%'),
+        # ('Area required rel. PV ground HS 1-perc agri', '%'),
+        # ('Net DSM activation', 'MWh'),
+        #Todo: add more flex params
+    ]
+
+    data = pd.DataFrame(
+        ({f'{name} [{unit}]': results_scns[scn]['highlevel_results'][(name, unit)]
+          for name, unit in highlevel_result_list}
+         for scn in scenarios),
+        index=scenarios
+    )
+    data['Total Costs [MEUR]'] = (data['Total costs electricity supply [EUR]'] +
+                                  data['Total costs heat supply [EUR]']) / 1e6
+    data['Emissions [tCO2]'] = (data['Total costs electricity supply [EUR]'] +
+                                data['Total costs heat supply [EUR]']) / 1e6
+    data.drop(columns=['Total costs electricity supply [EUR]',
+                       'Total costs heat supply [EUR]',
+                       'CO2 emissions el. [tCO2]',
+                       'CO2 emissions th. [tCO2]'],
+              inplace=True)
+
+    data = data.reset_index().rename(columns={'index': 'scenario'})
+    data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
+
+    g = sns.PairGrid(data,
+                     x_vars=data.columns[1:], y_vars=['scenario'],
+                     height=10, aspect=.25)
+
+    # Draw a dot plot using the stripplot function
+    g.map(sns.stripplot, size=10, orient="h",
+          palette="ch:s=1,r=-.1,h=1_r", linewidth=1, edgecolor="w")
+
+    # Use the same x axis limits on all columns and add better labels
+    # g.set(xlim=(0, 25), xlabel="Crashes", ylabel="")
+
+    # Set 2nd title for columns (top)
+    titles = list(data.columns[1:])
+
+    for ax, title in zip(g.axes.flat, titles):
+        # Set a different title for each axes
+        ax.set(title=title)
+
+        # Make the grid horizontal instead of vertical
+        ax.xaxis.grid(False)
+        ax.yaxis.grid(True)
+
+    sns.despine(left=True, bottom=True)
+
+
+def calc_dsm_cap(region, hh_share=True):
+    """calculate max dsm potential for each municipality
+    Parameters
+    ----------
+    region : :class:`~.model.Region`
+        Region object
+    hh_share : bool, int
+        share of dsm penetration, if True: scenario share is used
+    Return
+    ---------
+    df_dsm_cap_up : pd.DataFrame
+        max demand increase potential
+    df_dsm_cap_down : pd.DataFrame
+        max demand decrease potential
+    
+    """
+
+    if 0 < hh_share < 1:
+        pass
+    elif hh_share:
+        hh_share = region.cfg['scn_data']['flexopt']['dsm']['params']['hh_share']
+    else:
+        hh_share = 1
+    
+    dsm_cap_up = {ags:calc_dsm_cap_up(region.dsm_ts, ags,
+                     mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in region.muns.index}
+    df_dsm_cap_up = pd.DataFrame(dsm_cap_up).loc[region.cfg['date_from']:region.cfg['date_to']]
+    df_dsm_cap_up = df_dsm_cap_up * hh_share
+
+    dsm_cap_down = {ags:calc_dsm_cap_down(region.dsm_ts, ags,
+                     mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in region.muns.index}
+    df_dsm_cap_down = pd.DataFrame(dsm_cap_down).loc[region.cfg['date_from']:region.cfg['date_to']]
+    df_dsm_cap_down = df_dsm_cap_down * hh_share
+    
+    return df_dsm_cap_up, df_dsm_cap_down
