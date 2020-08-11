@@ -810,7 +810,7 @@ def plot_essential_scenario_results(results_scns, scenarios):
         ('LCOH', 'EUR/MWh'),
         ('CO2 emissions el.', 'tCO2'),
         ('CO2 emissions th.', 'tCO2'),
-        # ('Self-consumption annual', '%'),
+        ('Self-consumption annual', '%'),
         # ('Area required rel. wind 1000m wo forest 10-perc (VR/EG)', '%'),
         # ('Area required rel. PV ground HS 1-perc agri', '%'),
         # ('Net DSM activation', 'MWh'),
@@ -833,7 +833,14 @@ def plot_essential_scenario_results(results_scns, scenarios):
                        'CO2 emissions th. [tCO2]'],
               inplace=True)
 
-    data = data.reset_index().rename(columns={'index': 'scenario'})
+    data = data.reset_index().rename(columns={'index': 'Scenario'})
+
+    # reorder columns
+    data = data[['scenario', 'LCOE [EUR/MWh]', 'LCOH [EUR/MWh]',
+                 'Total Costs [MEUR]', 'Emissions [tCO2]',
+                 'Self-consumption annual [%]']]
+
+    # sort
     data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
 
     g = sns.PairGrid(data,
