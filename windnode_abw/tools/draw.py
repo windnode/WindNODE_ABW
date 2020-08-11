@@ -843,10 +843,14 @@ def plot_essential_scenario_results(results_scns, scenarios):
     # sort
     data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
 
-
     g = sns.PairGrid(data,
                      x_vars=data.columns[1:], y_vars=['Scenario'],
                      height=10, aspect=.25)
+
+    plt.subplots_adjust(top=0.9)
+    plt.suptitle('Scenario Results 1/2',
+                 size=16,
+                 horizontalalignment='left')
 
     # Draw a dot plot using the stripplot function
     g.map(sns.stripplot, size=10, orient="h",
