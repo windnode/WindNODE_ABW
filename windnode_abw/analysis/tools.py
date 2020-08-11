@@ -1772,7 +1772,8 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
                                     )
     avail_scenarios = [file.split('.')[0]
                        for file in os.listdir(os.path.join(result_base_path,
-                                                           run_id))]
+                                                           run_id))
+                       if not file.startswith('.')]
     # get list of available scenarios for comparison
     all_scenarios = [file.split('.')[0]
                      for file in os.listdir(os.path.join(wn_path[0],
@@ -1826,7 +1827,8 @@ def create_comparative_notebook(scenarios, run_id,
                                     )
     avail_scenarios = [file.split('.')[0]
                        for file in os.listdir(os.path.join(result_base_path,
-                                                           run_id))]
+                                                           run_id))
+                       if not file.startswith('.')]
     # get list of available scenarios for comparison
     all_scenarios = [file.split('.')[0]
                      for file in os.listdir(os.path.join(wn_path[0],
