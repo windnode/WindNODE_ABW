@@ -809,6 +809,7 @@ def plot_storage_ratios(storage_ratios, region, title):
     fig.update_xaxes(type='category', tickangle=45)
     fig.show()
 
+
 def calc_dsm_cap(region, hh_share=True):
     """calculate max dsm potential for each municipality
     Parameters
@@ -826,7 +827,7 @@ def calc_dsm_cap(region, hh_share=True):
     
     """
 
-    if 0 < hh_share and hh_share < 1:
+    if 0 < hh_share < 1:
         pass
     elif hh_share:
         hh_share = region.cfg['scn_data']['flexopt']['dsm']['params']['hh_share']
