@@ -809,23 +809,28 @@ def plot_key_scenario_results(results_scns, scenarios):
                                   ('LCOE', 'EUR/MWh'),
                                   ('LCOH', 'EUR/MWh'),
                                   ('CO2 emissions el.', 'tCO2'),
-                                  ('CO2 emissions th.', 'tCO2'),
-                                  ('Self-consumption annual', '%')],
+                                  ('CO2 emissions th.', 'tCO2')],
             'results_axlxt': [],
-            'col_order': ['Scenario', 'LCOE [EUR/MWh]', 'LCOH [EUR/MWh]',
-                          'Total Costs [MEUR]', 'Emissions [tCO2]',
-                          'Self-consumption annual [%]'],
+            'col_order': ['Scenario', 'Total Costs [bnEUR]', 'LCOE [EUR/MWh]',
+                          'LCOH [EUR/MWh]', 'Emissions [MtCO2]'],
             'title': 'Costs and Emissions'
             },
         2: {'highlevel_results': [('Area required rel. wind 1000m wo forest 10-perc (VR/EG)', '%'),
                                   ('Area required rel. PV ground HS 1-perc agri', '%'),
-                                  ('Net DSM activation', 'MWh')],
-            'results_axlxt': [('Batteriespeicher nach Gemeinde', 'MWh'),
-                              ('Wärmespeicher nach Gemeinde', 'MWh')],
+                                  ('Self-consumption annual', '%'),
+                                  ('Electricity exports', 'MWh')],
+            'results_axlxt': [('Intra-regional exchange', 'export', 'MWh')],
             'col_order': ['Scenario', 'RES Area Wind (VR/EG) [%]',
-                          'RES Area PV ground [%]', 'El. Storage Use [MWh]',
-                          'Heat Storage Use [MWh]', 'Net DSM activation [MWh]'],
-            'title': 'Land Use and Energy Exchange'
+                          'RES Area PV ground [%]', 'Self-consumption annual [%]',
+                          'Intra-reg. Exchange [TWh]', 'El. Exports [TWh]'],
+            'title': 'Land Use and Energy Balance'
+            },
+        3: {'highlevel_results': [('Net DSM activation', 'MWh')],
+            'results_axlxt': [('Batteriespeicher nach Gemeinde', 'discharge', 'MWh'),
+                              ('Wärmespeicher nach Gemeinde', 'discharge', 'MWh')],
+            'col_order': ['Scenario', 'El. Storage Use [GWh]',
+                          'Heat Storage Use [GWh]', 'Net DSM activation [GWh]'],
+            'title': 'Flexibility Commitment'
             }
     }
 
@@ -842,51 +847,74 @@ def plot_key_scenario_results(results_scns, scenarios):
         )
 
         if no == 1:
-            data_hl['Total Costs [MEUR]'] = (data_hl['Total costs electricity supply [EUR]'] +
-                                             data_hl['Total costs heat supply [EUR]']) / 1e6
-            data_hl['Emissions [tCO2]'] = (data_hl['Total costs electricity supply [EUR]'] +
-                                           data_hl['Total costs heat supply [EUR]']) / 1e6
+            data_hl['Total Costs [bnEUR]'] = (data_hl['Total costs electricity supply [EUR]'] +
+                                              data_hl['Total costs heat supply [EUR]']) / 1e9
+            data_hl['Emissions [MtCO2]'] = (data_hl['CO2 emissions el. [tCO2]'] +
+                                            data_hl['CO2 emissions th. [tCO2]']) / 1e6
             data_hl.drop(columns=['Total costs electricity supply [EUR]',
                                   'Total costs heat supply [EUR]',
                                   'CO2 emissions el. [tCO2]',
                                   'CO2 emissions th. [tCO2]'],
                          inplace=True)
         elif no == 2:
+            data_hl['Electricity exports [TWh]'] = data_hl['Electricity exports [MWh]'] / 1e6
+            data_hl.drop(columns=['Electricity exports [MWh]'], inplace=True)
+
             col_mapping = {
                 'Area required rel. wind 1000m wo forest 10-perc (VR/EG) [%]': 'RES Area Wind (VR/EG) [%]',
-                'Area required rel. PV ground HS 1-perc agri [%]': 'RES Area PV ground [%]'
+                'Area required rel. PV ground HS 1-perc agri [%]': 'RES Area PV ground [%]',
+                'Electricity exports [TWh]': 'El. Exports [TWh]'
             }
             data_hl.rename(columns=col_mapping, inplace=True)
-
-        #data_hl = data_hl.reset_index().rename(columns={'index': 'Scenario'})
+        elif no == 3:
+            data_hl['Net DSM activation [GWh]'] = data_hl['Net DSM activation [MWh]'] / 1e3
+            data_hl.drop(columns=['Net DSM activation [MWh]'], inplace=True)
 
         #################################
         # get and process results_axlxt #
         #################################
         data_axlxt = pd.DataFrame(
-            ({f'{name} [{unit}]': results_scns[scn]['results_axlxt'][name]['discharge'].sum(axis=0)
-              for name, unit in params['results_axlxt']}
+            ({f'{name} [{unit}]': results_scns[scn]['results_axlxt'][name][col].sum(axis=0)
+              for name, col, unit in params['results_axlxt']}
              for scn in scenarios),
             index=scenarios
         )
         if no == 1:
             data = data_hl
         if no == 2:
+            data_axlxt['Intra-regional exchange [TWh]'] = data_axlxt['Intra-regional exchange [MWh]'] / 1e6
+            data_axlxt.drop(columns=['Intra-regional exchange [MWh]'], inplace=True)
+
             col_mapping = {
-                'Batteriespeicher nach Gemeinde [MWh]': 'El. Storage Use [MWh]',
-                'Wärmespeicher nach Gemeinde [MWh]': 'Heat Storage Use [MWh]'
+                'Intra-regional exchange [TWh]': 'Intra-reg. Exchange [TWh]'
             }
             data_axlxt.rename(columns=col_mapping, inplace=True)
             data = pd.concat([data_hl, data_axlxt], axis=1)
+        if no == 3:
+            data_axlxt['Batteriespeicher nach Gemeinde [GWh]'] = data_axlxt['Batteriespeicher nach Gemeinde [MWh]'] / 1e3
+            data_axlxt['Wärmespeicher nach Gemeinde [GWh]'] = data_axlxt['Wärmespeicher nach Gemeinde [MWh]'] / 1e3
+            data_axlxt.drop(columns=['Batteriespeicher nach Gemeinde [MWh]',
+                                     'Wärmespeicher nach Gemeinde [MWh]'], inplace=True)
+
+            col_mapping = {
+                'Batteriespeicher nach Gemeinde [GWh]': 'El. Storage Use [GWh]',
+                'Wärmespeicher nach Gemeinde [GWh]': 'Heat Storage Use [GWh]',
+            }
+            data_axlxt.rename(columns=col_mapping, inplace=True)
+            data = pd.concat([data_hl, data_axlxt], axis=1)
+
+        # sort all plots by total costs
+        if no == 1:
+            #data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
+            data.sort_values(by='Total Costs [bnEUR]', inplace=True)
+            sort_order = data.index
+        else:
+            data = data.reindex(sort_order)
 
         data = data.reset_index().rename(columns={'index': 'Scenario'})
 
         # reorder columns
         data = data[params['col_order']]
-
-        # sort
-        #data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
-        data.sort_values(by='Scenario', inplace=True)
 
         g = sns.PairGrid(data,
                          x_vars=data.columns[1:], y_vars=['Scenario'],
