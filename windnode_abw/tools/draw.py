@@ -814,7 +814,8 @@ def plot_key_scenario_results(results_scns, scenarios):
             'results_axlxt': [],
             'col_order': ['Scenario', 'LCOE [EUR/MWh]', 'LCOH [EUR/MWh]',
                           'Total Costs [MEUR]', 'Emissions [tCO2]',
-                          'Self-consumption annual [%]']
+                          'Self-consumption annual [%]'],
+            'title': 'Costs and Emissions'
             },
         2: {'highlevel_results': [('Area required rel. wind 1000m wo forest 10-perc (VR/EG)', '%'),
                                   ('Area required rel. PV ground HS 1-perc agri', '%'),
@@ -823,7 +824,8 @@ def plot_key_scenario_results(results_scns, scenarios):
                               ('Wärmespeicher nach Gemeinde', 'MWh')],
             'col_order': ['Scenario', 'RES Area Wind (VR/EG) [%]',
                           'RES Area PV ground [%]', 'El. Storage Use [MWh]',
-                          'Heat Storage Use [MWh]', 'Net DSM activation [MWh]']
+                          'Heat Storage Use [MWh]', 'Net DSM activation [MWh]'],
+            'title': 'Land Use and Energy Exchange'
             }
     }
 
@@ -891,7 +893,7 @@ def plot_key_scenario_results(results_scns, scenarios):
                          height=10, aspect=.25)
 
         plt.subplots_adjust(top=0.9)
-        plt.suptitle(f'Key Results {no}/{len(plots.keys())}',
+        plt.suptitle(f'Key Results {no}/{len(plots.keys())}: {params["title"]}',
                      size=16,
                      horizontalalignment='left')
 
