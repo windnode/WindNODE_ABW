@@ -817,18 +817,18 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
             },
         2: {'highlevel_results': [('Area required rel. wind 1000m wo forest 10-perc (VR/EG)', '%'),
                                   ('Area required rel. PV ground HS 1-perc agri', '%'),
-                                  ('Self-consumption annual', '%'),
                                   ('Electricity exports', 'MWh')],
             'results_axlxt': [('Intra-regional exchange', 'export', 'MWh')],
             'col_order': ['Scenario', 'RES Area Wind (VR/EG) [%]',
-                          'RES Area PV ground [%]', 'Self-consumption annual [%]',
-                          'Intra-reg. Exchange [TWh]', 'El. Exports [TWh]'],
+                          'RES Area PV ground [%]', 'Intra-reg. Exchange [TWh]',
+                          'El. Exports [TWh]'],
             'title': 'Land Use and Energy Balance'
             },
-        3: {'highlevel_results': [('Net DSM activation', 'MWh')],
+        3: {'highlevel_results': [('Net DSM activation', 'MWh'),
+                                  ('Self-consumption annual', '%'),],
             'results_axlxt': [('Batteriespeicher nach Gemeinde', 'discharge', 'MWh'),
                               ('Wärmespeicher nach Gemeinde', 'discharge', 'MWh')],
-            'col_order': ['Scenario', 'El. Storage Use [GWh]',
+            'col_order': ['Scenario', 'Self-consumption annual [%]', 'El. Storage Use [GWh]',
                           'Heat Storage Use [GWh]', 'Net DSM activation [GWh]'],
             'title': 'Flexibility Commitment'
             }
