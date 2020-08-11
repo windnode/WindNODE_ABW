@@ -836,15 +836,16 @@ def plot_essential_scenario_results(results_scns, scenarios):
     data = data.reset_index().rename(columns={'index': 'Scenario'})
 
     # reorder columns
-    data = data[['scenario', 'LCOE [EUR/MWh]', 'LCOH [EUR/MWh]',
+    data = data[['Scenario', 'LCOE [EUR/MWh]', 'LCOH [EUR/MWh]',
                  'Total Costs [MEUR]', 'Emissions [tCO2]',
                  'Self-consumption annual [%]']]
 
     # sort
     data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
 
+
     g = sns.PairGrid(data,
-                     x_vars=data.columns[1:], y_vars=['scenario'],
+                     x_vars=data.columns[1:], y_vars=['Scenario'],
                      height=10, aspect=.25)
 
     # Draw a dot plot using the stripplot function
