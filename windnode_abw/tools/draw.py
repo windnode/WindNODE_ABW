@@ -801,73 +801,113 @@ def plot_storage_ratios(storage_ratios, region, title):
     fig.show()
 
 
-def plot_essential_scenario_results(results_scns, scenarios):
+def plot_key_scenario_results(results_scns, scenarios):
 
-    highlevel_result_list = [
-        ('Total costs electricity supply', 'EUR'),
-        ('Total costs heat supply', 'EUR'),
-        ('LCOE', 'EUR/MWh'),
-        ('LCOH', 'EUR/MWh'),
-        ('CO2 emissions el.', 'tCO2'),
-        ('CO2 emissions th.', 'tCO2'),
-        ('Self-consumption annual', '%'),
-        # ('Area required rel. wind 1000m wo forest 10-perc (VR/EG)', '%'),
-        # ('Area required rel. PV ground HS 1-perc agri', '%'),
-        # ('Net DSM activation', 'MWh'),
-        #Todo: add more flex params
-    ]
+    plots = {
+        1: {'highlevel_results': [('Total costs electricity supply', 'EUR'),
+                                  ('Total costs heat supply', 'EUR'),
+                                  ('LCOE', 'EUR/MWh'),
+                                  ('LCOH', 'EUR/MWh'),
+                                  ('CO2 emissions el.', 'tCO2'),
+                                  ('CO2 emissions th.', 'tCO2'),
+                                  ('Self-consumption annual', '%')],
+            'results_axlxt': [],
+            'col_order': ['Scenario', 'LCOE [EUR/MWh]', 'LCOH [EUR/MWh]',
+                          'Total Costs [MEUR]', 'Emissions [tCO2]',
+                          'Self-consumption annual [%]']
+            },
+        2: {'highlevel_results': [('Area required rel. wind 1000m wo forest 10-perc (VR/EG)', '%'),
+                                  ('Area required rel. PV ground HS 1-perc agri', '%'),
+                                  ('Net DSM activation', 'MWh')],
+            'results_axlxt': [('Batteriespeicher nach Gemeinde', 'MWh'),
+                              ('Wärmespeicher nach Gemeinde', 'MWh')],
+            'col_order': ['Scenario', 'RES Area Wind (VR/EG) [%]',
+                          'RES Area PV ground [%]', 'El. Storage Use [MWh]',
+                          'Heat Storage Use [MWh]', 'Net DSM activation [MWh]']
+            }
+    }
 
-    data = pd.DataFrame(
-        ({f'{name} [{unit}]': results_scns[scn]['highlevel_results'][(name, unit)]
-          for name, unit in highlevel_result_list}
-         for scn in scenarios),
-        index=scenarios
-    )
-    data['Total Costs [MEUR]'] = (data['Total costs electricity supply [EUR]'] +
-                                  data['Total costs heat supply [EUR]']) / 1e6
-    data['Emissions [tCO2]'] = (data['Total costs electricity supply [EUR]'] +
-                                data['Total costs heat supply [EUR]']) / 1e6
-    data.drop(columns=['Total costs electricity supply [EUR]',
-                       'Total costs heat supply [EUR]',
-                       'CO2 emissions el. [tCO2]',
-                       'CO2 emissions th. [tCO2]'],
-              inplace=True)
+    for no, params in plots.items():
 
-    data = data.reset_index().rename(columns={'index': 'Scenario'})
+        #####################################
+        # get and process highlevel_results #
+        #####################################
+        data_hl = pd.DataFrame(
+            ({f'{name} [{unit}]': results_scns[scn]['highlevel_results'][(name, unit)]
+              for name, unit in params['highlevel_results']}
+             for scn in scenarios),
+            index=scenarios
+        )
 
-    # reorder columns
-    data = data[['Scenario', 'LCOE [EUR/MWh]', 'LCOH [EUR/MWh]',
-                 'Total Costs [MEUR]', 'Emissions [tCO2]',
-                 'Self-consumption annual [%]']]
+        if no == 1:
+            data_hl['Total Costs [MEUR]'] = (data_hl['Total costs electricity supply [EUR]'] +
+                                             data_hl['Total costs heat supply [EUR]']) / 1e6
+            data_hl['Emissions [tCO2]'] = (data_hl['Total costs electricity supply [EUR]'] +
+                                           data_hl['Total costs heat supply [EUR]']) / 1e6
+            data_hl.drop(columns=['Total costs electricity supply [EUR]',
+                                  'Total costs heat supply [EUR]',
+                                  'CO2 emissions el. [tCO2]',
+                                  'CO2 emissions th. [tCO2]'],
+                         inplace=True)
+        elif no == 2:
+            col_mapping = {
+                'Area required rel. wind 1000m wo forest 10-perc (VR/EG) [%]': 'RES Area Wind (VR/EG) [%]',
+                'Area required rel. PV ground HS 1-perc agri [%]': 'RES Area PV ground [%]'
+            }
+            data_hl.rename(columns=col_mapping, inplace=True)
 
-    # sort
-    data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
+        #data_hl = data_hl.reset_index().rename(columns={'index': 'Scenario'})
 
-    g = sns.PairGrid(data,
-                     x_vars=data.columns[1:], y_vars=['Scenario'],
-                     height=10, aspect=.25)
+        #################################
+        # get and process results_axlxt #
+        #################################
+        data_axlxt = pd.DataFrame(
+            ({f'{name} [{unit}]': results_scns[scn]['results_axlxt'][name]['discharge'].sum(axis=0)
+              for name, unit in params['results_axlxt']}
+             for scn in scenarios),
+            index=scenarios
+        )
+        if no == 1:
+            data = data_hl
+        if no == 2:
+            col_mapping = {
+                'Batteriespeicher nach Gemeinde [MWh]': 'El. Storage Use [MWh]',
+                'Wärmespeicher nach Gemeinde [MWh]': 'Heat Storage Use [MWh]'
+            }
+            data_axlxt.rename(columns=col_mapping, inplace=True)
+            data = pd.concat([data_hl, data_axlxt], axis=1)
 
-    plt.subplots_adjust(top=0.9)
-    plt.suptitle('Scenario Results 1/2',
-                 size=16,
-                 horizontalalignment='left')
+        data = data.reset_index().rename(columns={'index': 'Scenario'})
 
-    # Draw a dot plot using the stripplot function
-    g.map(sns.stripplot, size=10, orient="h",
-          palette="ch:s=1,r=-.1,h=1_r", linewidth=1, edgecolor="w")
+        # reorder columns
+        data = data[params['col_order']]
 
-    # Use the same x axis limits on all columns and add better labels
-    # g.set(xlim=(0, 25), xlabel="Crashes", ylabel="")
+        # sort
+        #data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
+        data.sort_values(by='Scenario', inplace=True)
 
-    # Set 2nd title for columns (top)
-    titles = list(data.columns[1:])
+        g = sns.PairGrid(data,
+                         x_vars=data.columns[1:], y_vars=['Scenario'],
+                         height=10, aspect=.25)
 
-    for ax, title in zip(g.axes.flat, titles):
-        # Set a different title for each axes
-        ax.set(title=title)
+        plt.subplots_adjust(top=0.9)
+        plt.suptitle(f'Key Results {no}/{len(plots.keys())}',
+                     size=16,
+                     horizontalalignment='left')
 
-        # Make the grid horizontal instead of vertical
-        ax.xaxis.grid(False)
-        ax.yaxis.grid(True)
+        # Draw a dot plot using the stripplot function
+        g.map(sns.stripplot, size=10, orient="h",
+              palette="ch:s=1,r=-.1,h=1_r", linewidth=1, edgecolor="w")
 
-    sns.despine(left=True, bottom=True)
+        # Set 2nd title for columns (top)
+        titles = list(data.columns[1:])
+
+        for ax, title in zip(g.axes.flat, titles):
+            # Set a different title for each axes
+            ax.set(title=title)
+
+            # Make the grid horizontal instead of vertical
+            ax.xaxis.grid(False)
+            ax.yaxis.grid(True)
+
+        sns.despine(left=True, bottom=True)
