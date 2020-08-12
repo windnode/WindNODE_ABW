@@ -124,6 +124,10 @@ class Region:
         """Returns run config"""
         return self._cfg
 
+    @cfg.setter
+    def cfg(self, cfg):
+        self._cfg = cfg
+
     @property
     def buses(self):
         """Returns region's buses"""

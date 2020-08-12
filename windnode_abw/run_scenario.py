@@ -6,6 +6,7 @@ import os
 import argparse
 import time
 import multiprocessing
+from copy import deepcopy
 
 from windnode_abw import __path__ as wn_path
 from windnode_abw.model import Region
@@ -66,9 +67,16 @@ def run_scenario(cfg):
     # x.plot()
 
     log_memory_usage()
+
+    # backup region's cfg using deepcopy to preserve state -> restored below.
+    # this is needed as some cfg params are modified in the model creation.
+    cfg_bkp = deepcopy(region.cfg)
+
     esys, om = create_oemof_model(region=region,
-                                  cfg=cfg,
-                                  save_lp=cfg['save_lp'])
+                                  save_lp=region.cfg['save_lp'])
+
+    # restore region's cfg
+    region.cfg = cfg_bkp
 
     # # create and plot graph of energy system
     # graph = create_nx_graph(esys)
@@ -86,9 +94,9 @@ def run_scenario(cfg):
     #                    draw=True)
 
     om = simulate(om=om,
-                  solver=cfg['solver'],
-                  verbose=cfg['solver_verbose'],
-                  keepfiles=cfg['solver_keepfiles'])
+                  solver=region.cfg['solver'],
+                  verbose=region.cfg['solver_verbose'],
+                  keepfiles=region.cfg['solver_keepfiles'])
 
     log_memory_usage()
     logger.info('Processing results...')
@@ -117,22 +125,22 @@ def run_scenario(cfg):
     log_memory_usage()
 
     # dump raw results and meta info
-    if cfg['dump_results']:
+    if region.cfg['dump_results']:
         export_results(results=results,
-                       cfg=cfg,
+                       cfg=region.cfg,
                        solver_meta=esys.results['meta'],
                        infeasible=infeasible)
 
-    if cfg['do_analysis']:
-        analysis(run_timestamp=cfg['run_timestamp'],
-                 scenarios=cfg['scn_data']['general']['id'])
+    if region.cfg['do_analysis']:
+        analysis(run_timestamp=region.cfg['run_timestamp'],
+                 scenarios=region.cfg['scn_data']['general']['id'])
 
-    logger.info(f'===== Scenario {cfg["scenario"]} done! =====')
+    logger.info(f'===== Scenario {region.cfg["scenario"]} done! =====')
 
     # debug_plot_results(esys=esys,
     #                    region=region)
 
-    return cfg['scenario'] if infeasible else None
+    return region.cfg['scenario'] if infeasible else None
 
 
 if __name__ == "__main__":
