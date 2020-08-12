@@ -1576,7 +1576,11 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Balance"] = highlevel["Electricity imports"] - highlevel["Electricity exports"]
     highlevel["Autarky"] = (highlevel["Electricity generation"] /
                             highlevel["Electricity demand total"] * 100)
-    highlevel["Autark hours"] = results_tables["Autark hours"].mean()
+    highlevel["Autark hours"] = (
+            results_txaxt["Stromerzeugung"].drop(columns='import').sum(axis=1).sum(level="timestamp") >
+            (results_txaxt['Stromnachfrage'].drop(columns='export').sum(axis=1).sum(level="timestamp") +
+             results_txaxt['Stromnachfrage Wärme'].sum(axis=1).sum(level="timestamp"))
+    ).mean()
     for re in results_tables["Area required"].columns:
         highlevel["Area required " + re] = results_tables["Area required"][re].sum()
 
