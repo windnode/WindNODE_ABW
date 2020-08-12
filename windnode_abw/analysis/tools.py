@@ -900,7 +900,7 @@ def flows_timexagsxtech(results_raw, region):
     flows["Autarky"] = (1 - ((flows['Stromerzeugung']['import'] + flows["Intra-regional exchange"]["import"] +
                               flows["Batteriespeicher"].sum(level=["timestamp", "ags"])["discharge"]).sum(
         level=["timestamp", "ags"])).div(
-        (flows['Stromnachfrage'].drop(columns='export').sum(axis=1) + flows['Stromnachfrage Wärme'].sum(axis=1).sum(
+        (flows['Stromnachfrage'].sum(axis=1) + flows['Stromnachfrage Wärme'].sum(axis=1).sum(
             level=["timestamp", "ags"]) + flows["Intra-regional exchange"]["export"] +
          flows["Batteriespeicher"].sum(level=["timestamp", "ags"])["charge"]).sum(level=["timestamp", "ags"]))) * 100
     flows["Autark hours"] = flows["Autarky"] >= 100
