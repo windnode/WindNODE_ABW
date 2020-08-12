@@ -107,9 +107,9 @@ def run_scenario(cfg):
     #                    draw=True)
 
     om = simulate(om=om,
-                  solver=cfg['solver'],
-                  verbose=cfg['solver_verbose'],
-                  keepfiles=cfg['solver_keepfiles'])
+                  solver=region.cfg['solver'],
+                  verbose=region.cfg['solver_verbose'],
+                  keepfiles=region.cfg['solver_keepfiles'])
 
     log_memory_usage()
     logger.info('Processing results...')
@@ -138,7 +138,7 @@ def run_scenario(cfg):
     log_memory_usage()
 
     # dump esys to file
-    if cfg['dump_esys']:
+    if region.cfg['dump_esys']:
         # dump esys
         esys.dump(dpath=path,
                   filename=file_esys)
@@ -147,22 +147,22 @@ def run_scenario(cfg):
         # dump region
         region.dump_to_pkl(filename=file_region)
 
-    if cfg['dump_results']:
+    if region.cfg['dump_results']:
         export_results(results=results,
-                       cfg=cfg,
+                       cfg=region.cfg,
                        solver_meta=esys.results['meta'],
                        infeasible=infeasible)
 
-    if cfg['do_analysis']:
-        analysis(run_timestamp=cfg['run_timestamp'],
-                 scenarios=cfg['scn_data']['general']['id'])
+    if region.cfg['do_analysis']:
+        analysis(run_timestamp=region.cfg['run_timestamp'],
+                 scenarios=region.cfg['scn_data']['general']['id'])
 
-    logger.info(f'===== Scenario {cfg["scenario"]} done! =====')
+    logger.info(f'===== Scenario {region.cfg["scenario"]} done! =====')
 
     # debug_plot_results(esys=esys,
     #                    region=region)
 
-    return cfg['scenario'] if infeasible else None
+    return region.cfg['scenario'] if infeasible else None
 
 
 if __name__ == "__main__":
