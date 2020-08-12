@@ -1574,8 +1574,8 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Electricity exports % of demand"] = results_tables["Stromnachfrage nach Gemeinde"]["export"].sum() / \
                                            highlevel["Electricity demand total"] * 1e2
     highlevel["Balance"] = highlevel["Electricity imports"] - highlevel["Electricity exports"]
-    highlevel["Autarky"] = (1 - (
-        highlevel["Electricity imports"] / highlevel["Electricity demand total"])) * 100
+    highlevel["Autarky"] = (highlevel["Electricity generation"] /
+                            highlevel["Electricity demand total"] * 100)
     highlevel["Autark hours"] = results_tables["Autark hours"].mean()
     for re in results_tables["Area required"].columns:
         highlevel["Area required " + re] = results_tables["Area required"][re].sum()
