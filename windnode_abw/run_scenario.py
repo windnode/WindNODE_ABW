@@ -55,19 +55,6 @@ def run_scenario(cfg):
 
     cfg['scn_data'] = load_scenario_cfg(cfg['scenario'])
 
-    # load esys from file
-    if cfg['load_esys']:
-        # load esys
-        esys = solph.EnergySystem()
-        esys.restore(dpath=path,
-                     filename=file_esys)
-        logger.info(f'The energy system was loaded from {path}/{file_esys}.')
-
-        # load region
-        region = Region.load_from_pkl(filename=file_region)
-
-        return esys, region
-
     log_memory_usage()
     region = Region.import_data(cfg)
 
@@ -129,16 +116,7 @@ def run_scenario(cfg):
 
     log_memory_usage()
 
-    # dump esys to file
-    if cfg['dump_esys']:
-        # dump esys
-        esys.dump(dpath=path,
-                  filename=file_esys)
-        logger.info(f'The energy system was dumped to {path}/{file_esys}.')
-
-        # dump region
-        region.dump_to_pkl(filename=file_region)
-
+    # dump raw results and meta info
     if cfg['dump_results']:
         export_results(results=results,
                        cfg=cfg,
@@ -223,8 +201,6 @@ if __name__ == "__main__":
         'solver_verbose': True,
         'solver_keepfiles': False,
         'save_lp': False,
-        'dump_esys': False,
-        'load_esys': False,
         'dump_results': True,
         'do_analysis': True
     }
