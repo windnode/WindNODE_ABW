@@ -80,8 +80,7 @@ def run_scenario(cfg):
 
     log_memory_usage()
     esys, om = create_oemof_model(region=region,
-                                  cfg=cfg,
-                                  save_lp=cfg['save_lp'])
+                                  save_lp=region.cfg['save_lp'])
 
     # # create and plot graph of energy system
     # graph = create_nx_graph(esys)

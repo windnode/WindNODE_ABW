@@ -40,7 +40,7 @@ def simulate(om, solver='cbc', verbose=True, keepfiles=False):
     return om
 
 
-def create_oemof_model(region, cfg, save_lp=False):
+def create_oemof_model(region, save_lp=False):
     """Create oemof model using config and data files. An oemof energy system
     is created, nodes are added and parametrized.
 
@@ -48,8 +48,6 @@ def create_oemof_model(region, cfg, save_lp=False):
     ----------
     region : :class:`~.model.Region`
         Region object
-    cfg : :obj:`dict`
-        Config to be used to create model
     save_lp : :obj:`bool`
         Triggers dump of lp file
 
@@ -61,9 +59,9 @@ def create_oemof_model(region, cfg, save_lp=False):
     logger.info('Create energy system...')
 
     # create time index
-    datetime_index = pd.date_range(start=cfg['date_from'],
-                                   end=cfg['date_to'],
-                                   freq=cfg['freq'])
+    datetime_index = pd.date_range(start=region.cfg['date_from'],
+                                   end=region.cfg['date_to'],
+                                   freq=region.cfg['freq'])
 
     # init energy system
     esys = solph.EnergySystem(timeindex=datetime_index)
