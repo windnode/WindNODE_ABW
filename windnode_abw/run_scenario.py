@@ -6,6 +6,7 @@ import os
 import argparse
 import time
 import multiprocessing
+from copy import deepcopy
 
 from windnode_abw import __path__ as wn_path
 from windnode_abw.model import Region
@@ -79,8 +80,16 @@ def run_scenario(cfg):
     # x.plot()
 
     log_memory_usage()
+
+    # backup region's cfg using deepcopy to preserve state -> restored below.
+    # this is needed as some cfg params are modified in the model creation.
+    cfg_bkp = deepcopy(region.cfg)
+
     esys, om = create_oemof_model(region=region,
                                   save_lp=region.cfg['save_lp'])
+
+    # restore region's cfg
+    region.cfg = cfg_bkp
 
     # # create and plot graph of energy system
     # graph = create_nx_graph(esys)
