@@ -798,7 +798,7 @@ def flows_timexagsxtech(results_raw, region):
                     index=pd.MultiIndex.from_product(
                         [results_raw.index,
                          ['large', 'small'],
-                         region.muns.index.astype(str)], names=['timestamp',
+                         region.muns.index], names=['timestamp',
                                                                 'level',
                                                                 'ags'])
                 )
@@ -811,7 +811,7 @@ def flows_timexagsxtech(results_raw, region):
                     index=pd.MultiIndex.from_product(
                         [results_raw.index,
                          ['cen', 'dec'],
-                         region.muns.index.astype(str)], names=['timestamp',
+                         region.muns.index], names=['timestamp',
                                                                 'level',
                                                                 'ags'])
                 )
