@@ -146,8 +146,6 @@ UNITS = {
     'Electricity imports % of demand': '%',
     'Electricity exports % of demand': '%',
     'Balance': 'MWh',
-    'Self-consumption annual': '%',
-    'Self-consumption hourly': '%',
     'Area required pv_roof_small': 'ha',
     'Area required pv_roof_large': 'ha',
     'Area required pv_ground': 'ha',
@@ -177,6 +175,8 @@ UNITS = {
     "Total costs heat supply": "EUR",
     "LCOE": "EUR/MWh",
     "LCOH": "EUR/MWh",
+    "Autarky": "%",
+    "Autark hours": "%",
     }
 
 
@@ -918,10 +918,13 @@ def flows_timexagsxtech(results_raw, region):
     flows.pop("Stromnachfrage DSM HH")
 
     # Add autarky
-    flows["Autarky"] = pd.DataFrame()
-    flows["Autarky"]["supply"] = flows['Stromerzeugung'].drop(columns='import').sum(axis=1)
-    flows["Autarky"]["demand"] = flows['Stromnachfrage'].drop(columns='export').sum(axis=1)
-    flows["Autarky"]["relative"] = flows["Autarky"]['supply'].unstack().div(flows["Autarky"]['demand'].unstack()).stack()
+    flows["Autarky"] = (1 - ((flows['Stromerzeugung']['import'] + flows["Intra-regional exchange"]["import"] +
+                              flows["Batteriespeicher"].sum(level=["timestamp", "ags"])["discharge"]).sum(
+        level=["timestamp", "ags"])).div(
+        (flows['Stromnachfrage'].sum(axis=1) + flows['Stromnachfrage Wärme'].sum(axis=1).sum(
+            level=["timestamp", "ags"]) + flows["Intra-regional exchange"]["export"] +
+         flows["Batteriespeicher"].sum(level=["timestamp", "ags"])["charge"]).sum(level=["timestamp", "ags"]))) * 100
+    flows["Autark hours"] = flows["Autarky"] >= 100
 
     # Join Dessau GuD data into one DF, need for extraction of variable efficiency,
     # cf. https://github.com/windnode/WindNODE_ABW/issues/33
@@ -1528,11 +1531,11 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         add(results["CO2 certificate cost th."], fill_value=0)
 
     # Add Autarky
-    results["Autarky"] = pd.DataFrame()
-    results["Autarky"]['supply'] = extracted_results["Autarky"]['supply'].sum(level=1)
-    results["Autarky"]['demand'] = extracted_results["Autarky"]['demand'].sum(level=1)
-    results["Autarky"]['relative'] = results["Autarky"]['supply'].div(results["Autarky"]['demand'])
-    results["Autarky"]['hours'] = (extracted_results["Autarky"]['relative'] > 1).sum(level=1)
+    results["Autarky"] = results['Stromerzeugung nach Gemeinde'].drop(columns='import').sum(axis=1).div(
+        results['Stromnachfrage nach Gemeinde'].drop(columns='export').sum(axis=1) +
+        results['Stromnachfrage Wärme nach Gemeinde'].sum(axis=1)
+    ) * 100
+    results["Autark hours"] = extracted_results["Autark hours"].mean(level="ags") * 100
 
     return results
 
@@ -1567,11 +1570,6 @@ def results_tech(results_axlxt):
     # Calculate levelized cost of heat
     results["LCOH"] = results_axlxt["Total costs heat supply"].sum() / results_axlxt['Wärmenachfrage nach Gemeinde'].sum().sum()
 
-    # Autarky
-    results["Autarky"] = results_axlxt["Autarky"].loc[:,['supply','demand']].sum(axis=0).rename("ABW")
-    results["Autarky"]["relative"] = results["Autarky"]['supply'] / results["Autarky"]['demand']
-
-
     return results
 
 
@@ -1597,12 +1595,13 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Electricity exports % of demand"] = results_tables["Stromnachfrage nach Gemeinde"]["export"].sum() / \
                                            highlevel["Electricity demand total"] * 1e2
     highlevel["Balance"] = highlevel["Electricity imports"] - highlevel["Electricity exports"]
-    highlevel["Self-consumption annual"] = (1 - (
-        highlevel["Electricity imports"] / highlevel["Electricity demand total"])) * 100
-    highlevel["Self-consumption hourly"] = ((1 - (
-            results_txaxt["Stromimport"].sum(level="timestamp").sum(axis=1) / (
-            results_txaxt["Stromnachfrage"].drop(columns='export').sum(level="timestamp").sum(axis=1) +
-            results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)))) * 100).mean()
+    highlevel["Autarky"] = (highlevel["Electricity generation"] /
+                            highlevel["Electricity demand total"] * 100)
+    highlevel["Autark hours"] = (
+            results_txaxt["Stromerzeugung"].drop(columns='import').sum(axis=1).sum(level="timestamp") >
+            (results_txaxt['Stromnachfrage'].drop(columns='export').sum(axis=1).sum(level="timestamp") +
+             results_txaxt['Stromnachfrage Wärme'].sum(axis=1).sum(level="timestamp"))
+    ).mean()
     for re in results_tables["Area required"].columns:
         highlevel["Area required " + re] = results_tables["Area required"][re].sum()
 
