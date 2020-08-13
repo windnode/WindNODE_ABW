@@ -798,7 +798,7 @@ def plot_storage_ratios(storage_ratios, region, title):
             if key == 'Total Cycles':
                 fig.add_trace(
                     go.Bar(x=['ABW'],
-                           y=[df.sum()],
+                           y=[df.mean()],
                            orientation='v',
                            name='ABW',
                            legendgroup="ABW",
