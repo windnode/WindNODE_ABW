@@ -840,8 +840,8 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
                           'LCOH [EUR/MWh]', 'Emissions [MtCO2]'],
             'title': 'Costs and Emissions'
             },
-        2: {'highlevel_results': [('Area required rel. wind 1000m wo forest 10-perc (VR/EG)', '%'),
-                                  ('Area required rel. PV ground HS 1-perc agri', '%'),
+        2: {'highlevel_results': [('Area required rel. Wind legal SQ (VR/EG)', '%'),
+                                  ('Area required rel. PV ground H 0.1-perc agri', '%'),
                                   ('Electricity exports', 'MWh')],
             'results_axlxt': [('Intra-regional exchange', 'export', 'MWh')],
             'col_order': ['Scenario', 'RES Area Wind (VR/EG) [%]',
@@ -850,10 +850,10 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
             'title': 'Land Use and Energy Balance'
             },
         3: {'highlevel_results': [('Net DSM activation', 'MWh'),
-                                  ('Self-consumption annual', '%'),],
+                                  ('Autarky', '%'),],
             'results_axlxt': [('Batteriespeicher nach Gemeinde', 'discharge', 'MWh'),
                               ('Wärmespeicher nach Gemeinde', 'discharge', 'MWh')],
-            'col_order': ['Scenario', 'Self-consumption annual [%]', 'El. Storage Use [GWh]',
+            'col_order': ['Scenario', 'Autarky [%]', 'El. Storage Use [GWh]',
                           'Heat Storage Use [GWh]', 'Net DSM activation [GWh]'],
             'title': 'Flexibility Commitment'
             }
@@ -886,8 +886,8 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
             data_hl.drop(columns=['Electricity exports [MWh]'], inplace=True)
 
             col_mapping = {
-                'Area required rel. wind 1000m wo forest 10-perc (VR/EG) [%]': 'RES Area Wind (VR/EG) [%]',
-                'Area required rel. PV ground HS 1-perc agri [%]': 'RES Area PV ground [%]',
+                'Area required rel. Wind legal SQ (VR/EG) [%]': 'RES Area Wind (VR/EG) [%]',
+                'Area required rel. PV ground H 0.1-perc agri [%]': 'RES Area PV ground [%]',
                 'Electricity exports [TWh]': 'El. Exports [TWh]'
             }
             data_hl.rename(columns=col_mapping, inplace=True)
