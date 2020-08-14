@@ -742,6 +742,7 @@ def get_storage_ratios(storage_figures, region):
     
     return storage_ratios
 
+
 def plot_storage_ratios(storage_ratios, region, title):
     """plot storage ratios of either heat or electricity
     Parameters
@@ -821,8 +822,8 @@ def plot_storage_ratios(storage_ratios, region, title):
                                     xanchor="right",
                                     x=1))
     
-    fig.update_yaxes(title_text="Full cycles/discharge hours", row=1, col=1, anchor="x", secondary_y=False)
-    fig.update_yaxes(title_text="Full cycles/discharge hours", row=1, col=2, anchor="x2", secondary_y=False)
+    fig.update_yaxes(title_text="Full Cycles/Discharge Hours", row=1, col=1, anchor="x", secondary_y=False)
+    fig.update_yaxes(title_text="Full Cycles/Discharge Hours", row=1, col=2, anchor="x2", secondary_y=False)
     fig.update_yaxes(title_text="Utilization Rate %", row=1, col=1, anchor="x", secondary_y=True)
     fig.update_yaxes(title_text="Utilization Rate %", row=1, col=2, anchor="x2", secondary_y=True)
     fig.update_xaxes(type='category', tickangle=45)
