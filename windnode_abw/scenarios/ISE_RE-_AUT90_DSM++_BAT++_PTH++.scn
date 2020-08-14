@@ -1,5 +1,5 @@
 [general]
-    id = ISE_RE-_AUT90_DSM+_BAT+_PTH+
+    id = ISE_RE-_AUT90_DSM++_BAT++_PTH++
     year = 2050
 [commodities]
     commodities = fuel_oil, natural_gas, wood, coal, solar, methane
@@ -69,7 +69,7 @@
             enabled = 1
         [[[general]]]
             pth_storage_share = 1.0
-            capacity_spec = 114.2
+            capacity_spec = 228.4
             delta_temp = 40
             c_rate_charge = 6.7
             c_rate_discharge = 6.7
@@ -111,11 +111,11 @@
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]
-            nominal_value = 810
+            nominal_value = 5000
         [[[outflow]]]
-            nominal_value = 810
+            nominal_value = 5000
         [[[params]]]
-            nominal_storage_capacity = 3250
+            nominal_storage_capacity = 20000
             loss_rate = 0.0042
             inflow_conversion_factor = 0.94
             outflow_conversion_factor = 0.93
@@ -123,11 +123,11 @@
         [[[enabled]]]
             enabled = 1
         [[[inflow]]]
-            nominal_value = 160
+            nominal_value = 272
         [[[outflow]]]
-            nominal_value = 160
+            nominal_value = 272
         [[[params]]]
-            nominal_storage_capacity = 240
+            nominal_storage_capacity = 400
             loss_rate = 0.0042
             inflow_conversion_factor = 0.94
             outflow_conversion_factor = 0.93
@@ -151,7 +151,7 @@
             conversion_factor = 0.95
     [[dsm]]
         [[[params]]]
-            hh_share = 0.48
+            hh_share = 0.8
             method = interval
             shift_interval = 24
             delay_time = 12
