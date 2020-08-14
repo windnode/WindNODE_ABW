@@ -968,64 +968,6 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
             ax.yaxis.grid(True)
 
         sns.despine(left=True, bottom=True)
-def plot_essential_scenario_results(results_scns, scenarios):
-
-    highlevel_result_list = [
-        ('Total costs electricity supply', 'EUR'),
-        ('Total costs heat supply', 'EUR'),
-        ('LCOE', 'EUR/MWh'),
-        ('LCOH', 'EUR/MWh'),
-        ('CO2 emissions el.', 'tCO2'),
-        ('CO2 emissions th.', 'tCO2'),
-        # ('Self-consumption annual', '%'),
-        # ('Area required rel. wind 1000m wo forest 10-perc (VR/EG)', '%'),
-        # ('Area required rel. PV ground HS 1-perc agri', '%'),
-        # ('Net DSM activation', 'MWh'),
-        #Todo: add more flex params
-    ]
-
-    data = pd.DataFrame(
-        ({f'{name} [{unit}]': results_scns[scn]['highlevel_results'][(name, unit)]
-          for name, unit in highlevel_result_list}
-         for scn in scenarios),
-        index=scenarios
-    )
-    data['Total Costs [MEUR]'] = (data['Total costs electricity supply [EUR]'] +
-                                  data['Total costs heat supply [EUR]']) / 1e6
-    data['Emissions [tCO2]'] = (data['Total costs electricity supply [EUR]'] +
-                                data['Total costs heat supply [EUR]']) / 1e6
-    data.drop(columns=['Total costs electricity supply [EUR]',
-                       'Total costs heat supply [EUR]',
-                       'CO2 emissions el. [tCO2]',
-                       'CO2 emissions th. [tCO2]'],
-              inplace=True)
-
-    data = data.reset_index().rename(columns={'index': 'scenario'})
-    data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
-
-    g = sns.PairGrid(data,
-                     x_vars=data.columns[1:], y_vars=['scenario'],
-                     height=10, aspect=.25)
-
-    # Draw a dot plot using the stripplot function
-    g.map(sns.stripplot, size=10, orient="h",
-          palette="ch:s=1,r=-.1,h=1_r", linewidth=1, edgecolor="w")
-
-    # Use the same x axis limits on all columns and add better labels
-    # g.set(xlim=(0, 25), xlabel="Crashes", ylabel="")
-
-    # Set 2nd title for columns (top)
-    titles = list(data.columns[1:])
-
-    for ax, title in zip(g.axes.flat, titles):
-        # Set a different title for each axes
-        ax.set(title=title)
-
-        # Make the grid horizontal instead of vertical
-        ax.xaxis.grid(False)
-        ax.yaxis.grid(True)
-
-    sns.despine(left=True, bottom=True)
 
 
 def calc_dsm_cap(region, hh_share=True):
