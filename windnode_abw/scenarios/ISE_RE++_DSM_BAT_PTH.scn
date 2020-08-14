@@ -105,7 +105,7 @@
         [[[imex_lines]]]
             power_limit_bypass = 1.0
         [[[import]]]
-            energy_limit = 0.0
+            energy_limit = 1.0
 [flexopt]
     [[flex_bat_large]]
         [[[enabled]]]
