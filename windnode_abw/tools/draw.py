@@ -130,7 +130,7 @@ COLORS = {'bio': 'green',
 
 CMAP = px.colors.sequential.GnBu_r
 
-UNITS = {"relative": "%", "hours": "h", "Utilization Rate":"%", "Total Cycles": "times", "Full Discharge Hours":"h", "RE":"MWh", "DSM":"MWh", "Import":"MWh", "Lineload":"%"}
+UNITS = {"relative": "%", "hours": "h", "Utilization Rate":"%", "Total Cycles": "cycles", "Full Discharge Hours":"h", "RE":"MWh", "DSM":"MWh", "Import":"MWh", "Lineload":"%"}
 
 def draw_graph(grph, mun_ags=None,
                edge_labels=True, node_color='#AFAFAF',
@@ -761,7 +761,7 @@ def plot_storage_ratios(storage_ratios, region, title):
     subplot_size = subplot_size.where(subplot_size>=0.2, 0.2)
 
     fig = make_subplots(rows=1, cols=2,
-                        horizontal_spacing=0.1,
+                        horizontal_spacing=0.15,
                         column_widths=list(subplot_size),
                         #column_widths=[0.2, 0.8],
                         subplot_titles=(sub_titles[0], sub_titles[1]),
@@ -771,7 +771,7 @@ def plot_storage_ratios(storage_ratios, region, title):
 
         for i, (key, df) in enumerate(df[stor].items()):
 
-            secondary_y = True if key == 'Utilization rate'else False
+            secondary_y = True if key == 'Utilization rate' else False
             visible = 'legendonly' if key == 'Full Discharge Hours' else True
 
             df = df[df!=0].dropna()
@@ -820,8 +820,11 @@ def plot_storage_ratios(storage_ratios, region, title):
                                     y=1.05,
                                     xanchor="right",
                                     x=1))
-    fig.update_yaxes(title_text="total", row=1, col=1, anchor="x", secondary_y=False)
-    fig.update_yaxes(title_text="relative in %", row=1, col=2, anchor="x2", secondary_y=True)
+    
+    fig.update_yaxes(title_text="Full cycles/discharge hours", row=1, col=1, anchor="x", secondary_y=False)
+    fig.update_yaxes(title_text="Full cycles/discharge hours", row=1, col=2, anchor="x2", secondary_y=False)
+    fig.update_yaxes(title_text="Utilization Rate %", row=1, col=1, anchor="x", secondary_y=True)
+    fig.update_yaxes(title_text="Utilization Rate %", row=1, col=2, anchor="x2", secondary_y=True)
     fig.update_xaxes(type='category', tickangle=45)
     fig.show()
 
