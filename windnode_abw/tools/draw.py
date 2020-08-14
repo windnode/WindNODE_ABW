@@ -92,11 +92,18 @@ COLORS = {'bio': 'green',
           'pv_roof_small' : 'darkorange',
           'wind': 'skyblue',
           'conventional':'grey',
+          'fuel_oil':'grey',
           'solar_heat': 'peru',
+          'solar': 'peru',
           'el_heating': 'red',
+          'elenergy': 'red',
           'gud':'teal',
+          'natural_gas':'teal',
           'bhkw' : 'seagreen',
           'gas' : 'lightgrey',
+          'gas_boiler' : 'lightgrey',
+          "wood": "maroon",
+          "coal": "black",
           'import' : 'maroon',
           'export' : 'olive',
           'demand' : 'darkgray',
@@ -107,16 +114,23 @@ COLORS = {'bio': 'green',
           'el_hh': 'darkmagenta',
           'el_ind': 'darkslategray',
           'th_hh_efh': 'plum',
+          'hh_efh': 'plum',
           'th_hh_mfh': 'fuchsia',
+          'hh_mfh': 'fuchsia',
           'th_rca' : 'crimson',
           'ABW-export': 'mediumpurple',
           'ABW-import': 'mediumorchid',
+          "pth": "indianred",
+          "pth_ASHP_nostor": "lightpink",
+          "pth_ASHP_stor": "lightpink",
+          "pth_GSHP_nostor": "lightcoral",
+          "pth_GSHP_stor": "lightcoral",
 
          }
 
 CMAP = px.colors.sequential.GnBu_r
 
-UNITS = {"relative": "%", "hours": "h", "Storage Usage Rate":"%", "Total Cycles":"times", "Full Load Hours":"h", "RE":"MWh", "DSM":"MWh", "Import":"MWh", "Lineload":"%"}
+UNITS = {"relative": "%", "hours": "h", "Utilization Rate":"%", "Total Cycles": "times", "Full Discharge Hours":"h", "RE":"MWh", "DSM":"MWh", "Import":"MWh", "Lineload":"%"}
 
 def draw_graph(grph, mun_ags=None,
                edge_labels=True, node_color='#AFAFAF',
@@ -711,7 +725,9 @@ def get_storage_ratios(storage_figures, region):
 
     # max
     steps = get_timesteps(region)
-    max_cycle = (1/2 * steps *  storage_figures.power_discharge) / storage_figures.capacity
+    c_rate = storage_figures.power_discharge / storage_figures.capacity
+    c_rate[c_rate > 1] = 1
+    max_cycle = 1/2 * steps * c_rate
     max_cycle = max_cycle.fillna(0)
 
     # relative
@@ -720,7 +736,7 @@ def get_storage_ratios(storage_figures, region):
 
     # combine
     storage_ratios = pd.concat([full_load_hours, total_cycle, storage_usage_rate], axis=1,
-                                     keys=['Full Load Hours', 'Total Cycles', 'Storage Usage Rate'])
+                                     keys=['Full Discharge Hours', 'Total Cycles', 'Utilization Rate'])
     storage_ratios = storage_ratios.swaplevel(axis=1)
     
     return storage_ratios
@@ -731,7 +747,7 @@ def plot_storage_ratios(storage_ratios, region, title):
     Parameters
     ----------
     storage_ratios : pd.DataFrame
-        including 'Full Load Hours', 'Total Cycles', 'Storage Usage Rate'
+        including 'Full Discharge Hours', 'Total Cycles', 'Utilization Rate'
     region : 
         region
     title : str
@@ -755,8 +771,8 @@ def plot_storage_ratios(storage_ratios, region, title):
 
         for i, (key, df) in enumerate(df[stor].items()):
 
-            secondary_y = True if key == 'Storage Usage Rate'else False
-            visible = 'legendonly' if key == 'Full Load Hours' else True
+            secondary_y = True if key == 'Utilization rate'else False
+            visible = 'legendonly' if key == 'Full Discharge Hours' else True
 
             df = df[df!=0].dropna()
             ags = df.index
@@ -784,7 +800,7 @@ def plot_storage_ratios(storage_ratios, region, title):
             if key == 'Total Cycles':
                 fig.add_trace(
                     go.Bar(x=['ABW'],
-                           y=[df.sum()],
+                           y=[df.mean()],
                            orientation='v',
                            name='ABW',
                            legendgroup="ABW",

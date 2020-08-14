@@ -124,6 +124,10 @@ class Region:
         """Returns run config"""
         return self._cfg
 
+    @cfg.setter
+    def cfg(self, cfg):
+        self._cfg = cfg
+
     @property
     def buses(self):
         """Returns region's buses"""
@@ -434,21 +438,3 @@ class Region:
         region = cls(**{**import_db_data(cfg), 'cfg': cfg})
 
         return region
-
-    def dump_to_pkl(self, filename):
-        """Dump Region to pickle"""
-        filepath = os.path.join(config.get_data_root_dir(),
-                                config.get('user_dirs', 'results_dir'))
-        pickle.dump(self, open(os.path.join(filepath,
-                                            filename), 'wb'))
-        logger.info(f'The region was dumped to {filepath}/{filename}.')
-
-    @classmethod
-    def load_from_pkl(self, filename):
-        """Load Region from pickle"""
-        filepath = os.path.join(config.get_data_root_dir(),
-                                config.get('user_dirs', 'results_dir'))
-        logger.info(f'The region was loaded from {filepath}/{filename}.')
-
-        return pickle.load(open(os.path.join(filepath,
-                                             filename), 'rb'))

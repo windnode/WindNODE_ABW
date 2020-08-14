@@ -146,8 +146,6 @@ UNITS = {
     'Electricity imports % of demand': '%',
     'Electricity exports % of demand': '%',
     'Balance': 'MWh',
-    'Self-consumption annual': '%',
-    'Self-consumption hourly': '%',
     'Area required pv_roof_small': 'ha',
     'Area required pv_roof_large': 'ha',
     'Area required pv_ground': 'ha',
@@ -160,23 +158,24 @@ UNITS = {
     "Area required rel. PV rooftop": "%",
     "Area required rel. PV rooftop small": "%",
     "Area required rel. PV rooftop large": "%",
+    "Area required rel. PV ground (THIS SCENARIO)": "%",
+    "Area required rel. PV ground H 0.1-perc agri": "%",
     "Area required rel. PV ground H 1-perc agri": "%",
-    "Area required rel. PV ground H 1-perc agri (current)": "%",
     "Area required rel. PV ground H 2-perc agri": "%",
-    "Area required rel. PV ground H 3-perc agri": "%",
+    "Area required rel. PV ground HS 0.1-perc agri": "%",
     "Area required rel. PV ground HS 1-perc agri": "%",
-    "Area required rel. PV ground HS 1-perc agri (current)": "%",
     "Area required rel. PV ground HS 2-perc agri": "%",
-    "Area required rel. PV ground HS 3-perc agri": "%",
-    "Area required rel. wind (current)": "%",
-    "Area required rel. wind 1000m wo forest 10-perc (VR/EG)": "%",
-    "Area required rel. wind 1000m w forest 10-perc": "%",
-    "Area required rel. wind 500m wo forest 10-perc": "%",
-    "Area required rel. wind 500m w forest 10-perc": "%",
+    "Area required rel. Wind (THIS SCENARIO)": "%",
+    "Area required rel. Wind legal SQ (VR/EG)": "%",
+    "Area required rel. Wind 1000m w forest 10-perc": "%",
+    "Area required rel. Wind 500m wo forest 10-perc": "%",
+    "Area required rel. Wind 500m w forest 10-perc": "%",
     "Total costs electricity supply": "EUR",
     "Total costs heat supply": "EUR",
     "LCOE": "EUR/MWh",
     "LCOH": "EUR/MWh",
+    "Autarky": "%",
+    "Autark hours": "%",
     }
 
 
@@ -798,7 +797,7 @@ def flows_timexagsxtech(results_raw, region):
                     index=pd.MultiIndex.from_product(
                         [results_raw.index,
                          ['large', 'small'],
-                         region.muns.index.astype(str)], names=['timestamp',
+                         region.muns.index], names=['timestamp',
                                                                 'level',
                                                                 'ags'])
                 )
@@ -811,7 +810,7 @@ def flows_timexagsxtech(results_raw, region):
                     index=pd.MultiIndex.from_product(
                         [results_raw.index,
                          ['cen', 'dec'],
-                         region.muns.index.astype(str)], names=['timestamp',
+                         region.muns.index], names=['timestamp',
                                                                 'level',
                                                                 'ags'])
                 )
@@ -918,10 +917,13 @@ def flows_timexagsxtech(results_raw, region):
     flows.pop("Stromnachfrage DSM HH")
 
     # Add autarky
-    flows["Autarky"] = pd.DataFrame()
-    flows["Autarky"]["supply"] = flows['Stromerzeugung'].drop(columns='import').sum(axis=1)
-    flows["Autarky"]["demand"] = flows['Stromnachfrage'].drop(columns='export').sum(axis=1)
-    flows["Autarky"]["relative"] = flows["Autarky"]['supply'].unstack().div(flows["Autarky"]['demand'].unstack()).stack()
+    flows["Autarky"] = (1 - ((flows['Stromerzeugung']['import'] + flows["Intra-regional exchange"]["import"] +
+                              flows["Batteriespeicher"].sum(level=["timestamp", "ags"])["discharge"]).sum(
+        level=["timestamp", "ags"])).div(
+        (flows['Stromnachfrage'].sum(axis=1) + flows['Stromnachfrage Wärme'].sum(axis=1).sum(
+            level=["timestamp", "ags"]) + flows["Intra-regional exchange"]["export"] +
+         flows["Batteriespeicher"].sum(level=["timestamp", "ags"])["charge"]).sum(level=["timestamp", "ags"]))) * 100
+    flows["Autark hours"] = flows["Autarky"] >= 100
 
     # Join Dessau GuD data into one DF, need for extraction of variable efficiency,
     # cf. https://github.com/windnode/WindNODE_ABW/issues/33
@@ -1303,29 +1305,27 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     ).fillna(0)
 
     # PV ground
-    results["Area required rel."]["PV ground"] = (
+    results["Area required rel."]["PV ground HS 0.1-perc agri"] = (
             results["Area required"]["pv_ground"] /
             region.pot_areas_pv_scn(
-                scenario=re_params['pv_land_use_scenario'],
-                pv_usable_area_agri_max=2086
+                scenario='HS',
+                pv_usable_area_agri_max=2086*0.1
             )['with_agri_restrictions'].groupby('ags_id').agg('sum') * 1e2
     ).replace(inf, 0).fillna(0) \
         if re_params['pv_land_use_scenario'] != 'SQ'\
-        else results["Area required"]["pv_ground"]
+        else pd.Series(0, index=results["Area required"]["pv_ground"].index)
 
     # wind
-    results["Area required rel."][f"Wind "
-                                  f"{re_params['wec_land_use_scenario']} "
-                                  f"10-perc"] = (
+    results["Area required rel."][f"Wind 500m w forest 10-perc"] = (
             results["Area required"]["wind"] /
-            region.pot_areas_wec_scn(
-                scenario=re_params['wec_land_use_scenario']
-            ) * 1e2
+            (region.pot_areas_wec_scn(scenario='s500f1') * 0.1) * 1e2
     ).replace(inf, 0).fillna(0)
-    results["Area required rel."]["Wind 1000m wo forest 10-perc (VR/EG)"] = (
+    results["Area required rel."]["Wind legal SQ (VR/EG)"] = (
             results["Area required"]["wind"] /
             region.pot_areas_wec_scn(scenario='SQ') * 1e2
-    ).replace(inf, 0).fillna(0)
+    ).replace(inf, 0).fillna(0) \
+        if re_params['wec_installed_power'] != 'SQ' \
+        else pd.Series(0, index=results["Area required"]["wind"].index)
 
     # CO2 emissions electricity
     results_tmp_el = _calculate_co2_emissions(
@@ -1528,11 +1528,11 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         add(results["CO2 certificate cost th."], fill_value=0)
 
     # Add Autarky
-    results["Autarky"] = pd.DataFrame()
-    results["Autarky"]['supply'] = extracted_results["Autarky"]['supply'].sum(level=1)
-    results["Autarky"]['demand'] = extracted_results["Autarky"]['demand'].sum(level=1)
-    results["Autarky"]['relative'] = results["Autarky"]['supply'].div(results["Autarky"]['demand'])
-    results["Autarky"]['hours'] = (extracted_results["Autarky"]['relative'] > 1).sum(level=1)
+    results["Autarky"] = results['Stromerzeugung nach Gemeinde'].drop(columns='import').sum(axis=1).div(
+        results['Stromnachfrage nach Gemeinde'].drop(columns='export').sum(axis=1) +
+        results['Stromnachfrage Wärme nach Gemeinde'].sum(axis=1)
+    ) * 100
+    results["Autark hours"] = extracted_results["Autark hours"].mean(level="ags") * 100
 
     return results
 
@@ -1567,11 +1567,6 @@ def results_tech(results_axlxt):
     # Calculate levelized cost of heat
     results["LCOH"] = results_axlxt["Total costs heat supply"].sum() / results_axlxt['Wärmenachfrage nach Gemeinde'].sum().sum()
 
-    # Autarky
-    results["Autarky"] = results_axlxt["Autarky"].loc[:,['supply','demand']].sum(axis=0).rename("ABW")
-    results["Autarky"]["relative"] = results["Autarky"]['supply'] / results["Autarky"]['demand']
-
-
     return results
 
 
@@ -1597,12 +1592,13 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Electricity exports % of demand"] = results_tables["Stromnachfrage nach Gemeinde"]["export"].sum() / \
                                            highlevel["Electricity demand total"] * 1e2
     highlevel["Balance"] = highlevel["Electricity imports"] - highlevel["Electricity exports"]
-    highlevel["Self-consumption annual"] = (1 - (
-        highlevel["Electricity imports"] / highlevel["Electricity demand total"])) * 100
-    highlevel["Self-consumption hourly"] = ((1 - (
-            results_txaxt["Stromimport"].sum(level="timestamp").sum(axis=1) / (
-            results_txaxt["Stromnachfrage"].drop(columns='export').sum(level="timestamp").sum(axis=1) +
-            results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)))) * 100).mean()
+    highlevel["Autarky"] = (highlevel["Electricity generation"] /
+                            highlevel["Electricity demand total"] * 100)
+    highlevel["Autark hours"] = (
+            results_txaxt["Stromerzeugung"].drop(columns='import').sum(axis=1).sum(level="timestamp") >
+            (results_txaxt['Stromnachfrage'].drop(columns='export').sum(axis=1).sum(level="timestamp") +
+             results_txaxt['Stromnachfrage Wärme'].sum(axis=1).sum(level="timestamp"))
+    ).mean()
     for re in results_tables["Area required"].columns:
         highlevel["Area required " + re] = results_tables["Area required"][re].sum()
 
@@ -1631,13 +1627,20 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     ) * 1e2
 
     # PV ground
-    highlevel["Area required rel. PV ground (current)"] = (
+    highlevel["Area required rel. PV ground (THIS SCENARIO)"] = (
             results_tables["Area required"]["pv_ground"].sum() /
             region.pot_areas_pv_scn(
                 scenario=re_params['pv_land_use_scenario'],
                 pv_usable_area_agri_max=re_params['pv_usable_area_agri_max']
             )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
     ) if re_params['pv_land_use_scenario'] != 'SQ' else 0
+    highlevel[f"Area required rel. PV ground H 0.1-perc agri"] = (
+            results_tables["Area required"]["pv_ground"].sum() /
+            region.pot_areas_pv_scn(
+                scenario='H',
+                pv_usable_area_agri_max=2086*0.1
+            )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
+    )
     highlevel[f"Area required rel. PV ground H 1-perc agri"] = (
             results_tables["Area required"]["pv_ground"].sum() /
             region.pot_areas_pv_scn(
@@ -1652,11 +1655,11 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
                 pv_usable_area_agri_max=2086*2
             )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
     )
-    highlevel[f"Area required rel. PV ground H 3-perc agri"] = (
+    highlevel[f"Area required rel. PV ground HS 0.1-perc agri"] = (
             results_tables["Area required"]["pv_ground"].sum() /
             region.pot_areas_pv_scn(
-                scenario='H',
-                pv_usable_area_agri_max=2086*3
+                scenario='HS',
+                pv_usable_area_agri_max=2086*0.1
             )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
     )
     highlevel[f"Area required rel. PV ground HS 1-perc agri"] = (
@@ -1673,35 +1676,28 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
                 pv_usable_area_agri_max=2086*2
             )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
     )
-    highlevel[f"Area required rel. PV ground HS 3-perc agri"] = (
-            results_tables["Area required"]["pv_ground"].sum() /
-            region.pot_areas_pv_scn(
-                scenario='HS',
-                pv_usable_area_agri_max=2086*3
-            )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
-    )
 
     # wind
-    highlevel["Area required rel. wind (current)"] = (
+    highlevel["Area required rel. Wind (THIS SCENARIO)"] = (
             results_tables["Area required"]["wind"].sum() /
             (region.pot_areas_wec_scn(
                 scenario=re_params['wec_land_use_scenario']
             ).sum() *
              (0.1 if re_params['wec_land_use_scenario'] != 'SQ' else 1)) * 1e2
     )
-    highlevel["Area required rel. wind 1000m wo forest 10-perc (VR/EG)"] = (
+    highlevel["Area required rel. Wind legal SQ (VR/EG)"] = (
             results_tables["Area required"]["wind"].sum() /
             region.pot_areas_wec_scn(scenario='SQ').sum() * 1e2
     )
-    highlevel["Area required rel. wind 1000m w forest 10-perc"] = (
+    highlevel["Area required rel. Wind 1000m w forest 10-perc"] = (
             results_tables["Area required"]["wind"].sum() /
             (region.pot_areas_wec_scn(scenario='s1000f1').sum() * 0.1) * 1e2
     )
-    highlevel["Area required rel. wind 500m wo forest 10-perc"] = (
+    highlevel["Area required rel. Wind 500m wo forest 10-perc"] = (
             results_tables["Area required"]["wind"].sum() /
             (region.pot_areas_wec_scn(scenario='s500f0').sum() * 0.1) * 1e2
     )
-    highlevel["Area required rel. wind 500m w forest 10-perc"] = (
+    highlevel["Area required rel. Wind 500m w forest 10-perc"] = (
             results_tables["Area required"]["wind"].sum() /
             (region.pot_areas_wec_scn(scenario='s500f1').sum() * 0.1) * 1e2
     )
