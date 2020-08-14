@@ -771,7 +771,7 @@ def plot_storage_ratios(storage_ratios, region, title):
 
         for i, (key, df) in enumerate(df[stor].items()):
 
-            secondary_y = True if key == 'Utilization rate' else False
+            secondary_y = True if key == 'Utilization Rate' else False
             visible = 'legendonly' if key == 'Full Discharge Hours' else True
 
             df = df[df!=0].dropna()
