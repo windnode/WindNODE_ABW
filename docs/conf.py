@@ -41,9 +41,7 @@ def create_tech_scn_table_docs():
                                       "{}.csv".format(tab)),
                          index_col="Unnamed: 0")
 
-        _df2rst(df, os.path.join(PARENTDIR,
-                                 "_static",
-                                 "{}.rst".format(tab)))
+        _df2rst(df, os.path.join(PARENTDIR, "{}.rst".format(tab)))
 
 
 def create_scn_table_docs():
@@ -88,9 +86,7 @@ def create_scn_table_docs():
         "Demand-Side Management [% of households]"] * 100
 
     # save to docs subfolder
-    scn_table_path = os.path.join(PARENTDIR,
-                                  '_static',
-                                  'scenario_overview.rst')
+    scn_table_path = os.path.join(PARENTDIR, 'scenario_overview.rst')
     print(scn_table_path)
 
     headers = extracted_df.columns
