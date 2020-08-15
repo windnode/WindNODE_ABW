@@ -36,14 +36,7 @@ setup(
         'plotly',
         'papermill'
     ],
-    # package_data={
-    #     'config': [
-    #         os.path.join('config',
-    #                      'config_system'),
-    #         os.path.join('config',
-    #                      '*.cfg')
-    #     ]
-    #     },
+    package_data={'windnode_abw': ["*.csv"]},
     cmdclass={
       'install': InstallSetup}
 )
