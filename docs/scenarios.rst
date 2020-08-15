@@ -16,7 +16,7 @@ The study of :cite:`ISE2020` frames the assumptions made for climate neutral sce
 Scenario data in detail
 -----------------------
 
-.. include:: _static/scenario_overview.rst
+.. include:: scenario_overview.rst
 
 
 Battery storage capacity
@@ -27,4 +27,4 @@ and RES generation capacity is taken from :cite:`NEP2021`. This is also applied 
 but RES generation capacity from :cite:`ISE2020`.
 Spatially allocation of battery storage capacity follows the same idea down to municipality level
 
-.. include:: _static/battery_storage_scenarios.rst
+.. include:: battery_storage_scenarios.rst
