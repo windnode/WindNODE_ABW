@@ -1,0 +1,5 @@
+,Description
+BAT-,No battery storage capacity considered for balancing at system level. Existing PV home storage systems are neglected
+BAT,Battery storage capacity by plain scaling of battery storage capacity by RES capacity of particular generation capacity data
+BAT+,Increased capacity compared to BAT
+BAT++,Even more increased capacity compared to BAT+

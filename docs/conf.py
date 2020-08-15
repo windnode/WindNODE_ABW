@@ -20,6 +20,32 @@ import os
 import windnode_abw
 
 
+def _df2rst(df, filepath):
+    headers = df.columns
+
+    with open(filepath, "w") as fh:
+        df.to_markdown(buf=fh, tablefmt="grid", headers=headers)
+
+
+def create_tech_scn_table_docs():
+
+    tab_names = ["battery_storage_scenarios"]
+
+    for tab in tab_names:
+        df = pd.read_csv(os.path.join(windnode_abw.__path__[0],
+                                      '..',
+                                      'docs',
+                                      "_data",
+                                      "{}.csv".format(tab)),
+                         index_col="Unnamed: 0")
+
+        _df2rst(df, os.path.join(windnode_abw.__path__[0],
+                                 '..',
+                                 'docs',
+                                 "_static",
+                                 "{}.rst".format(tab)))
+
+
 def create_scn_table_docs():
     """Prepare scenario data for docs table"""
 
@@ -68,7 +94,6 @@ def create_scn_table_docs():
                                   '_static',
                                   'scenario_overview.rst')
 
-    # headers = [" ".join(col) for col in extracted_df.columns]
     headers = extracted_df.columns
 
     with open(scn_table_path, "w") as fh:
@@ -79,6 +104,7 @@ def create_scn_table_docs():
 
 # Create required data and tables
 create_scn_table_docs()
+create_tech_scn_table_docs()
 
 
 # -- Project information -----------------------------------------------------
@@ -106,7 +132,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', "_data"]
 
 master_doc = 'index'
 
