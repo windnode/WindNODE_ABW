@@ -18,6 +18,10 @@ import sphinx_material
 import pandas as pd
 import os
 import windnode_abw
+import pathlib
+
+
+PARENTDIR = pathlib.Path(__file__).parent.absolute()
 
 
 def _df2rst(df, filepath):
@@ -32,16 +36,12 @@ def create_tech_scn_table_docs():
     tab_names = ["battery_storage_scenarios"]
 
     for tab in tab_names:
-        df = pd.read_csv(os.path.join(windnode_abw.__path__[0],
-                                      '..',
-                                      'docs',
+        df = pd.read_csv(os.path.join(PARENTDIR,
                                       "_data",
                                       "{}.csv".format(tab)),
                          index_col="Unnamed: 0")
 
-        _df2rst(df, os.path.join(windnode_abw.__path__[0],
-                                 '..',
-                                 'docs',
+        _df2rst(df, os.path.join(PARENTDIR,
                                  "_static",
                                  "{}.rst".format(tab)))
 
@@ -88,11 +88,10 @@ def create_scn_table_docs():
         "Demand-Side Management [% of households]"] * 100
 
     # save to docs subfolder
-    scn_table_path = os.path.join(windnode_abw.__path__[0],
-                                  '..',
-                                  'docs',
+    scn_table_path = os.path.join(PARENTDIR,
                                   '_static',
                                   'scenario_overview.rst')
+    print(scn_table_path)
 
     headers = extracted_df.columns
 
