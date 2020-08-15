@@ -19,7 +19,7 @@ setup(
     install_requires = [
         'oemof',
         'shapely',
-        'pandas',
+        'pandas >= 1',
         'geopandas',
         'GeoAlchemy2',
         'matplotlib',
