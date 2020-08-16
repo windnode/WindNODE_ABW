@@ -35,7 +35,8 @@ setup(
         'psutil',
         'seaborn',
         'plotly',
-        'papermill'
+        'papermill',
+        "jupyterlab"
     ],
     package_data={
         'windnode_abw': [
