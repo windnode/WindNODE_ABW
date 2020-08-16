@@ -1,5 +1,6 @@
 from setuptools import find_packages, setup
 from setuptools.command.install import install
+import os
 
 
 class InstallSetup(install):
@@ -36,14 +37,14 @@ setup(
         'plotly',
         'papermill'
     ],
-    # package_data={
-    #     'config': [
-    #         os.path.join('config',
-    #                      'config_system'),
-    #         os.path.join('config',
-    #                      '*.cfg')
-    #     ]
-    #     },
+    package_data={
+        'windnode_abw': [
+            os.path.join('config',
+                         'config_system'),
+            os.path.join('config',
+                         '*.cfg')
+        ]
+        },
     cmdclass={
       'install': InstallSetup}
 )
