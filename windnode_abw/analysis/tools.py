@@ -1789,16 +1789,13 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
 
     errors = None
     for scen in scenarios:
-        errors = pool.apply_async(create_scenario_notebook,
-                                  args=(scen, run_id, template,),
-                                  kwds={"output_path": output_path,
-                                        "kernel_name": kernel_name,
-                                        "force_new_results": force_new_results}
-                                  ).get()
+        pool.apply_async(create_scenario_notebook,
+                         args=(scen, run_id, template,),
+                         kwds={"output_path": output_path,
+                               "kernel_name": kernel_name,
+                               "force_new_results": force_new_results}
+                         )
     pool.close()
     pool.join()
 
-    if errors is not None:
-        logger.warning(f'Errors occured during creation of notebooks.')
-    else:
-        logger.info(f'Notebooks for {len(scenarios)} scenarios created without errors.')
+    logger.info(f'Notebooks for {len(scenarios)} scenarios created.')
