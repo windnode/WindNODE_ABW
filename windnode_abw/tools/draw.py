@@ -80,7 +80,19 @@ PRINT_NAMES = {
     "hh_efh" : "Single-family houses",
     "hh_mfh" : "Apartment buildings",
     "ABW-export": "Export (regional)",
-    "ABW-import": "Import (regional)"
+    "ABW-import": "Import (regional)",
+    "roof":"Area required rel. PV rooftop",
+    "H_0.1":"Area required rel. PV ground H 0.1-perc agri",
+    "H_1":"Area required rel. PV ground H 1-perc agri",
+    "H_2":"Area required rel. PV ground H 2-perc agri",
+    "HS_0.1":"Area required rel. PV ground HS 0.1-perc agri",
+    "HS_1":"Area required rel. PV ground HS 1-perc agri",
+    "HS_2":"Area required rel. PV ground HS 2-perc agri",
+    "SQ":"Area required rel. Wind legal SQ (VR/EG)",
+    "s1000f1":"Area required rel. Wind 1000m w forest 10-perc",
+    "s500f0":"Area required rel. Wind 500m wo forest 10-perc",
+    "s500f1":"Area required rel. Wind 500m w forest 10-perc",
+    "pv_roof":"PV Roof",
 }
 
 # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
