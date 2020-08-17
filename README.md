@@ -40,7 +40,7 @@ Afterwards you can access the database via
 
 ### Import scenario data
 
-Scenario data is contained in the database dump [windnode_db_200817.backup](https://next.rl-institut.de/s/LEooigzT489wCeS).
+Scenario data is contained in the database dump [windnode_db_200817.backup](https://next.rl-institut.de/s/RS4jxzPgx6n3JFZ).
 Do the following steps to import the scenario data to your database
 
 1. Download the above scenario data file
