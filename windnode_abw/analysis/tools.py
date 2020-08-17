@@ -1794,7 +1794,7 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
                                   kwds={"output_path": output_path,
                                         "kernel_name": kernel_name,
                                         "force_new_results": force_new_results}
-                                  ).get()
+                                  )
     pool.close()
     pool.join()
 
