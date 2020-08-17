@@ -86,8 +86,7 @@ GEN_EL_NAMES = {
     'wind': {
         "params": "wind"},
     "bio": {
-        "params": "bio",
-        "params_comm": "comm_biogas"},
+        "params": "bio"},  # plant emissions only, no commodity emissions!
     'import': {
         "params": None,
         "params_comm": "elenergy"}
