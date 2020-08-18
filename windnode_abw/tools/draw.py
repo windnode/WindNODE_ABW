@@ -855,7 +855,7 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
                                   ('Electricity generation', 'MWh')],
             'results_axlxt': [],
             'col_order': ['Scenario', 'Total Costs [bnEUR]', 'LCOE [EUR/MWh]',
-                          'LCOH [EUR/MWh]', 'Specific Emissions [g/kWh'],
+                          'LCOH [EUR/MWh]', 'Specific Emissions [g/kWh]'],
             'title': 'Costs and Emissions'
             },
         2: {'highlevel_results': [('Area required rel. Wind legal SQ (VR/EG)', '%'),
@@ -863,19 +863,22 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
                                   ('Electricity exports', 'MWh')],
             'results_axlxt': [('Intra-regional exchange', 'export', 'MWh')],
             'col_order': ['Scenario', 'RES Area Wind (VR/EG) [%]',
-                          'RES Area PV ground [%]', 'Intra-reg. Exchange [TWh]',
+                          'RES Area PV ground [%]',
+                          'Intra-reg. Exchange [TWh]',
                           'El. Exports [TWh]'],
             'title': 'Land Use and Energy Balance'
             },
-        3: {'highlevel_results': [('Net DSM activation', 'MWh'),
-                                  ('Autarky', '%'),],
-            'results_axlxt': [('Batteriespeicher nach Gemeinde', 'discharge', 'MWh'),
-                              ('Wärmespeicher nach Gemeinde', 'discharge', 'MWh')],
+        3: {'highlevel_results': [('Autarky', '%'), ('Net DSM activation','MWh'), ('Battery Storage Usage Rate','%'), ('Heat Storage Usage Rate','%')],
+            'results_axlxt': [#('Batteriespeicher nach Gemeinde', 'discharge', 'MWh'),
+                              # ('Wärmespeicher nach Gemeinde', 'discharge', 'MWh'),
+                              ('DSM Capacities','Demand decrease','MWh')],
             'col_order': ['Scenario', 'Autarky [%]', 'El. Storage Use [GWh]',
-                          'Heat Storage Use [GWh]', 'Net DSM activation [GWh]'],
+                          'Heat Storage Use [GWh]', 'DSM Utilization Rate [%]'],
             'title': 'Flexibility Commitment'
             }
     }
+
+
 
     for no, params in plots.items():
 
@@ -894,7 +897,7 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
                                               data_hl['Total costs heat supply [EUR]']) / 1e9
             data_hl['Emissions [MtCO2]'] = (data_hl['CO2 emissions el. [tCO2]'] +
                                             data_hl['CO2 emissions th. [tCO2]']) / 1e6
-            data_hl['Specific Emissions [g/kWh'] = data_hl['Emissions [MtCO2]'] / data_hl['Electricity generation [MWh]'] * 1e6
+            data_hl['Specific Emissions [g/kWh]'] = data_hl['Emissions [MtCO2]'] / data_hl['Electricity generation [MWh]'] * 1e9
 
             data_hl.drop(columns=['Total costs electricity supply [EUR]',
                                   'Total costs heat supply [EUR]',
@@ -913,8 +916,8 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
             }
             data_hl.rename(columns=col_mapping, inplace=True)
         elif no == 3:
-            data_hl['Net DSM activation [GWh]'] = data_hl['Net DSM activation [MWh]'] / 1e3
-            data_hl.drop(columns=['Net DSM activation [MWh]'], inplace=True)
+            col_mapping = {"Battery Storage Usage Rate [%]":"El. Storage Use [%]", "Heat Storage Usage Rate [%]":"Heat Storage Use [%]"}
+            data_hl.rename(columns=col_mapping, inplace=True)
 
         #################################
         # get and process results_axlxt #
@@ -937,16 +940,19 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
             data_axlxt.rename(columns=col_mapping, inplace=True)
             data = pd.concat([data_hl, data_axlxt], axis=1)
         if no == 3:
-            data_axlxt['Batteriespeicher nach Gemeinde [GWh]'] = data_axlxt['Batteriespeicher nach Gemeinde [MWh]'] / 1e3
-            data_axlxt['Wärmespeicher nach Gemeinde [GWh]'] = data_axlxt['Wärmespeicher nach Gemeinde [MWh]'] / 1e3
-            data_axlxt.drop(columns=['Batteriespeicher nach Gemeinde [MWh]',
-                                     'Wärmespeicher nach Gemeinde [MWh]'], inplace=True)
+            # data_axlxt['Batteriespeicher nach Gemeinde [GWh]'] = data_axlxt['Batteriespeicher nach Gemeinde [MWh]'] / 1e3
+            # data_axlxt['Wärmespeicher nach Gemeinde [GWh]'] = data_axlxt['Wärmespeicher nach Gemeinde [MWh]'] / 1e3
+            data_axlxt['DSM Utilization Rate [%]'] = data_hl['Net DSM activation [MWh]'] / data_axlxt['DSM Capacities [MWh]'] * 1e2
 
-            col_mapping = {
-                'Batteriespeicher nach Gemeinde [GWh]': 'El. Storage Use [GWh]',
-                'Wärmespeicher nach Gemeinde [GWh]': 'Heat Storage Use [GWh]',
-            }
-            data_axlxt.rename(columns=col_mapping, inplace=True)
+            data_axlxt.drop(columns=[#'Batteriespeicher nach Gemeinde [MWh]',
+                                     # 'Wärmespeicher nach Gemeinde [MWh]',
+                                     'DSM Capacities [MWh]'], inplace=True)
+            data_hl.drop(columns=['Net DSM activation [MWh]'], inplace=True)
+            # col_mapping = {
+            #     'Batteriespeicher nach Gemeinde [GWh]': 'El. Storage Use [GWh]',
+            #     'Wärmespeicher nach Gemeinde [GWh]': 'Heat Storage Use [GWh]',
+            # }
+            # data_axlxt.rename(columns=col_mapping, inplace=True)
             data = pd.concat([data_hl, data_axlxt], axis=1)
 
         # sort all plots by total costs
@@ -1009,9 +1015,7 @@ def calc_dsm_cap(region, hh_share=True):
         max demand increase potential
     df_dsm_cap_down : pd.DataFrame
         max demand decrease potential
-    
     """
-
     if 0 < hh_share < 1:
         pass
     elif hh_share:
