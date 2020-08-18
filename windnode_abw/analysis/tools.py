@@ -1308,7 +1308,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         # max
         steps = _get_timesteps(region)
         c_rate = storage_figures.power_discharge / storage_figures.capacity
-        c_rate[c_rate > 1] = 1
+        c_rate[c_rate > 1] = 1 # Issue #127
         max_cycle = 1/2 * steps * c_rate
         max_cycle = max_cycle.fillna(0)
 
@@ -1720,7 +1720,7 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
             results_txaxt["Stromerzeugung"].drop(columns='import').sum(axis=1).sum(level="timestamp") >
             (results_txaxt['Stromnachfrage'].drop(columns='export').sum(axis=1).sum(level="timestamp") +
              results_txaxt['Stromnachfrage Wärme'].sum(axis=1).sum(level="timestamp"))
-    ).mean()
+    ).mean() # mean of boolean is intended
     for re in results_tables["Area required"].columns:
         highlevel["Area required " + re] = results_tables["Area required"][re].sum()
 
