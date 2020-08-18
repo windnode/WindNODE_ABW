@@ -3,7 +3,7 @@
     year = 2050
 [commodities]
     commodities = fuel_oil, natural_gas, wood, coal, solar, methane
-    methane_share = 0.55
+    methane_share = 0.0
 [demand]
     [[dem_el_general]]
         sectors = hh, rca, ind
