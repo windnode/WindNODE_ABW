@@ -1810,7 +1810,10 @@ def create_comparative_notebook(scenarios, run_id,
                                 template="scenario_analysis_comparative_template.ipynb",
                                 output_path=os.path.join(wn_path[0], 'jupy'),
                                 kernel_name=None,
-                                force_new_results=False):
+                                force_new_results=False,
+                                export_figures=False,
+                                figures_output_path=os.path.join(wn_path[0], 'jupy'),
+                                figures_file_type='svg'):
     """Create comparative jupyter notebook with all scenarios"""
 
     if isinstance(scenarios, str):
@@ -1853,7 +1856,10 @@ def create_comparative_notebook(scenarios, run_id,
                             parameters={
                                 "scenarios": scenarios,
                                 "run_timestamp": run_id,
-                                "force_new_results": force_new_results
+                                "force_new_results": force_new_results,
+                                "export_figures": export_figures,
+                                "figures_output_path": figures_output_path,
+                                "figures_file_type": figures_file_type
                             },
                             request_save_on_cell_execute=True,
                             kernel_name=kernel_name)
