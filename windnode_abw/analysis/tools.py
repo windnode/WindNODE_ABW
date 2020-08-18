@@ -1432,8 +1432,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     # CO2 emissions attributed to grid
     line_lengths_tmp = region.lines.set_index("line_id")["length"]
     line_lengths_tmp.index = line_lengths_tmp.index.astype(str)
-    line_capacity_length = parameters['Installed capacity grid per bus'].to_frame().join(line_lengths_tmp,
-                                                                                         on="line_id")
+    line_capacity_length = parameters['Installed capacity grid per bus'].to_frame().join(line_lengths_tmp, on="line_id")
     line_capacity_length = line_capacity_length["investment_existing"] * line_capacity_length["length"]
     results["CO2 emissions grid total"] = _calculate_co2_emissions(
         "grid",
