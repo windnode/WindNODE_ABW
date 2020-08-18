@@ -1255,7 +1255,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         battery_storage_figures = pd.concat([stor_cap_small, stor_cap_large],
             axis=1, keys=['large','small'])
 
-        storage =  battery_storages_muns
+        storage = battery_storages_muns
         storage = storage.unstack("level").swaplevel(axis=1)
         storage.index = storage.index.astype(int)
 
@@ -1268,13 +1268,12 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     def _calculate_heat_storage_figures(parameters, heat_storages_muns):
         """"""
         capacity = parameters['Installed capacity heat storage']
-        capacity = capacity.rename(columns={'stor_th_large':'cen',
-            'stor_th_small':'dec'})
+        capacity = capacity.rename(columns={'stor_th_large': 'cen',
+            'stor_th_small': 'dec'})
         capacity.index = capacity.index.astype(int)
 
         power_discharge = parameters['Discharge power heat storage']
-        power_discharge = power_discharge.rename(columns={'stor_th_large':'cen',
-            'stor_th_small':'dec'})
+        power_discharge = power_discharge.rename(columns={'stor_th_large':'cen', 'stor_th_small':'dec'})
 
         discharge = heat_storages_muns
         discharge = discharge.discharge.unstack().fillna(0).T
@@ -1282,10 +1281,9 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
         # combine
         heat_storage_figures = pd.concat([capacity, power_discharge, discharge],
-            axis=1, keys=['capacity','power_discharge', 'discharge'])
+                                         axis=1, keys=['capacity', 'power_discharge', 'discharge'])
 
         return heat_storage_figures
-
 
     def _calculate_storage_ratios(storage_figures, region):
         """calculate storage ratios for heat or electricity
@@ -1308,21 +1306,19 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         total_cycle = total_cycle.fillna(0)
 
         # max
-        steps = get_timesteps(region)
+        steps = _get_timesteps(region)
         c_rate = storage_figures.power_discharge / storage_figures.capacity
         c_rate[c_rate > 1] = 1
         max_cycle = 1/2 * steps * c_rate
         max_cycle = max_cycle.fillna(0)
 
         # relative
-        storage_usage_rate  = total_cycle / max_cycle * 100
+        storage_usage_rate = total_cycle / max_cycle * 100
         storage_usage_rate = storage_usage_rate.fillna(0)
 
         # combine
-        storage_ratios = pd.concat([full_load_hours,
-                                    total_cycle,
-                                    storage_usage_rate], axis=1,
-                                         keys=['Full Discharge Hours', 'Total Cycles', 'Utilization Rate'])
+        storage_ratios = pd.concat([full_load_hours, total_cycle, storage_usage_rate],
+                                   axis=1, keys=['Full Discharge Hours', 'Total Cycles', 'Utilization Rate'])
         storage_ratios = storage_ratios.swaplevel(axis=1)
 
         return storage_ratios
