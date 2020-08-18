@@ -843,6 +843,8 @@ def plot_storage_ratios(storage_ratios, region, title):
 
 def plot_key_scenario_results(results_scns, scenarios, cmap_name):
 
+    return_data = {}
+
     plots = {
         1: {'highlevel_results': [('Total costs electricity supply', 'EUR'),
                                   ('Total costs heat supply', 'EUR'),
@@ -983,6 +985,10 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
             ax.yaxis.grid(True)
 
         sns.despine(left=True, bottom=True)
+
+        return_data[no] = data
+
+    return return_data
 
 
 def calc_dsm_cap(region, hh_share=True):
