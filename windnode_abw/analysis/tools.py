@@ -1591,6 +1591,11 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     ) * 100
     results["Autark hours"] = extracted_results["Autark hours"].mean(level="ags") * 100
 
+    results["Battery Storage Figures"] = _calculate_battery_storage_figures(parameters, results['Batteriespeicher nach Gemeinde'])
+    results["Battery Storage Ratios"] = _calculate_storage_ratios(results["Battery Storage Figures"], region)
+
+
+
     return results
 
 
