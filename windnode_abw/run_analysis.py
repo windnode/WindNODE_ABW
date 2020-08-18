@@ -20,8 +20,7 @@ if __name__ == "__main__":
     # scenarios found in directory
     #scenarios = ['future', 'sq']
     #scenarios = ['ALL']
-    #scenarios = ['NEP2035']
-    scenarios = ['ALL']
+    scenarios = ['NEP']
 
     regions_scns, results_scns = analysis(run_timestamp=run_timestamp,
                                           scenarios=scenarios,

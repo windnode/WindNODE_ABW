@@ -4,6 +4,7 @@ import papermill as pm
 import os
 from windnode_abw import __path__ as wn_path
 from windnode_abw.tools import config
+from windnode_abw.model.region.tools import calc_dsm_cap_up, calc_dsm_cap_down
 import multiprocessing as mp
 
 
@@ -1322,7 +1323,40 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
         return storage_ratios
 
+    def _calc_dsm_cap(region, hh_share=True):
+        """calculate max dsm potential for each municipality
+        Parameters
+        ----------
+        region : :class:`~.model.Region`
+            Region object
+        hh_share : bool, int
+            share of dsm penetration, if True: scenario share is used
+        Return
+        ---------
+        df_dsm_cap : pd.DataFrame
+            max demand increase and decrease potential
+        """
+        if 0 < hh_share < 1:
+            pass
+        elif hh_share:
+            hh_share = region.cfg['scn_data']['flexopt']['dsm']['params']['hh_share']
+        else:
+            hh_share = 1
 
+        dsm_cap_up = {ags:calc_dsm_cap_up(region.dsm_ts, ags,
+                         mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in region.muns.index}
+        df_dsm_cap_up = pd.DataFrame(dsm_cap_up).loc[region.cfg['date_from']:region.cfg['date_to']]
+        df_dsm_cap_up = df_dsm_cap_up * hh_share
+
+        dsm_cap_down = {ags:calc_dsm_cap_down(region.dsm_ts, ags,
+                         mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in region.muns.index}
+        df_dsm_cap_down = pd.DataFrame(dsm_cap_down).loc[region.cfg['date_from']:region.cfg['date_to']]
+        df_dsm_cap_down = df_dsm_cap_down * hh_share
+
+        df_dsm_cap = pd.concat([df_dsm_cap_up.sum().rename('Demand increase'),
+                     df_dsm_cap_down.sum().rename('Demand decrease')], axis=1)
+
+        return df_dsm_cap
 
     idx = pd.IndexSlice
 
@@ -1601,9 +1635,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     # Merge costs data of several heat technologies
     for k in list(costs_heat_generation_tmp.keys()):
-        results[k + " th."] = pd.concat([c[k] for c in [costs_heat_generation_tmp,
-                                                        costs_heat_storages_tmp,
-                                                        costs_heat_dist_heating] if k in c], axis=1).fillna(0)
+        results[k + " th."] = pd.concat([c[k] for c in [costs_heat_generation_tmp,costs_heat_storages_tmp,costs_heat_dist_heating] if k in c], axis=1).fillna(0)
     results["Total costs heat supply"] = results["Fix costs th."].\
         add(results["Variable costs th."], fill_value=0).\
         add(results["CO2 certificate cost th."], fill_value=0)
@@ -1620,8 +1652,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Heat Storage Figures"] = _calculate_heat_storage_figures(parameters, results['Wärmespeicher nach Gemeinde'])
     results["Heat Storage Ratios"] = _calculate_storage_ratios(results["Heat Storage Figures"], region)
 
-
-
+    results["DSM Capacities"] = _calc_dsm_cap(region, hh_share=True)
+    results["DSM Utilization Rate"] = (extracted_results['DSM activation'].sum(level='ags') / results["DSM Capacities"].values).fillna(0) *1e2
 
     return results
 
