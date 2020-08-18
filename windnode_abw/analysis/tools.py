@@ -86,8 +86,7 @@ GEN_EL_NAMES = {
     'wind': {
         "params": "wind"},
     "bio": {
-        "params": "bio",
-        "params_comm": "comm_biogas"},
+        "params": "bio"},  # plant emissions only, no commodity emissions!
     'import': {
         "params": None,
         "params_comm": "elenergy"}
@@ -1241,6 +1240,90 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
         return costs
 
+    def _get_timesteps(region):
+        timestamps = pd.date_range(start=region._cfg['date_from'],
+                                   end=region._cfg['date_to'],
+                                   freq=region._cfg['freq'])
+        steps = len(timestamps)
+        return steps
+
+    def _calculate_battery_storage_figures(parameters, battery_storages_muns):
+        """"""
+        stor_cap_small = parameters['Installierte Kapazität Großbatterien']
+        stor_cap_large = parameters['Installierte Kapazität PV-Batteriespeicher']
+
+        battery_storage_figures = pd.concat([stor_cap_small, stor_cap_large],
+            axis=1, keys=['large','small'])
+
+        storage = battery_storages_muns
+        storage = storage.unstack("level").swaplevel(axis=1)
+        storage.index = storage.index.astype(int)
+
+        battery_storage_figures = battery_storage_figures.join(
+            storage).sort_index(level=0, axis=1)
+        battery_storage_figures = battery_storage_figures.swaplevel(axis=1)
+
+        return battery_storage_figures
+
+    def _calculate_heat_storage_figures(parameters, heat_storages_muns):
+        """"""
+        capacity = parameters['Installed capacity heat storage']
+        capacity = capacity.rename(columns={'stor_th_large': 'cen',
+            'stor_th_small': 'dec'})
+        capacity.index = capacity.index.astype(int)
+
+        power_discharge = parameters['Discharge power heat storage']
+        power_discharge = power_discharge.rename(columns={'stor_th_large':'cen', 'stor_th_small':'dec'})
+
+        discharge = heat_storages_muns
+        discharge = discharge.discharge.unstack().fillna(0).T
+        discharge.index = discharge.index.astype(int)
+
+        # combine
+        heat_storage_figures = pd.concat([capacity, power_discharge, discharge],
+                                         axis=1, keys=['capacity', 'power_discharge', 'discharge'])
+
+        return heat_storage_figures
+
+    def _calculate_storage_ratios(storage_figures, region):
+        """calculate storage ratios for heat or electricity
+        Parameters
+        ----------
+        storage_figures : pd.DataFrame
+            DF including: discharge, capacity, power_discharge
+
+        Return
+        ---------
+        storage_ratios : pd.DataFrame
+            'Full Load Hours', 'Total Cycles', 'Storage Usage Rate'
+        """
+        # full load hours
+        full_load_hours = storage_figures.discharge / storage_figures.power_discharge
+        full_load_hours = full_load_hours.fillna(0)
+
+        # total
+        total_cycle = storage_figures.discharge / storage_figures.capacity
+        total_cycle = total_cycle.fillna(0)
+
+        # max
+        steps = _get_timesteps(region)
+        c_rate = storage_figures.power_discharge / storage_figures.capacity
+        c_rate[c_rate > 1] = 1
+        max_cycle = 1/2 * steps * c_rate
+        max_cycle = max_cycle.fillna(0)
+
+        # relative
+        storage_usage_rate = total_cycle / max_cycle * 100
+        storage_usage_rate = storage_usage_rate.fillna(0)
+
+        # combine
+        storage_ratios = pd.concat([full_load_hours, total_cycle, storage_usage_rate],
+                                   axis=1, keys=['Full Discharge Hours', 'Total Cycles', 'Utilization Rate'])
+        storage_ratios = storage_ratios.swaplevel(axis=1)
+
+        return storage_ratios
+
+
 
     idx = pd.IndexSlice
 
@@ -1533,6 +1616,14 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     ) * 100
     results["Autark hours"] = extracted_results["Autark hours"].mean(level="ags") * 100
 
+    results["Battery Storage Figures"] = _calculate_battery_storage_figures(parameters, results['Batteriespeicher nach Gemeinde'])
+    results["Battery Storage Ratios"] = _calculate_storage_ratios(results["Battery Storage Figures"], region)
+    results["Heat Storage Figures"] = _calculate_heat_storage_figures(parameters, results['Wärmespeicher nach Gemeinde'])
+    results["Heat Storage Ratios"] = _calculate_storage_ratios(results["Heat Storage Figures"], region)
+
+
+
+
     return results
 
 
@@ -1790,12 +1881,12 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
 
     errors = None
     for scen in scenarios:
-        errors = pool.apply_async(create_scenario_notebook,
-                                  args=(scen, run_id, template,),
-                                  kwds={"output_path": output_path,
-                                        "kernel_name": kernel_name,
-                                        "force_new_results": force_new_results}
-                                  ).get()
+        pool.apply_async(create_scenario_notebook,
+                         args=(scen, run_id, template,),
+                         kwds={"output_path": output_path,
+                               "kernel_name": kernel_name,
+                               "force_new_results": force_new_results}
+                         )
     pool.close()
     pool.join()
 
