@@ -1812,9 +1812,12 @@ def create_comparative_notebook(scenarios, run_id,
                                 kernel_name=None,
                                 force_new_results=False,
                                 export_figures=False,
-                                figures_output_path=os.path.join(wn_path[0], 'jupy'),
-                                figures_file_type='svg'):
+                                figures_output_path=None,
+                                figures_file_ext='svg'):
     """Create comparative jupyter notebook with all scenarios"""
+
+    if figures_output_path is None:
+        figures_output_path = output_path
 
     if isinstance(scenarios, str):
         scenarios = [scenarios]
@@ -1859,7 +1862,7 @@ def create_comparative_notebook(scenarios, run_id,
                                 "force_new_results": force_new_results,
                                 "export_figures": export_figures,
                                 "figures_output_path": figures_output_path,
-                                "figures_file_type": figures_file_type
+                                "figures_file_ext": figures_file_ext
                             },
                             request_save_on_cell_execute=True,
                             kernel_name=kernel_name)
