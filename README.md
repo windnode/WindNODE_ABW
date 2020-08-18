@@ -40,13 +40,13 @@ Afterwards you can access the database via
 
 ### Import scenario data
 
-Scenario data is contained in the database dump [windnode_db_200727.backup](https://next.rl-institut.de/s/WDAEdwoRZay5nsT).
+Scenario data is contained in the database dump [windnode_db_200817.backup](https://next.rl-institut.de/s/RS4jxzPgx6n3JFZ).
 Do the following steps to import the scenario data to your database
 
 1. Download the above scenario data file
 2. Import tables, data, and constraints by 
    ```
-   pg_restore -U windnode -d windnode_abw -h localhost -p 54321 -W --no-owner --no-privileges --no-tablespace -1  </path/to/windnode_db_200727.backup>
+   pg_restore -U windnode -d windnode_abw -h localhost -p 54321 -W --no-owner --no-privileges --no-tablespace -1  </path/to/windnode_db_200817.backup>
    ```
    To overwrite existing tables, you may use the `--clean` argument.
 
