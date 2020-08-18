@@ -849,10 +849,11 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
                                   ('LCOE', 'EUR/MWh'),
                                   ('LCOH', 'EUR/MWh'),
                                   ('CO2 emissions el.', 'tCO2'),
-                                  ('CO2 emissions th.', 'tCO2')],
+                                  ('CO2 emissions th.', 'tCO2'),
+                                  ('Electricity generation', 'MWh')],
             'results_axlxt': [],
             'col_order': ['Scenario', 'Total Costs [bnEUR]', 'LCOE [EUR/MWh]',
-                          'LCOH [EUR/MWh]', 'Emissions [MtCO2]'],
+                          'LCOH [EUR/MWh]', 'Specific Emissions [g/kWh'],
             'title': 'Costs and Emissions'
             },
         2: {'highlevel_results': [('Area required rel. Wind legal SQ (VR/EG)', '%'),
@@ -891,10 +892,13 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
                                               data_hl['Total costs heat supply [EUR]']) / 1e9
             data_hl['Emissions [MtCO2]'] = (data_hl['CO2 emissions el. [tCO2]'] +
                                             data_hl['CO2 emissions th. [tCO2]']) / 1e6
+            data_hl['Specific Emissions [g/kWh'] = data_hl['Emissions [MtCO2]'] / data_hl['Electricity generation [MWh]'] * 1e6
+
             data_hl.drop(columns=['Total costs electricity supply [EUR]',
                                   'Total costs heat supply [EUR]',
                                   'CO2 emissions el. [tCO2]',
-                                  'CO2 emissions th. [tCO2]'],
+                                  'CO2 emissions th. [tCO2]',
+                                  'Emissions [MtCO2]'],
                          inplace=True)
         elif no == 2:
             data_hl['Electricity exports [TWh]'] = data_hl['Electricity exports [MWh]'] / 1e6
