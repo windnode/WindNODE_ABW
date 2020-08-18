@@ -1634,9 +1634,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     # Merge costs data of several heat technologies
     for k in list(costs_heat_generation_tmp.keys()):
-        results[k + " th."] = pd.concat([c[k] for c in [costs_heat_generation_tmp,
-                                                        costs_heat_storages_tmp,
-                                                        costs_heat_dist_heating] if k in c], axis=1).fillna(0)
+        results[k + " th."] = pd.concat([c[k] for c in [costs_heat_generation_tmp,costs_heat_storages_tmp,costs_heat_dist_heating] if k in c], axis=1).fillna(0)
     results["Total costs heat supply"] = results["Fix costs th."].\
         add(results["Variable costs th."], fill_value=0).\
         add(results["CO2 certificate cost th."], fill_value=0)
@@ -1652,6 +1650,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Battery Storage Ratios"] = _calculate_storage_ratios(results["Battery Storage Figures"], region)
     results["Heat Storage Figures"] = _calculate_heat_storage_figures(parameters, results['Wärmespeicher nach Gemeinde'])
     results["Heat Storage Ratios"] = _calculate_storage_ratios(results["Heat Storage Figures"], region)
+
+
 
 
 
