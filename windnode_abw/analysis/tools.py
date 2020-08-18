@@ -1652,10 +1652,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Heat Storage Figures"] = _calculate_heat_storage_figures(parameters, results['Wärmespeicher nach Gemeinde'])
     results["Heat Storage Ratios"] = _calculate_storage_ratios(results["Heat Storage Figures"], region)
 
-
-
-
-
+    results["DSM Capacities"] = _calc_dsm_cap(region, hh_share=True)
+    results["DSM Utilization Rate"] = extracted_results['DSM activation'].sum(level='ags') / results["DSM Capacities"].values *1e2
 
     return results
 
