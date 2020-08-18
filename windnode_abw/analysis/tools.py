@@ -1246,16 +1246,39 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         stor_cap_small = parameters['Installierte Kapazität Großbatterien']
         stor_cap_large = parameters['Installierte Kapazität PV-Batteriespeicher']
 
-        battery_storage_figures = pd.concat([stor_cap_small, stor_cap_large], axis=1, keys=['large','small'])
+        battery_storage_figures = pd.concat([stor_cap_small, stor_cap_large],
+            axis=1, keys=['large','small'])
 
         storage =  battery_storages_muns
         storage = storage.unstack("level").swaplevel(axis=1)
         storage.index = storage.index.astype(int)
 
-        battery_storage_figures = battery_storage_figures.join(storage).sort_index(level=0, axis=1)
+        battery_storage_figures = battery_storage_figures.join(
+            storage).sort_index(level=0, axis=1)
         battery_storage_figures = battery_storage_figures.swaplevel(axis=1)
 
         return battery_storage_figures
+
+    def _calculate_heat_storage_figures(parameters, heat_storages_muns):
+        """"""
+        capacity = parameters['Installed capacity heat storage']
+        capacity = capacity.rename(columns={'stor_th_large':'cen',
+            'stor_th_small':'dec'})
+        capacity.index = capacity.index.astype(int)
+
+        power_discharge = parameters['Discharge power heat storage']
+        power_discharge = power_discharge.rename(columns={'stor_th_large':'cen',
+            'stor_th_small':'dec'})
+
+        discharge = heat_storages_muns
+        discharge = discharge.discharge.unstack().fillna(0).T
+        discharge.index = discharge.index.astype(int)
+
+        # combine
+        heat_storage_figures = pd.concat([capacity, power_discharge, discharge],
+            axis=1, keys=['capacity','power_discharge', 'discharge'])
+
+        return heat_storage_figures
 
 
     def _calculate_storage_ratios(storage_figures, region):
