@@ -4,6 +4,7 @@ import papermill as pm
 import os
 from windnode_abw import __path__ as wn_path
 from windnode_abw.tools import config
+from windnode_abw.model.region.tools import calc_dsm_cap_up, calc_dsm_cap_down
 import multiprocessing as mp
 
 
