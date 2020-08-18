@@ -1240,6 +1240,12 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
         return costs
 
+    def _get_timesteps(region):
+        timestamps = pd.date_range(start=region._cfg['date_from'],
+                                   end=region._cfg['date_to'],
+                                   freq=region._cfg['freq'])
+        steps = len(timestamps)
+        return steps
 
     def _calculate_battery_storage_figures(parameters, battery_storages_muns):
         """"""
