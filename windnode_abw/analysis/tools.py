@@ -1333,10 +1333,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
             share of dsm penetration, if True: scenario share is used
         Return
         ---------
-        df_dsm_cap_up : pd.DataFrame
-            max demand increase potential
-        df_dsm_cap_down : pd.DataFrame
-            max demand decrease potential
+        df_dsm_cap : pd.DataFrame
+            max demand increase and decrease potential
         """
         if 0 < hh_share < 1:
             pass
@@ -1355,7 +1353,10 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         df_dsm_cap_down = pd.DataFrame(dsm_cap_down).loc[region.cfg['date_from']:region.cfg['date_to']]
         df_dsm_cap_down = df_dsm_cap_down * hh_share
 
-        return df_dsm_cap_up, df_dsm_cap_down
+        df_dsm_cap = pd.concat([df_dsm_cap_up.sum().rename('Demand increase'),
+                     df_dsm_cap_down.sum().rename('Demand decrease')], axis=1)
+
+        return df_dsm_cap
 
     idx = pd.IndexSlice
 
