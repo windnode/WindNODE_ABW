@@ -1237,14 +1237,14 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
             costs_commodity = (generation * params["opex_var_comm"] / params["sys_eff"]).fillna(0)
             costs["Variable costs"] = costs["Variable costs"] + costs_commodity
 
-
         return costs
 
     def _get_timesteps(region):
-        timestamps = pd.date_range(start=region._cfg['date_from'],
-                                   end=region._cfg['date_to'],
-                                   freq=region._cfg['freq'])
+        timestamps = pd.date_range(start=region.cfg['date_from'],
+                                   end=region.cfg['date_to'],
+                                   freq=region.cfg['freq'])
         steps = len(timestamps)
+
         return steps
 
     def _calculate_battery_storage_figures(parameters, battery_storages_muns):
@@ -1252,8 +1252,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         stor_cap_small = parameters['Installierte Kapazität Großbatterien']
         stor_cap_large = parameters['Installierte Kapazität PV-Batteriespeicher']
 
-        battery_storage_figures = pd.concat([stor_cap_small, stor_cap_large],
-            axis=1, keys=['large','small'])
+        battery_storage_figures = pd.concat([stor_cap_small, stor_cap_large], axis=1, keys=['large', 'small'])
 
         storage = battery_storages_muns
         storage = storage.unstack("level").swaplevel(axis=1)
