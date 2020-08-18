@@ -1240,6 +1240,24 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
         return costs
 
+    def _calculate_battery_storage_figures(parameters, battery_storages_muns):
+        """"""
+        stor_cap_small = parameters['Installierte Kapazität Großbatterien']
+        stor_cap_large = parameters['Installierte Kapazität PV-Batteriespeicher']
+
+        battery_storage_figures = pd.concat([stor_cap_small, stor_cap_large], axis=1, keys=['large','small'])
+
+        storage =  battery_storages_muns
+        storage = storage.unstack("level").swaplevel(axis=1)
+        storage.index = storage.index.astype(int)
+
+        battery_storage_figures = battery_storage_figures.join(storage).sort_index(level=0, axis=1)
+        battery_storage_figures = battery_storage_figures.swaplevel(axis=1)
+
+        return battery_storage_figures
+
+
+
 
     idx = pd.IndexSlice
 
