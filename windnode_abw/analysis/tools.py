@@ -1240,6 +1240,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
         return costs
 
+
     def _calculate_battery_storage_figures(parameters, battery_storages_muns):
         """"""
         stor_cap_small = parameters['Installierte Kapazität Großbatterien']
@@ -1256,6 +1257,46 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
         return battery_storage_figures
 
+
+    def _calculate_storage_ratios(storage_figures, region):
+        """calculate storage ratios for heat or electricity
+        Parameters
+        ----------
+        storage_figures : pd.DataFrame
+            DF including: discharge, capacity, power_discharge
+
+        Return
+        ---------
+        storage_ratios : pd.DataFrame
+            'Full Load Hours', 'Total Cycles', 'Storage Usage Rate'
+        """
+        # full load hours
+        full_load_hours = storage_figures.discharge / storage_figures.power_discharge
+        full_load_hours = full_load_hours.fillna(0)
+
+        # total
+        total_cycle = storage_figures.discharge / storage_figures.capacity
+        total_cycle = total_cycle.fillna(0)
+
+        # max
+        steps = get_timesteps(region)
+        c_rate = storage_figures.power_discharge / storage_figures.capacity
+        c_rate[c_rate > 1] = 1
+        max_cycle = 1/2 * steps * c_rate
+        max_cycle = max_cycle.fillna(0)
+
+        # relative
+        storage_usage_rate  = total_cycle / max_cycle * 100
+        storage_usage_rate = storage_usage_rate.fillna(0)
+
+        # combine
+        storage_ratios = pd.concat([full_load_hours,
+                                    total_cycle,
+                                    storage_usage_rate], axis=1,
+                                         keys=['Full Discharge Hours', 'Total Cycles', 'Utilization Rate'])
+        storage_ratios = storage_ratios.swaplevel(axis=1)
+        
+        return storage_ratios
 
 
 
