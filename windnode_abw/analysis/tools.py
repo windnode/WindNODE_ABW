@@ -1640,18 +1640,19 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         add(results["Variable costs th."], fill_value=0).\
         add(results["CO2 certificate cost th."], fill_value=0)
 
-    # Add Autarky
+    # Autarky
     results["Autarky"] = results['Stromerzeugung nach Gemeinde'].drop(columns='import').sum(axis=1).div(
         results['Stromnachfrage nach Gemeinde'].drop(columns='export').sum(axis=1) +
         results['Stromnachfrage Wärme nach Gemeinde'].sum(axis=1)
     ) * 100
     results["Autark hours"] = extracted_results["Autark hours"].mean(level="ags") * 100
-
+    # Battery Storage Figures/Ratios 
     results["Battery Storage Figures"] = _calculate_battery_storage_figures(parameters, results['Batteriespeicher nach Gemeinde'])
     results["Battery Storage Ratios"] = _calculate_storage_ratios(results["Battery Storage Figures"], region)
     results["Heat Storage Figures"] = _calculate_heat_storage_figures(parameters, results['Wärmespeicher nach Gemeinde'])
     results["Heat Storage Ratios"] = _calculate_storage_ratios(results["Heat Storage Figures"], region)
 
+    # DSM Figures
     results["DSM Capacities"] = _calc_dsm_cap(region, hh_share=True)
     results["DSM Utilization Rate"] = (extracted_results['DSM activation'].sum(level='ags') / results["DSM Capacities"].values).fillna(0) *1e2
 
