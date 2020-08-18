@@ -1616,6 +1616,9 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     results["Battery Storage Figures"] = _calculate_battery_storage_figures(parameters, results['Batteriespeicher nach Gemeinde'])
     results["Battery Storage Ratios"] = _calculate_storage_ratios(results["Battery Storage Figures"], region)
+    results["Heat Storage Figures"] = _calculate_heat_storage_figures(parameters, results['Wärmespeicher nach Gemeinde'])
+    results["Heat Storage Ratios"] = _calculate_storage_ratios(results["Heat Storage Figures"], region)
+
 
 
 
