@@ -1905,8 +1905,8 @@ def create_scenario_notebook(scenario, run_id,
                              force_new_results=False):
 
     # define data and paths
-    input_template = os.path.join(os.getcwd(), 'jupy', 'templates', template)
-    logger.info(input_template)
+    input_template = os.path.join('/home/local/RL-INSTITUT/jonathan.amme/git-repos/WindNODE_ABW_2/windnode_abw/jupy/templates/', template)
+
     output_name = "scenario_analysis_{scenario}.ipynb".format(scenario=scenario)
     output_notebook = os.path.join(output_path, output_name)
 
@@ -2022,7 +2022,6 @@ def create_comparative_notebook(scenarios, run_id,
         scenarios = avail_scenarios
 
     logger.info(f'Creating comparative notebook for {len(scenarios)} scenarios in {output_path} ...')
-    logger.info(os.getcwd())
 
     # define data and paths
     input_template = os.path.join(wn_path[0], 'jupy', 'templates', template)
