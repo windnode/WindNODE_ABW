@@ -1265,6 +1265,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         battery_storage_figures = battery_storage_figures.join(
             storage).sort_index(level=0, axis=1)
         battery_storage_figures = battery_storage_figures.swaplevel(axis=1)
+        battery_storage_figures = battery_storage_figures.fillna(0)
 
         return battery_storage_figures
 
@@ -1285,7 +1286,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         # combine
         heat_storage_figures = pd.concat([capacity, power_discharge, discharge],
                                          axis=1, keys=['capacity', 'power_discharge', 'discharge'])
-
+        heat_storage_figures = heat_storage_figures.fillna(0)
+        
         return heat_storage_figures
 
     def _calculate_storage_ratios(storage_figures, region):
@@ -1874,7 +1876,11 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Total costs heat supply"] = results_t["Total costs heat supply"].sum()
     highlevel["LCOE"] = results_t["LCOE"].sum()
     highlevel["LCOH"] = results_t["LCOH"].sum()
-    highlevel['Battery Storage Usage Rate'] = _calculate_storage_ratios_total(results_tables['Battery Storage Figures'], region)['Utilization Rate']
+    # if Battery Storages consist of empty Dataframe -> 0
+    if results_tables['Battery Storage Ratios'].all(axis=0).sum() == 0:
+        highlevel['Battery Storage Usage Rate'] = 0
+    else:
+        highlevel['Battery Storage Usage Rate'] = _calculate_storage_ratios_total(results_tables['Battery Storage Figures'], region)['Utilization Rate']
     highlevel['Heat Storage Usage Rate'] = _calculate_storage_ratios_total(results_tables['Heat Storage Figures'], region)['Utilization Rate']
 
     # add multiindex including units to output
