@@ -1262,6 +1262,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         battery_storage_figures = battery_storage_figures.join(
             storage).sort_index(level=0, axis=1)
         battery_storage_figures = battery_storage_figures.swaplevel(axis=1)
+        battery_storage_figures = battery_storage_figures.fillna(0)
 
         return battery_storage_figures
 
@@ -1282,6 +1283,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         # combine
         heat_storage_figures = pd.concat([capacity, power_discharge, discharge],
                                          axis=1, keys=['capacity', 'power_discharge', 'discharge'])
+        heat_storage_figures = heat_storage_figures.fillna(0)
 
         return heat_storage_figures
 
