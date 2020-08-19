@@ -1,5 +1,5 @@
 import pandas as pd
-from numpy import inf
+from numpy import inf, nan
 import papermill as pm
 import os
 from windnode_abw import __path__ as wn_path
@@ -176,6 +176,8 @@ UNITS = {
     "LCOH": "EUR/MWh",
     "Autarky": "%",
     "Autark hours": "%",
+    "Heat Storage Usage Rate": "%",
+    "Battery Storage Usage Rate": "%"
     }
 
 
@@ -1242,9 +1244,9 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         return costs
 
     def _get_timesteps(region):
-        timestamps = pd.date_range(start=region._cfg['date_from'],
-                                   end=region._cfg['date_to'],
-                                   freq=region._cfg['freq'])
+        timestamps = pd.date_range(start=region.cfg['date_from'],
+                                   end=region.cfg['date_to'],
+                                   freq=region.cfg['freq'])
         steps = len(timestamps)
         return steps
 
@@ -1263,6 +1265,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         battery_storage_figures = battery_storage_figures.join(
             storage).sort_index(level=0, axis=1)
         battery_storage_figures = battery_storage_figures.swaplevel(axis=1)
+        battery_storage_figures = battery_storage_figures.fillna(0)
 
         return battery_storage_figures
 
@@ -1283,7 +1286,8 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         # combine
         heat_storage_figures = pd.concat([capacity, power_discharge, discharge],
                                          axis=1, keys=['capacity', 'power_discharge', 'discharge'])
-
+        heat_storage_figures = heat_storage_figures.fillna(0)
+        
         return heat_storage_figures
 
     def _calculate_storage_ratios(storage_figures, region):
@@ -1654,7 +1658,11 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Heat Storage Ratios"] = _calculate_storage_ratios(results["Heat Storage Figures"], region)
 
     results["DSM Capacities"] = _calc_dsm_cap(region, hh_share=True)
-    results["DSM Utilization Rate"] = (extracted_results['DSM activation'].sum(level='ags') / results["DSM Capacities"].values).fillna(0) *1e2
+    # if no DSM Capacities installed utilization rate is 0 as well
+    if results["DSM Capacities"].all().sum() == 0:
+        results["DSM Utilization Rate"] = results["DSM Capacities"]
+    else:
+        results["DSM Utilization Rate"] = (extracted_results['DSM activation'].sum(level='ags') / results["DSM Capacities"].values).fillna(0) *1e2
 
     return results
 
@@ -1694,6 +1702,50 @@ def results_tech(results_axlxt):
 
 def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     """Aggregate results to scalar values for each scenario"""
+    def _get_timesteps(region):
+        timestamps = pd.date_range(start=region.cfg['date_from'],
+                                   end=region.cfg['date_to'],
+                                   freq=region.cfg['freq'])
+        steps = len(timestamps)
+        return steps
+
+    def _calculate_storage_ratios_total(storage_figures, region):
+        """calculate storage ratios for heat or electricity
+        Parameters
+        ----------
+        storage_figures : pd.DataFrame
+            DF including: discharge, capacity, power_discharge
+
+        Return
+        ---------
+        storage_ratios : pd.DataFrame
+            'Full Load Hours', 'Total Cycles', 'Storage Usage Rate'
+        """
+
+        # full load hours
+        full_load_hours = storage_figures.discharge.sum().sum() / storage_figures.power_discharge.sum().sum()
+        full_load_hours = 0 if full_load_hours == nan else full_load_hours
+
+        # total
+        total_cycle = storage_figures.discharge.sum().sum() / storage_figures.capacity.sum().sum()
+        total_cycle = 0 if total_cycle == nan else total_cycle
+
+        # max
+        steps = _get_timesteps(region)
+        c_rate = storage_figures.power_discharge.sum().sum() / storage_figures.capacity.sum().sum()
+        c_crate = 1 if c_rate > 1 else c_rate
+        #[c_rate > 1] = 1 # Issue #127
+        max_cycle = 1/2 * steps * c_rate
+        max_cycle = 0 if max_cycle == nan else max_cycle
+
+        # relative
+        storage_usage_rate = total_cycle / max_cycle * 100
+        storage_usage_rate = 0 if storage_usage_rate == nan else storage_usage_rate
+
+        # combine
+        storage_ratios = pd.Series({'Full Discharge Hours':full_load_hours, 'Total Cycles':total_cycle, 'Utilization Rate':storage_usage_rate})
+
+        return storage_ratios
 
     idx = pd.IndexSlice
     highlevel = {}
@@ -1828,6 +1880,12 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Total costs heat supply"] = results_t["Total costs heat supply"].sum()
     highlevel["LCOE"] = results_t["LCOE"].sum()
     highlevel["LCOH"] = results_t["LCOH"].sum()
+    # if Battery Storages consist of empty Dataframe -> 0
+    if results_tables['Battery Storage Figures']['capacity'].all().sum() == 0:
+        highlevel['Battery Storage Usage Rate'] = 0
+    else:
+        highlevel['Battery Storage Usage Rate'] = _calculate_storage_ratios_total(results_tables['Battery Storage Figures'], region)['Utilization Rate']
+    highlevel['Heat Storage Usage Rate'] = _calculate_storage_ratios_total(results_tables['Heat Storage Figures'], region)['Utilization Rate']
 
     # add multiindex including units to output
     mindex = [highlevel.keys(),
