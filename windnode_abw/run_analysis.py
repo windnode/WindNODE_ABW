@@ -19,12 +19,12 @@ if __name__ == "__main__":
     # select multiple scenarios manually or use 'ALL' to analyze all
     # scenarios found in directory
     #scenarios = ['future', 'sq']
-    #scenarios = ['ALL']
-    scenarios = ['NEP']
+    scenarios = ['ALL']
+    #scenarios = ['NEP']
 
     regions_scns, results_scns = analysis(run_timestamp=run_timestamp,
                                           scenarios=scenarios,
-                                          force_new_results=True)
+                                          force_new_results=False)
 
     logger.info('===== All done! =====')
 
