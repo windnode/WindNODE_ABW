@@ -1240,7 +1240,6 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
             costs_commodity = (generation * params["opex_var_comm"] / params["sys_eff"]).fillna(0)
             costs["Variable costs"] = costs["Variable costs"] + costs_commodity
 
-
         return costs
 
     def _get_timesteps(region):
@@ -1248,6 +1247,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
                                    end=region.cfg['date_to'],
                                    freq=region.cfg['freq'])
         steps = len(timestamps)
+
         return steps
 
     def _calculate_battery_storage_figures(parameters, battery_storages_muns):
@@ -1255,8 +1255,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         stor_cap_small = parameters['Installierte Kapazität Großbatterien']
         stor_cap_large = parameters['Installierte Kapazität PV-Batteriespeicher']
 
-        battery_storage_figures = pd.concat([stor_cap_small, stor_cap_large],
-            axis=1, keys=['large','small'])
+        battery_storage_figures = pd.concat([stor_cap_small, stor_cap_large], axis=1, keys=['large', 'small'])
 
         storage = battery_storages_muns
         storage = storage.unstack("level").swaplevel(axis=1)
@@ -1287,7 +1286,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         heat_storage_figures = pd.concat([capacity, power_discharge, discharge],
                                          axis=1, keys=['capacity', 'power_discharge', 'discharge'])
         heat_storage_figures = heat_storage_figures.fillna(0)
-        
+
         return heat_storage_figures
 
     def _calculate_storage_ratios(storage_figures, region):
@@ -1313,7 +1312,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         # max
         steps = _get_timesteps(region)
         c_rate = storage_figures.power_discharge / storage_figures.capacity
-        c_rate[c_rate > 1] = 1
+        c_rate[c_rate > 1] = 1 # Issue #127
         max_cycle = 1/2 * steps * c_rate
         max_cycle = max_cycle.fillna(0)
 
@@ -1645,18 +1644,19 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         add(results["Variable costs th."], fill_value=0).\
         add(results["CO2 certificate cost th."], fill_value=0)
 
-    # Add Autarky
+    # Autarky
     results["Autarky"] = results['Stromerzeugung nach Gemeinde'].drop(columns='import').sum(axis=1).div(
         results['Stromnachfrage nach Gemeinde'].drop(columns='export').sum(axis=1) +
         results['Stromnachfrage Wärme nach Gemeinde'].sum(axis=1)
     ) * 100
     results["Autark hours"] = extracted_results["Autark hours"].mean(level="ags") * 100
-
+    # Battery Storage Figures/Ratios 
     results["Battery Storage Figures"] = _calculate_battery_storage_figures(parameters, results['Batteriespeicher nach Gemeinde'])
     results["Battery Storage Ratios"] = _calculate_storage_ratios(results["Battery Storage Figures"], region)
     results["Heat Storage Figures"] = _calculate_heat_storage_figures(parameters, results['Wärmespeicher nach Gemeinde'])
     results["Heat Storage Ratios"] = _calculate_storage_ratios(results["Heat Storage Figures"], region)
 
+    # DSM Figures
     results["DSM Capacities"] = _calc_dsm_cap(region, hh_share=True)
     # if no DSM Capacities installed utilization rate is 0 as well
     if results["DSM Capacities"].all().sum() == 0:
@@ -1772,7 +1772,7 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
             results_txaxt["Stromerzeugung"].drop(columns='import').sum(axis=1).sum(level="timestamp") >
             (results_txaxt['Stromnachfrage'].drop(columns='export').sum(axis=1).sum(level="timestamp") +
              results_txaxt['Stromnachfrage Wärme'].sum(axis=1).sum(level="timestamp"))
-    ).mean()
+    ).mean() # mean of boolean is intended
     for re in results_tables["Area required"].columns:
         highlevel["Area required " + re] = results_tables["Area required"][re].sum()
 
@@ -1948,7 +1948,8 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
                                     )
     avail_scenarios = [file.split('.')[0]
                        for file in os.listdir(os.path.join(result_base_path,
-                                                           run_id))]
+                                                           run_id))
+                       if not file.startswith('.')]
     # get list of available scenarios for comparison
     all_scenarios = [file.split('.')[0]
                      for file in os.listdir(os.path.join(wn_path[0],
@@ -1979,4 +1980,69 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
     pool.close()
     pool.join()
 
-    logger.info(f'Notebooks for {len(scenarios)} scenarios created.')
+    if errors is not None:
+        logger.warning(f'Errors occured during creation of notebooks.')
+    else:
+        logger.info(f'Notebooks for {len(scenarios)} scenarios created without errors.')
+
+
+def create_comparative_notebook(scenarios, run_id,
+                                template="scenario_analysis_comparative_template.ipynb",
+                                output_path=os.path.join(wn_path[0], 'jupy'),
+                                kernel_name=None,
+                                force_new_results=False):
+    """Create comparative jupyter notebook with all scenarios"""
+
+    if isinstance(scenarios, str):
+        scenarios = [scenarios]
+
+    # get list of available scenarios in run id folder
+    result_base_path = os.path.join(config.get_data_root_dir(),
+                                    config.get('user_dirs',
+                                               'results_dir')
+                                    )
+    avail_scenarios = [file.split('.')[0]
+                       for file in os.listdir(os.path.join(result_base_path,
+                                                           run_id))
+                       if not file.startswith('.')]
+    # get list of available scenarios for comparison
+    all_scenarios = [file.split('.')[0]
+                     for file in os.listdir(os.path.join(wn_path[0],
+                                                         'scenarios'))
+                     if file.endswith(".scn")]
+
+    if len(all_scenarios) > len(avail_scenarios):
+        logger.info(f'Available scenarios ({len(avail_scenarios)}) in run '
+                    f'{run_id} differ from the total number of scenarios '
+                    f'({len(all_scenarios)}).')
+
+    # create scenario list
+    if scenarios == ['all']:
+        scenarios = avail_scenarios
+
+    logger.info(f'Creating comparative notebook for {len(scenarios)} scenarios in {output_path} ...')
+
+    # define data and paths
+    input_template = os.path.join(wn_path[0], 'jupy', 'templates', template)
+    output_name = "scenario_analysis_comparative.ipynb"
+    output_notebook = os.path.join(output_path, output_name)
+
+    # execute notebook with specific parameters
+    try:
+        pm.execute_notebook(input_template, output_notebook,
+                            parameters={
+                                "scenarios": scenarios,
+                                "run_timestamp": run_id,
+                                "force_new_results": force_new_results
+                            },
+                            request_save_on_cell_execute=True,
+                            kernel_name=kernel_name)
+    except FileNotFoundError:
+        logger.error(f'Template or output path not found.')
+        raise FileNotFoundError
+    except Exception as ex:
+        logger.error(f'An exception of type {type(ex).__name__} occurred:')
+        logger.error(ex)
+        raise Exception
+    else:
+        logger.info(f'Comparative notebook successfully created!')

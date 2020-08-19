@@ -80,7 +80,19 @@ PRINT_NAMES = {
     "hh_efh" : "Single-family houses",
     "hh_mfh" : "Apartment buildings",
     "ABW-export": "Export (regional)",
-    "ABW-import": "Import (regional)"
+    "ABW-import": "Import (regional)",
+    "roof":"Area required rel. PV rooftop",
+    "H_0.1":"Area required rel. PV ground H 0.1-perc agri",
+    "H_1":"Area required rel. PV ground H 1-perc agri",
+    "H_2":"Area required rel. PV ground H 2-perc agri",
+    "HS_0.1":"Area required rel. PV ground HS 0.1-perc agri",
+    "HS_1":"Area required rel. PV ground HS 1-perc agri",
+    "HS_2":"Area required rel. PV ground HS 2-perc agri",
+    "SQ":"Area required rel. Wind legal SQ (VR/EG)",
+    "s1000f1":"Area required rel. Wind 1000m w forest 10-perc",
+    "s500f0":"Area required rel. Wind 500m wo forest 10-perc",
+    "s500f1":"Area required rel. Wind 500m w forest 10-perc",
+    "pv_roof":"PV Roof",
 }
 
 # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
@@ -464,7 +476,6 @@ def sample_plots(region, results):
     plt.show()
 
 
-
 # one geoplot to fit in subplots
 def plot_geoplot(name, data, region, ax, unit=None):
     """plot geoplot from pd.Series
@@ -507,7 +518,6 @@ def plot_geoplot(name, data, region, ax, unit=None):
     ax.set_yticklabels([])
     ax.set_xticklabels([])
     ax.grid(False)
-
 
 
 def plot_snd_total(region, df_supply, df_demand):
@@ -589,7 +599,6 @@ def plot_split_hbar(data, limit, ax, title=None, unit=None):
     ax2.set_ylabel(None)
     ax2.set_xlabel(unit)
     ax2.set_title(title,loc='left', fontsize=12)
-
 
 
 def plot_timeseries(results_scn, kind='el', **kwargs):
@@ -697,12 +706,14 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
         )
     fig.show()
 
+
 def get_timesteps(region):
     timestamps = pd.date_range(start=region._cfg['date_from'],
                                end=region._cfg['date_to'],
                                freq=region._cfg['freq'])
     steps = len(timestamps)
     return steps
+
 
 def get_storage_ratios(storage_figures, region):
     """calculate storage ratios for heat or electricity
@@ -830,6 +841,167 @@ def plot_storage_ratios(storage_ratios, region, title):
     fig.show()
 
 
+def plot_key_scenario_results(results_scns, scenarios, cmap_name):
+
+    return_data = {}
+
+    plots = {
+        1: {'highlevel_results': [('Total costs electricity supply', 'EUR'),
+                                  ('Total costs heat supply', 'EUR'),
+                                  ('LCOE', 'EUR/MWh'),
+                                  ('LCOH', 'EUR/MWh'),
+                                  ('CO2 emissions el.', 'tCO2'),
+                                  ('CO2 emissions th.', 'tCO2'),
+                                  ('Electricity generation', 'MWh')],
+            'results_axlxt': [],
+            'col_order': ['Scenario', 'Total Costs [bnEUR]', 'LCOE [EUR/MWh]',
+                          'LCOH [EUR/MWh]', 'Specific Emissions [g/kWh]'],
+            'title': 'Costs and Emissions'
+            },
+        2: {'highlevel_results': [('Area required rel. Wind legal SQ (VR/EG)', '%'),
+                                  ('Area required rel. PV ground H 0.1-perc agri', '%'),
+                                  ('Electricity exports', 'MWh')],
+            'results_axlxt': [('Intra-regional exchange', 'export', 'MWh')],
+            'col_order': ['Scenario', 'RES Area Wind (VR/EG) [%]',
+                          'RES Area PV ground [%]',
+                          'Intra-reg. Exchange [TWh]',
+                          'El. Exports [TWh]'],
+            'title': 'Land Use and Energy Balance'
+            },
+        3: {'highlevel_results': [('Autarky', '%'), ('Net DSM activation','MWh'), ('Battery Storage Usage Rate','%'), ('Heat Storage Usage Rate','%')],
+            'results_axlxt': [#('Batteriespeicher nach Gemeinde', 'discharge', 'MWh'),
+                              # ('Wärmespeicher nach Gemeinde', 'discharge', 'MWh'),
+                              ('DSM Capacities','Demand decrease','MWh')],
+            'col_order': ['Scenario', 'Autarky [%]', 'El. Storage Use [%]',
+            #'El. Storage Use [GWh]','Heat Storage Use [GWh]'
+                          'Heat Storage Use [%]', 'DSM Utilization Rate [%]'],
+            'title': 'Flexibility Commitment'
+            }
+    }
+
+
+
+    for no, params in plots.items():
+
+        #####################################
+        # get and process highlevel_results #
+        #####################################
+        data_hl = pd.DataFrame(
+            ({f'{name} [{unit}]': results_scns[scn]['highlevel_results'][(name, unit)]
+              for name, unit in params['highlevel_results']}
+             for scn in scenarios),
+            index=scenarios
+        )
+
+        if no == 1:
+            data_hl['Total Costs [bnEUR]'] = (data_hl['Total costs electricity supply [EUR]'] +
+                                              data_hl['Total costs heat supply [EUR]']) / 1e9
+            data_hl['Emissions [MtCO2]'] = (data_hl['CO2 emissions el. [tCO2]'] +
+                                            data_hl['CO2 emissions th. [tCO2]']) / 1e6
+            data_hl['Specific Emissions [g/kWh]'] = data_hl['Emissions [MtCO2]'] / data_hl['Electricity generation [MWh]'] * 1e9
+
+            data_hl.drop(columns=['Total costs electricity supply [EUR]',
+                                  'Total costs heat supply [EUR]',
+                                  'CO2 emissions el. [tCO2]',
+                                  'CO2 emissions th. [tCO2]',
+                                  'Emissions [MtCO2]'],
+                         inplace=True)
+        elif no == 2:
+            data_hl['Electricity exports [TWh]'] = data_hl['Electricity exports [MWh]'] / 1e6
+            data_hl.drop(columns=['Electricity exports [MWh]'], inplace=True)
+
+            col_mapping = {
+                'Area required rel. Wind legal SQ (VR/EG) [%]': 'RES Area Wind (VR/EG) [%]',
+                'Area required rel. PV ground H 0.1-perc agri [%]': 'RES Area PV ground [%]',
+                'Electricity exports [TWh]': 'El. Exports [TWh]'
+            }
+            data_hl.rename(columns=col_mapping, inplace=True)
+        elif no == 3:
+            col_mapping = {"Battery Storage Usage Rate [%]":"El. Storage Use [%]", "Heat Storage Usage Rate [%]":"Heat Storage Use [%]"}
+            data_hl.rename(columns=col_mapping, inplace=True)
+
+        #################################
+        # get and process results_axlxt #
+        #################################
+        data_axlxt = pd.DataFrame(
+            ({f'{name} [{unit}]': results_scns[scn]['results_axlxt'][name][col].sum(axis=0)
+              for name, col, unit in params['results_axlxt']}
+             for scn in scenarios),
+            index=scenarios
+        )
+        if no == 1:
+            data = data_hl
+        if no == 2:
+            data_axlxt['Intra-regional exchange [TWh]'] = data_axlxt['Intra-regional exchange [MWh]'] / 1e6
+            data_axlxt.drop(columns=['Intra-regional exchange [MWh]'], inplace=True)
+
+            col_mapping = {
+                'Intra-regional exchange [TWh]': 'Intra-reg. Exchange [TWh]'
+            }
+            data_axlxt.rename(columns=col_mapping, inplace=True)
+            data = pd.concat([data_hl, data_axlxt], axis=1)
+        if no == 3:
+            # data_axlxt['Batteriespeicher nach Gemeinde [GWh]'] = data_axlxt['Batteriespeicher nach Gemeinde [MWh]'] / 1e3
+            # data_axlxt['Wärmespeicher nach Gemeinde [GWh]'] = data_axlxt['Wärmespeicher nach Gemeinde [MWh]'] / 1e3
+            data_axlxt['DSM Utilization Rate [%]'] = data_hl['Net DSM activation [MWh]'] / data_axlxt['DSM Capacities [MWh]'] * 1e2
+            data_axlxt['DSM Utilization Rate [%]'] = data_axlxt['DSM Utilization Rate [%]'].fillna(0)
+            data_axlxt.drop(columns=[#'Batteriespeicher nach Gemeinde [MWh]',
+                                     # 'Wärmespeicher nach Gemeinde [MWh]',
+                                     'DSM Capacities [MWh]'], inplace=True)
+            data_hl.drop(columns=['Net DSM activation [MWh]'], inplace=True)
+            # col_mapping = {
+            #     'Batteriespeicher nach Gemeinde [GWh]': 'El. Storage Use [GWh]',
+            #     'Wärmespeicher nach Gemeinde [GWh]': 'Heat Storage Use [GWh]',
+            # }
+            # data_axlxt.rename(columns=col_mapping, inplace=True)
+            data = pd.concat([data_hl, data_axlxt], axis=1)
+
+        # sort all plots by total costs
+        if no == 1:
+            #data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
+            data.sort_values(by='Total Costs [bnEUR]', inplace=True)
+            sort_order = data.index
+        else:
+            data = data.reindex(sort_order)
+
+        data = data.reset_index().rename(columns={'index': 'Scenario'})
+
+        # reorder columns
+        data = data[params['col_order']]
+
+        g = sns.PairGrid(data,
+                         x_vars=data.columns[1:], y_vars=['Scenario'],
+                         height=10, aspect=.25)
+
+        plt.subplots_adjust(top=0.9)
+        #plt.suptitle(f'Key Results {no}/{len(plots.keys())}: {params["title"]}',
+        plt.suptitle(f'Key Results {no}/{len(plots.keys())}',
+                     size=20,
+                     horizontalalignment='left')
+
+        # Draw a dot plot using the stripplot function
+        g.map(sns.stripplot, size=10, orient="h",
+              palette=sns.color_palette(cmap_name, len(scenarios)),
+              linewidth=1, edgecolor="w")
+
+        # Set 2nd title for columns (top)
+        titles = list(data.columns[1:])
+
+        for ax, title in zip(g.axes.flat, titles):
+            # Set a different title for each axes
+            ax.set(title=title)
+
+            # Make the grid horizontal instead of vertical
+            ax.xaxis.grid(False)
+            ax.yaxis.grid(True)
+
+        sns.despine(left=True, bottom=True)
+
+        return_data[no] = data
+
+    return return_data
+
+
 def calc_dsm_cap(region, hh_share=True):
     """calculate max dsm potential for each municipality
     Parameters
@@ -844,9 +1016,7 @@ def calc_dsm_cap(region, hh_share=True):
         max demand increase potential
     df_dsm_cap_down : pd.DataFrame
         max demand decrease potential
-    
     """
-
     if 0 < hh_share < 1:
         pass
     elif hh_share:
@@ -863,4 +1033,5 @@ def calc_dsm_cap(region, hh_share=True):
                      mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in region.muns.index}
     df_dsm_cap_down = pd.DataFrame(dsm_cap_down).loc[region.cfg['date_from']:region.cfg['date_to']]
     df_dsm_cap_down = df_dsm_cap_down * hh_share
+    
     return df_dsm_cap_up, df_dsm_cap_down
