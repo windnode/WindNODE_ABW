@@ -1658,9 +1658,9 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     results["Heat Storage Ratios"] = _calculate_storage_ratios(results["Heat Storage Figures"], region)
 
     results["DSM Capacities"] = _calc_dsm_cap(region, hh_share=True)
-    # check if DSM Capacities installed
+    # if no DSM Capacities installed utilization rate is 0 as well
     if results["DSM Capacities"].all().sum() == 0:
-        results["DSM Utilization Rate"] = 0
+        results["DSM Utilization Rate"] = results["DSM Capacities"]
     else:
         results["DSM Utilization Rate"] = (extracted_results['DSM activation'].sum(level='ags') / results["DSM Capacities"].values).fillna(0) *1e2
 
