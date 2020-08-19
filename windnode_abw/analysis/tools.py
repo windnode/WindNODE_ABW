@@ -2022,6 +2022,7 @@ def create_comparative_notebook(scenarios, run_id,
         scenarios = avail_scenarios
 
     logger.info(f'Creating comparative notebook for {len(scenarios)} scenarios in {output_path} ...')
+    logger.info(os.getcwd())
 
     # define data and paths
     input_template = os.path.join(wn_path[0], 'jupy', 'templates', template)
