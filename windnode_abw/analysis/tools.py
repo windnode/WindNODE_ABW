@@ -1906,7 +1906,7 @@ def create_scenario_notebook(scenario, run_id,
 
     # define data and paths
     input_template = os.path.join(os.getcwd(), 'jupy', 'templates', template)
-    print(input_template)
+    logger.info(input_template)
     output_name = "scenario_analysis_{scenario}.ipynb".format(scenario=scenario)
     output_notebook = os.path.join(output_path, output_name)
 
