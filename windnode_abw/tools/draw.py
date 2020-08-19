@@ -872,8 +872,9 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
             'results_axlxt': [#('Batteriespeicher nach Gemeinde', 'discharge', 'MWh'),
                               # ('Wärmespeicher nach Gemeinde', 'discharge', 'MWh'),
                               ('DSM Capacities','Demand decrease','MWh')],
-            'col_order': ['Scenario', 'Autarky [%]', 'El. Storage Use [GWh]',
-                          'Heat Storage Use [GWh]', 'DSM Utilization Rate [%]'],
+            'col_order': ['Scenario', 'Autarky [%]', 'El. Storage Use [%]',
+            #'El. Storage Use [GWh]','Heat Storage Use [GWh]'
+                          'Heat Storage Use [%]', 'DSM Utilization Rate [%]'],
             'title': 'Flexibility Commitment'
             }
     }
