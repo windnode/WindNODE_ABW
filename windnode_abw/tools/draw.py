@@ -944,7 +944,7 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
             # data_axlxt['Batteriespeicher nach Gemeinde [GWh]'] = data_axlxt['Batteriespeicher nach Gemeinde [MWh]'] / 1e3
             # data_axlxt['Wärmespeicher nach Gemeinde [GWh]'] = data_axlxt['Wärmespeicher nach Gemeinde [MWh]'] / 1e3
             data_axlxt['DSM Utilization Rate [%]'] = data_hl['Net DSM activation [MWh]'] / data_axlxt['DSM Capacities [MWh]'] * 1e2
-
+            data_axlxt['DSM Utilization Rate [%]'] = data_axlxt['DSM Utilization Rate [%]'].fillna(0)
             data_axlxt.drop(columns=[#'Batteriespeicher nach Gemeinde [MWh]',
                                      # 'Wärmespeicher nach Gemeinde [MWh]',
                                      'DSM Capacities [MWh]'], inplace=True)
