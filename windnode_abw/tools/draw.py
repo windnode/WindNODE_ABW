@@ -41,7 +41,7 @@ PRINT_NAMES = {
     'gas': "Open-cycle gas turbine",
     'gud': "Combined-cycle gas turbine",
     'hydro': "Hydro",
-    'pv_ground': "PV ground-mounted",
+    'pv_ground': "PV ground",
     'pv_roof_large': "PV roof top (large)",
     'pv_roof_small': "PV roof top (small)",
     'wind': "Wind",
@@ -92,7 +92,7 @@ PRINT_NAMES = {
     "s1000f1":"Area required rel. Wind 1000m w forest 10-perc",
     "s500f0":"Area required rel. Wind 500m wo forest 10-perc",
     "s500f1":"Area required rel. Wind 500m w forest 10-perc",
-    "pv_roof":"PV Roof",
+    "pv_roof":"PV roof",
 }
 
 # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
