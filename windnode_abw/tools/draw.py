@@ -665,7 +665,7 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
                                  name=PRINT_NAMES[tech],
                                  fill='tonexty',
                                  mode='none',
-                                 #fillcolor=COLORS[tech],
+                                 fillcolor=COLORS[tech],
                                 stackgroup='one'))
 
     for tech, data in df_demand.iteritems():
@@ -674,7 +674,7 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
                                  name=PRINT_NAMES[tech],
                                  fill='tonexty',
                                  mode='none',
-                                 #fillcolor=COLORS[tech],
+                                 fillcolor=COLORS[tech],
                                 stackgroup='two'))
 
 
