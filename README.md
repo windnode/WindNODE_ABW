@@ -1,6 +1,10 @@
 # WindNODE_ABW
 Simulation der Region Anhalt-Bitterfeld-Wittenberg im Projekt WindNODE
 
+## Documentation
+Further details are provided in the
+[documentation](https://windnode-abw.readthedocs.io/en/dev/).
+
 ## Installation
 
 Clone and install via `pip install -e` (a virtualenv is recommended).
