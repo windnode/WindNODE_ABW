@@ -1,5 +1,5 @@
 ,Description
-BAT-,No battery storage capacity considered for balancing at system level. Existing PV home storage systems are neglected
-BAT,Battery storage capacity by plain scaling of battery storage capacity by RES capacity of particular generation capacity data
-BAT+,Increased capacity compared to BAT
-BAT++,Even more increased capacity compared to BAT+
+none,No battery storage capacity considered for balancing at system level. Existing PV home storage systems are neglected
+BAT,Battery storage capacity by plain scaling of battery storage capacity by RES capacity of particular generation capacity data in the scenario
+BAT+,Increased capacity compared to BAT using max. available RES capacity in the region.
+BAT++,Largely increased capacity compared to BAT+. Applies to scenario ISE_RE-_AUT90_DSM++_BAT++_PTH++ only to allow for 90 percent autarky
