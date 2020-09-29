@@ -1,8 +1,10 @@
 import pandas as pd
-from numpy import inf
+from numpy import inf, nan
 import papermill as pm
 import os
 from windnode_abw import __path__ as wn_path
+from windnode_abw.tools import config
+from windnode_abw.model.region.tools import calc_dsm_cap_up, calc_dsm_cap_down
 import multiprocessing as mp
 
 
@@ -26,21 +28,42 @@ PRINT_NAMES = {
     'pv_roof_large': "PV roof top (large)",
     'pv_roof_small': "PV roof top (small)",
     'wind': "Wind",
-    'import': "Electricity imports (national grid)",
+    "export" : "Export (national grid)",
+    'import': "Import (national grid)",
+    "el_heating": "electrical Heating",
     "elenergy": "Direct electric heating",
     "fuel_oil": "Oil heating",
     "gas_boiler": "Gas (district heating)",
     "natural_gas": "Gas heating",
     "solar": "Solar thermal heating",
+    "solar_heat": "Solar heating",
     "wood": "Wood heating",
     "coal": "Coal heating",
     "pth": "Power-to-heat (district heating)",
-    "pth_ASHP": "Air source heat pump",
-    "pth_GSHP": "Ground source heat pump",
-    "stor_th_large": "Thermal storage (district heating)",
-    "stor_th_small": "Thermal storage",
-    "flex_bat_large": "Large-scale battery storage",
-    "flex_bat_small": "PV system battery storage",
+    "pth_ASHP" : "Air source heat pump",
+    "pth_ASHP_nostor" : "Air source heat pump, no storage",
+    "pth_ASHP_stor" : "Air source heat pump, storage",
+    "pth_GSHP" : "Ground source heat pump",
+    "pth_GSHP_nostor" :"Ground source heat pump, no storage",
+    "pth_GSHP_stor" : "Ground source heat pump, storage",
+    "stor_th_large" : "Thermal storage (district heating)",
+    "stor_th_small" : "Thermal storage",
+    "flex_bat_large" : "Large-scale battery storage",
+    "flex_bat_small" : "PV system battery storage",
+    "hh" : "Households",
+    "ind" : "Industry",
+    "rca" : "CTS+agriculture",
+    "conventional" : "Conventional",
+    "el_hh" : "Electricity households",
+    "el_rca" : "Electricity CTS+agriculture",
+    "el_ind" : "Electricity industry",
+    "th_hh_efh" : "Heat single-family houses",
+    "th_hh_mfh" : "Heat apartment buildings",
+    "th_rca": "Heat CTS+agriculture",
+    "hh_efh" : "Single-family houses",
+    "hh_mfh" : "Apartment buildings",
+    "ABW-export": "Export (regional)",
+    "ABW-import": "Import (regional)"
 }
 
 GEN_EL_NAMES = {
@@ -64,8 +87,7 @@ GEN_EL_NAMES = {
     'wind': {
         "params": "wind"},
     "bio": {
-        "params": "bio",
-        "params_comm": "comm_biogas"},
+        "params": "bio"},  # plant emissions only, no commodity emissions!
     'import': {
         "params": None,
         "params_comm": "elenergy"}
@@ -124,8 +146,6 @@ UNITS = {
     'Electricity imports % of demand': '%',
     'Electricity exports % of demand': '%',
     'Balance': 'MWh',
-    'Self-consumption annual': '%',
-    'Self-consumption hourly': '%',
     'Area required pv_roof_small': 'ha',
     'Area required pv_roof_large': 'ha',
     'Area required pv_ground': 'ha',
@@ -138,24 +158,27 @@ UNITS = {
     "Area required rel. PV rooftop": "%",
     "Area required rel. PV rooftop small": "%",
     "Area required rel. PV rooftop large": "%",
+    "Area required rel. PV ground (THIS SCENARIO)": "%",
+    "Area required rel. PV ground H 0.1-perc agri": "%",
     "Area required rel. PV ground H 1-perc agri": "%",
-    "Area required rel. PV ground H 1-perc agri (current)": "%",
     "Area required rel. PV ground H 2-perc agri": "%",
-    "Area required rel. PV ground H 3-perc agri": "%",
+    "Area required rel. PV ground HS 0.1-perc agri": "%",
     "Area required rel. PV ground HS 1-perc agri": "%",
-    "Area required rel. PV ground HS 1-perc agri (current)": "%",
     "Area required rel. PV ground HS 2-perc agri": "%",
-    "Area required rel. PV ground HS 3-perc agri": "%",
-    "Area required rel. wind (current)": "%",
-    "Area required rel. wind 1000m wo forest 10-perc (VR/EG)": "%",
-    "Area required rel. wind 1000m w forest 10-perc": "%",
-    "Area required rel. wind 500m wo forest 10-perc": "%",
-    "Area required rel. wind 500m w forest 10-perc": "%",
+    "Area required rel. Wind (THIS SCENARIO)": "%",
+    "Area required rel. Wind legal SQ (VR/EG)": "%",
+    "Area required rel. Wind 1000m w forest 10-perc": "%",
+    "Area required rel. Wind 500m wo forest 10-perc": "%",
+    "Area required rel. Wind 500m w forest 10-perc": "%",
     "Total costs electricity supply": "EUR",
     "Total costs heat supply": "EUR",
     "LCOE": "EUR/MWh",
     "LCOH": "EUR/MWh",
-}
+    "Autarky": "%",
+    "Autark hours": "%",
+    "Heat Storage Usage Rate": "%",
+    "Battery Storage Usage Rate": "%"
+    }
 
 
 def results_to_dataframes(esys, infeasible):
@@ -371,6 +394,10 @@ def aggregate_flows(results_raw):
                 index=results['Strombedarf nach Gemeinde'].index,
                 columns=results['Strombedarf nach Gemeinde'].columns)
 
+    for key, val in results.items():
+        if key.endswith("nach Gemeinde"):
+            val.columns= val.columns.astype(int)
+
     return results
 
 
@@ -418,6 +445,59 @@ def extract_line_flow(results_raw, region, level_flow_in=0, level_flow_out=1):
                 == flows_extracted_long.index.get_level_values(4)]
     negative.index = negative.index.droplevel("bus")
     line_flows = positive["line"] - negative["line"]
+
+    return line_flows
+
+
+def extract_line_flow_imex(results_raw, level_flow_in=0, level_flow_out=1):
+
+    stubname = "line"
+
+    bus_pattern = "b_el_(?P<bus>(?:imex|\d+))"
+    line_suffix = 'b(?P<non_region_bus>\d+)_b_el_(?P<imex>imex)'
+
+    line_pattern = "_".join([stubname, line_suffix])
+    line_bus_suffix = "_".join([line_suffix, bus_pattern])
+
+    flows_extract = results_raw.loc[:,
+                    results_raw.columns.get_level_values(level_flow_in).str.match(line_pattern)
+                    & results_raw.columns.get_level_values(level_flow_out).str.match(bus_pattern)]
+
+    if level_flow_in == 0:
+        flows_extract.columns = [i + "_" + j for i, j in flows_extract.columns]
+    else:
+        flows_extract.columns = [j + "_" + i for i, j in flows_extract.columns]
+
+
+    # format to long
+    flows_extract.index.name = "timestamp"
+    flows_extract = flows_extract.reset_index()
+    flows_extracted_long = pd.wide_to_long(flows_extract,
+                                           stubnames=stubname,
+                                           i="timestamp", j="ags_tech", sep="_",
+                                           suffix=line_bus_suffix)
+
+    # introduce ags and technology as new index levels
+    idx_new = [list(flows_extracted_long.index.get_level_values(0))]
+    idx_split = flows_extracted_long.index.get_level_values(1).str.extract(line_bus_suffix)
+    [idx_new.append(c[1].tolist()) for c in idx_split.iteritems()]
+    flows_extracted_long.index = pd.MultiIndex.from_arrays(
+        idx_new,
+        names=["timestamp"] + list(idx_split.columns))
+
+    # combine to separate flows on same line into one flow. direction is distinguished by sign:
+    # positive: power goes from "from" to "to"; negative: power goes from "to" to "from"
+    index_nlevels = flows_extracted_long.index.nlevels - 1
+    positive = flows_extracted_long.loc[
+                flows_extracted_long.index.get_level_values(index_nlevels - 1 - level_flow_in)
+                == flows_extracted_long.index.get_level_values(index_nlevels)]
+    positive.index = positive.index.droplevel("bus")
+    negative = flows_extracted_long.loc[
+                flows_extracted_long.index.get_level_values(index_nlevels - 1 - level_flow_out)
+                == flows_extracted_long.index.get_level_values(index_nlevels)]
+    negative.index = negative.index.droplevel("bus")
+    line_flows = positive["line"] - negative["line"]
+    line_flows.index = line_flows.index.droplevel("imex")
 
     return line_flows
 
@@ -470,6 +550,9 @@ def extract_flows_timexagsxtech(results_raw, node_pattern, bus_pattern, stubname
         idx_new,
         names=["timestamp"] + list(idx_split.columns))
 
+    # convert level ags to int
+    flows_extracted_long.index = _ags_index2int(flows_extracted_long.index)
+
     # Sum over buses (aggregation) in one region and unstack technology
     flows_formatted = flows_extracted_long.sum(level=list(range(len(idx_new))))
     if unstack_col:
@@ -493,7 +576,28 @@ def extract_flow_params(flow_params_raw, node_pattern, bus_pattern, stubname,
     params_extract.index = pd.MultiIndex.from_frame(params_extract.index.str.extract(pattern))
     params_extract = params_extract.sum(level=list(range(params_extract.index.nlevels)))
 
+    # convert level ags to int
+    params_extract.index = _ags_index2int(params_extract.index)
+
     return params_extract
+
+
+def extract_stat_params(stat_params_raw, node_pattern, stubname, params=None):
+
+    pattern = "_".join([stubname, node_pattern])
+
+    params_extract = stat_params_raw.loc[
+        stat_params_raw.index.get_level_values(0).str.match(pattern)]
+
+    # transform to wide-to-long format and create multiindex from pattern groups
+    params_extract = params_extract.unstack().droplevel(0, axis=1)
+    params_extract.index = pd.MultiIndex.from_frame(
+        params_extract.index.get_level_values(0).str.extract(pattern))
+
+    # convert level ags to int
+    params_extract.index = _ags_index2int(params_extract.index)
+
+    return params_extract[params]
 
 
 def extract_invest(vars, node_pattern, bus_pattern):
@@ -545,6 +649,24 @@ def flow_params_agsxtech(results_raw):
     params = {}
     for name, patterns in param_extractor.items():
         params[name] = extract_flow_params(results_raw, **patterns)
+
+    return params
+
+
+def stat_params_agsxtech(results_raw):
+
+    # define extraction pattern
+    param_extractor = {
+        "Wärmespeicher": {
+            "node_pattern": "(?P<level>\w{3})(?:_pth)?_(?P<ags>\d+)(?:_)?(?P<sector>hh_efh|hh_mfh|rca)?",
+            "stubname": "stor_th",
+            "params": ["nominal_storage_capacity"]}
+    }
+
+    params = {}
+    results_raw = pd.DataFrame(results_raw)
+    for name, patterns in param_extractor.items():
+        params[name] = extract_stat_params(results_raw, **patterns)
 
     return params
 
@@ -649,6 +771,13 @@ def flows_timexagsxtech(results_raw, region):
             "unstack_col": None,
             "level_flow_in": 1,
             "level_flow_out": 0},
+        "GuD Dessau": {
+            "node_pattern": "(th_cen_15001000_gud)",
+            "stubname": "gen",
+            "bus_pattern": 'b_gas',
+            "unstack_col": None,
+            "level_flow_in": 1,
+            "level_flow_out": 0}
     }
 
     flows = {}
@@ -671,8 +800,8 @@ def flows_timexagsxtech(results_raw, region):
                         [results_raw.index,
                          ['large', 'small'],
                          region.muns.index], names=['timestamp',
-                                                    'level',
-                                                    'ags'])
+                                                                'level',
+                                                                'ags'])
                 )
 
             # create zero-filled DF for th. storages
@@ -684,17 +813,17 @@ def flows_timexagsxtech(results_raw, region):
                         [results_raw.index,
                          ['cen', 'dec'],
                          region.muns.index], names=['timestamp',
-                                                    'level',
-                                                    'ags'])
+                                                                'level',
+                                                                'ags'])
                 )
-                # create zero-filled DF for th. storages
+            # create zero-filled DF for DSM demand
             elif name in ["Stromnachfrage DSM HH"]:
                 flows[name] = pd.DataFrame(
                     {'flex_dsm': 0},
                     index=pd.MultiIndex.from_product(
                         [results_raw.index,
-                         region.muns.index], names=['timestamp',
-                                                    'ags'])
+                         region.muns.index.astype(str)], names=['timestamp',
+                                                                'ags'])
                 )
 
             pass
@@ -731,7 +860,20 @@ def flows_timexagsxtech(results_raw, region):
         [line_flows_exchange_1.rename("out"),
          line_flows_exchange_2.rename("in")], axis=1)
 
+    # Extract IMEX lines
+    line_flows_imex_1 = extract_line_flow_imex(results_raw)
+    line_flows_imex_2 = extract_line_flow_imex(results_raw, level_flow_in=1, level_flow_out=0)
 
+    flows["Stromnetz via external grid"] = pd.concat(
+        [line_flows_imex_1.rename("out"),
+         line_flows_imex_2.rename("in")], axis=1)
+    region_export_imex = flows["Stromnetz via external grid"][flows["Stromnetz via external grid"]["in"] >= 0]["in"].rename("export")
+    region_import_imex = flows["Stromnetz via external grid"][flows["Stromnetz via external grid"]["out"] <= 0]["out"].abs().rename("import")
+    region_imex = pd.concat([region_export_imex, region_import_imex], axis=1).fillna(0)
+    non_region_bus_translation = {_: non_region_bus2ags(_, region) for _ in
+                                  region_imex.index.get_level_values("non_region_bus").unique()}
+    region_imex = region_imex.rename(index=non_region_bus_translation)
+    region_imex.index.set_names("ags", level="non_region_bus", inplace=True)
 
     # Intra-regional exchange as export (region feeds grid) and import (region gets supplied from grid)
     region_export_in_tmp = flows["Stromnetz"][flows["Stromnetz"]["in"] >= 0].groupby(["timestamp", "ags_from"])["in"].sum()
@@ -750,6 +892,9 @@ def flows_timexagsxtech(results_raw, region):
 
     flows["Intra-regional exchange"] = pd.concat([region_export_tmp, region_import_tmp], axis=1).rename(
         columns={"in": "export", "out": "import"}).fillna(0)
+    flows["Intra-regional exchange"] = pd.concat([flows['Intra-regional exchange'], region_imex]).sum(
+        level=["timestamp", "ags"])
+    flows["Intra-regional exchange"].index = _ags_index2int(flows["Intra-regional exchange"].index)
 
     # Assign electricity import/export (shortage/excess) to region's ags
     # and merge into Erzeugung/Nachfrage
@@ -774,10 +919,23 @@ def flows_timexagsxtech(results_raw, region):
     flows.pop("Stromnachfrage DSM HH")
 
     # Add autarky
-    flows["Autarky"] = pd.DataFrame()
-    flows["Autarky"]["supply"] = flows['Stromerzeugung'].drop(columns='import').sum(axis=1)
-    flows["Autarky"]["demand"] = flows['Stromnachfrage'].drop(columns='export').sum(axis=1)
-    flows["Autarky"]["relative"] = flows["Autarky"]['supply'].unstack().div(flows["Autarky"]['demand'].unstack()).stack()
+    flows["Autarky"] = (1 - ((flows['Stromerzeugung']['import'] + flows["Intra-regional exchange"]["import"] +
+                              flows["Batteriespeicher"].sum(level=["timestamp", "ags"])["discharge"]).sum(
+        level=["timestamp", "ags"])).div(
+        (flows['Stromnachfrage'].sum(axis=1) + flows['Stromnachfrage Wärme'].sum(axis=1).sum(
+            level=["timestamp", "ags"]) + flows["Intra-regional exchange"]["export"] +
+         flows["Batteriespeicher"].sum(level=["timestamp", "ags"])["charge"]).sum(level=["timestamp", "ags"]))) * 100
+    flows["Autark hours"] = flows["Autarky"] >= 100
+
+    # Join Dessau GuD data into one DF, need for extraction of variable efficiency,
+    # cf. https://github.com/windnode/WindNODE_ABW/issues/33
+    flows['GuD Dessau'] = (
+        flows['GuD Dessau'].rename(columns={'gen': 'in_gas'}).reset_index(level=1, drop=True).join([
+            flows['Stromerzeugung'].xs(
+                15001000, level='ags').rename(columns={'gud': 'out_el'})['out_el'],
+            flows['Wärmeerzeugung'].xs(
+                15001000, level='ags').xs('cen', level='level').rename(columns={'gud': 'out_th'})['out_th']
+    ]))
 
     return flows
 
@@ -808,7 +966,7 @@ def non_region_bus2ags(bus_id, region):
 
         ags = region.buses.loc[region_bus, "ags"]
 
-    return str(int(ags))
+    return int(ags)
 
 
 def _rename_external_hv_buses(df, region, merged=False):
@@ -863,6 +1021,30 @@ def _rename_external_hv_buses(df, region, merged=False):
 
     else:
         return df, df_new
+    
+    
+def _ags_index2int(idx):
+    """Convert values ags index level ags to int"""
+    # idx = pd.MultiIndex.from_arrays(
+    #     idx_new,
+    #     names=["timestamp"] + list(idx_split.columns))
+
+    # Convert values ags index level ags to int
+    new_level_names = []
+    new_level_values = []
+    for level in idx.levels:
+        if level.name == "ags":
+            new_level_values.append(idx.get_level_values(level.name).astype(int))
+        else:
+            new_level_values.append(idx.get_level_values(level.name))
+        new_level_names.append(level.name)
+    idx = pd.MultiIndex.from_arrays(
+        new_level_values,
+        names=new_level_names)
+
+    # flows_extracted_long.index = idx
+
+    return idx
 
 
 def aggregate_parameters(region, results_raw, flows):
@@ -897,6 +1079,18 @@ def aggregate_parameters(region, results_raw, flows):
     params["Parameters th. generators"].loc[["bhkw", "gud", "gas_boiler", "natural_gas"], "emissions_var_comm"] = \
         params["Parameters th. generators"].loc[["bhkw", "gud", "gas_boiler", "natural_gas"], "emissions_var_comm"] * (
                 1 - region.cfg['scn_data']['commodities']['methane_share'])
+
+    # overwrite opex_var of natural_gas incorporating the assumed methane share
+    params["Parameters el. generators"].loc[["bhkw", "gud", "gas"], "opex_var_comm"] = (
+        params["Parameters el. generators"].loc[["bhkw", "gud", "gas"], "opex_var_comm"] * (
+                    1 - region.cfg['scn_data']['commodities']['methane_share']) +
+        region.tech_assumptions_scn.loc["comm_methane", "capex"] *
+        region.cfg['scn_data']['commodities']['methane_share'])
+    params["Parameters th. generators"].loc[["bhkw", "gud", "gas_boiler", "natural_gas"], "opex_var_comm"] = (
+        params["Parameters th. generators"].loc[["bhkw", "gud", "gas_boiler", "natural_gas"], "opex_var_comm"] * (
+                    1 - region.cfg['scn_data']['commodities']['methane_share']) +
+        region.tech_assumptions_scn.loc["comm_methane", "capex"] *
+        region.cfg['scn_data']['commodities']['methane_share'])
 
     # overwrite gud efficiencies by one calculated as in model.py
     gud_cfg = region.cfg['scn_data']['generation']['gen_th_cen']['gud_dessau']
@@ -941,11 +1135,18 @@ def aggregate_parameters(region, results_raw, flows):
     params["Installierte Kapazität Großbatterien"] = region.batteries_large
     params["Installierte Kapazität PV-Batteriespeicher"] = region.batteries_small
 
-    # Installed capacity heat storage
-    params["Installed capacity heat storage"] = flows_params["Wärmespeicher"][
+    # Installed discharge(!) power heat storage
+    params["Discharge power heat storage"] = flows_params["Wärmespeicher"][
         "nominal_value"].unstack("level").fillna(0).rename(columns={
         "cen": "stor_th_large", "dec": "stor_th_small"})
-    params["Installed capacity heat storage"].index = params["Installed capacity heat storage"].index.astype(int)
+
+    # extract static vars from nodes
+    stat_params = stat_params_agsxtech(results_raw['params_stat'])
+
+    # Installed capacity heat storage
+    params["Installed capacity heat storage"] = stat_params["Wärmespeicher"].astype(float).groupby(
+        ['ags', 'level']).sum().unstack("level").droplevel(0, axis=1).rename(
+        columns={"cen": "stor_th_large", "dec": "stor_th_small"}).fillna(0)
 
     # Installed capacity electricity supply
     params["Installed capacity electricity supply"] = \
@@ -959,28 +1160,22 @@ def aggregate_parameters(region, results_raw, flows):
     # Installed capacity from model results (include pre-calculations) gud, bhkw, gas
     capacity_special = flows_params["Stromerzeugung"]["nominal_value"].unstack("technology").fillna(0)[
         ["bhkw", "gas", "gud"]]
-    capacity_special.at['15001000', 'gud'] = 60  # manual update of GuD Dessau's nom. el. power
-    capacity_special.index = capacity_special.index.astype(int)
+    capacity_special.at[15001000, 'gud'] = 60  # manual update of GuD Dessau's nom. el. power
     params["Installed capacity electricity supply"] = \
         params["Installed capacity electricity supply"].join(capacity_special, how="outer").fillna(0)
-    params["Installed capacity electricity supply"].index = params[
-        "Installed capacity electricity supply"].index.astype(int)
 
     # Installed capacity from model results (include pre-calculations) gud, bhkw, gas
     capacity_special = flows_params["Wärmeerzeugung"]["nominal_value"].sum(
         level=["ags", "technology"]).unstack("technology").fillna(0)[
         ["bhkw", "gas_boiler", "gud"]]
-    capacity_special.index = capacity_special.index.astype(int)
     capacity_special_pth = flows_params["Wärmeerzeugung PtH"]["nominal_value"].sum(
         level=["ags", "technology"]).unstack("technology").fillna(0)
-    capacity_special_pth.index = capacity_special_pth.index.astype(int)
     capacity_special_heating = flows['Wärmeerzeugung'].xs(
         "dec", level='level').groupby('ags').max()[
         [col for col in
          ["fuel_oil", "natural_gas", "elenergy", "solar", "wood"]
          if col in flows['Wärmeerzeugung']]
     ]
-    capacity_special_heating.index = capacity_special_heating.index.astype(int)
 
     params["Installed capacity heat supply"] = pd.concat(
         [capacity_special, capacity_special_pth, capacity_special_heating], axis=1)
@@ -1045,9 +1240,127 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
             costs_commodity = (generation * params["opex_var_comm"] / params["sys_eff"]).fillna(0)
             costs["Variable costs"] = costs["Variable costs"] + costs_commodity
 
-
         return costs
 
+    def _get_timesteps(region):
+        timestamps = pd.date_range(start=region.cfg['date_from'],
+                                   end=region.cfg['date_to'],
+                                   freq=region.cfg['freq'])
+        steps = len(timestamps)
+
+        return steps
+
+    def _calculate_battery_storage_figures(parameters, battery_storages_muns):
+        """"""
+        stor_cap_small = parameters['Installierte Kapazität Großbatterien']
+        stor_cap_large = parameters['Installierte Kapazität PV-Batteriespeicher']
+
+        battery_storage_figures = pd.concat([stor_cap_small, stor_cap_large], axis=1, keys=['large', 'small'])
+
+        storage = battery_storages_muns
+        storage = storage.unstack("level").swaplevel(axis=1)
+        storage.index = storage.index.astype(int)
+
+        battery_storage_figures = battery_storage_figures.join(
+            storage).sort_index(level=0, axis=1)
+        battery_storage_figures = battery_storage_figures.swaplevel(axis=1)
+        battery_storage_figures = battery_storage_figures.fillna(0)
+
+        return battery_storage_figures
+
+    def _calculate_heat_storage_figures(parameters, heat_storages_muns):
+        """"""
+        capacity = parameters['Installed capacity heat storage']
+        capacity = capacity.rename(columns={'stor_th_large': 'cen',
+            'stor_th_small': 'dec'})
+        capacity.index = capacity.index.astype(int)
+
+        power_discharge = parameters['Discharge power heat storage']
+        power_discharge = power_discharge.rename(columns={'stor_th_large':'cen', 'stor_th_small':'dec'})
+
+        discharge = heat_storages_muns
+        discharge = discharge.discharge.unstack().fillna(0).T
+        discharge.index = discharge.index.astype(int)
+
+        # combine
+        heat_storage_figures = pd.concat([capacity, power_discharge, discharge],
+                                         axis=1, keys=['capacity', 'power_discharge', 'discharge'])
+        heat_storage_figures = heat_storage_figures.fillna(0)
+
+        return heat_storage_figures
+
+    def _calculate_storage_ratios(storage_figures, region):
+        """calculate storage ratios for heat or electricity
+        Parameters
+        ----------
+        storage_figures : pd.DataFrame
+            DF including: discharge, capacity, power_discharge
+
+        Return
+        ---------
+        storage_ratios : pd.DataFrame
+            'Full Load Hours', 'Total Cycles', 'Storage Usage Rate'
+        """
+        # full load hours
+        full_load_hours = storage_figures.discharge / storage_figures.power_discharge
+        full_load_hours = full_load_hours.fillna(0)
+
+        # total
+        total_cycle = storage_figures.discharge / storage_figures.capacity
+        total_cycle = total_cycle.fillna(0)
+
+        # max
+        steps = _get_timesteps(region)
+        c_rate = storage_figures.power_discharge / storage_figures.capacity
+        c_rate[c_rate > 1] = 1 # Issue #127
+        max_cycle = 1/2 * steps * c_rate
+        max_cycle = max_cycle.fillna(0)
+
+        # relative
+        storage_usage_rate = total_cycle / max_cycle * 100
+        storage_usage_rate = storage_usage_rate.fillna(0)
+
+        # combine
+        storage_ratios = pd.concat([full_load_hours, total_cycle, storage_usage_rate],
+                                   axis=1, keys=['Full Discharge Hours', 'Total Cycles', 'Utilization Rate'])
+        storage_ratios = storage_ratios.swaplevel(axis=1)
+
+        return storage_ratios
+
+    def _calc_dsm_cap(region, hh_share=True):
+        """calculate max dsm potential for each municipality
+        Parameters
+        ----------
+        region : :class:`~.model.Region`
+            Region object
+        hh_share : bool, int
+            share of dsm penetration, if True: scenario share is used
+        Return
+        ---------
+        df_dsm_cap : pd.DataFrame
+            max demand increase and decrease potential
+        """
+        if 0 < hh_share < 1:
+            pass
+        elif hh_share:
+            hh_share = region.cfg['scn_data']['flexopt']['dsm']['params']['hh_share']
+        else:
+            hh_share = 1
+
+        dsm_cap_up = {ags:calc_dsm_cap_up(region.dsm_ts, ags,
+                         mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in region.muns.index}
+        df_dsm_cap_up = pd.DataFrame(dsm_cap_up).loc[region.cfg['date_from']:region.cfg['date_to']]
+        df_dsm_cap_up = df_dsm_cap_up * hh_share
+
+        dsm_cap_down = {ags:calc_dsm_cap_down(region.dsm_ts, ags,
+                         mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in region.muns.index}
+        df_dsm_cap_down = pd.DataFrame(dsm_cap_down).loc[region.cfg['date_from']:region.cfg['date_to']]
+        df_dsm_cap_down = df_dsm_cap_down * hh_share
+
+        df_dsm_cap = pd.concat([df_dsm_cap_up.sum().rename('Demand increase'),
+                     df_dsm_cap_down.sum().rename('Demand decrease')], axis=1)
+
+        return df_dsm_cap
 
     idx = pd.IndexSlice
 
@@ -1056,21 +1369,16 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     co2_certificate_cost = region.tech_assumptions_scn.loc["emission"]["capex"]
 
     results["Stromerzeugung nach Gemeinde"] = extracted_results["Stromerzeugung"].sum(level="ags")
-    results["Stromerzeugung nach Gemeinde"].index = results["Stromerzeugung nach Gemeinde"].index.astype(int)
     results["Stromnachfrage nach Gemeinde"] = extracted_results["Stromnachfrage"].sum(level="ags")
-    results["Stromnachfrage nach Gemeinde"].index = results["Stromnachfrage nach Gemeinde"].index.astype(int)
     results["Stromnachfrage Wärme nach Gemeinde"] = extracted_results["Stromnachfrage Wärme"].sum(level="ags")
-    results["Stromnachfrage Wärme nach Gemeinde"].index = results["Stromnachfrage Wärme nach Gemeinde"].index.astype(int)
     results["Wärmeerzeugung nach Gemeinde"] = extracted_results["Wärmeerzeugung"].sum(level=["level", "ags"])
     results["Wärmenachfrage nach Gemeinde"] = extracted_results["Wärmenachfrage"].sum(level=["ags"])
-    results["Wärmenachfrage nach Gemeinde"].index = results["Wärmenachfrage nach Gemeinde"].index.astype(int)
     results["Wärmespeicher nach Gemeinde"] = extracted_results["Wärmespeicher"].sum(level=["level", "ags"])
     results["Batteriespeicher nach Gemeinde"] = extracted_results["Batteriespeicher"].sum(level=["level", "ags"])
     results["Stromnetzleitungen"] = extracted_results["Stromnetz"].sum(level=["ags_from", "ags_to"])
     results["Stromnetzleitungen per bus"] = extracted_results["Stromnetz per bus"].sum(
         level=["line_id", "bus_from", "bus_to"])
     results["Intra-regional exchange"] = extracted_results["Intra-regional exchange"].sum(level=["ags"])
-    results["Intra-regional exchange"].index = results["Intra-regional exchange"].index.astype(int)
     results["Net DSM activation"] = extracted_results["DSM activation"]["Demand increase"].sum(level="ags")
 
     # Losses in energy storages
@@ -1117,36 +1425,61 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     ).fillna(0)
 
     # PV ground
-    results["Area required rel."]["PV ground"] = (
+    results["Area required rel."]["PV ground HS 0.1-perc agri"] = (
             results["Area required"]["pv_ground"] /
             region.pot_areas_pv_scn(
-                scenario=re_params['pv_land_use_scenario'],
-                pv_usable_area_agri_max=2086
+                scenario='HS',
+                pv_usable_area_agri_max=2086*0.1
             )['with_agri_restrictions'].groupby('ags_id').agg('sum') * 1e2
     ).replace(inf, 0).fillna(0) \
         if re_params['pv_land_use_scenario'] != 'SQ'\
-        else results["Area required"]["pv_ground"]
+        else pd.Series(0, index=results["Area required"]["pv_ground"].index)
 
     # wind
-    results["Area required rel."][f"Wind "
-                                  f"{re_params['wec_land_use_scenario']} "
-                                  f"10-perc"] = (
+    results["Area required rel."][f"Wind 500m w forest 10-perc"] = (
             results["Area required"]["wind"] /
-            region.pot_areas_wec_scn(
-                scenario=re_params['wec_land_use_scenario']
-            ) * 1e2
+            (region.pot_areas_wec_scn(scenario='s500f1') * 0.1) * 1e2
     ).replace(inf, 0).fillna(0)
-    results["Area required rel."]["Wind 1000m wo forest 10-perc (VR/EG)"] = (
+    results["Area required rel."]["Wind legal SQ (VR/EG)"] = (
             results["Area required"]["wind"] /
             region.pot_areas_wec_scn(scenario='SQ') * 1e2
-    ).replace(inf, 0).fillna(0)
+    ).replace(inf, 0).fillna(0) \
+        if re_params['wec_installed_power'] != 'SQ' \
+        else pd.Series(0, index=results["Area required"]["wind"].index)
 
     # CO2 emissions electricity
     results_tmp_el = _calculate_co2_emissions(
         "el.",
         results["Stromerzeugung nach Gemeinde"],
         parameters["Installed capacity electricity supply"],
-        parameters["Parameters el. generators"])
+        parameters["Parameters el. generators"]
+    )
+
+    # fix el. emissions for GuD Dessau and BHKWs manually,
+    # cf. https://github.com/windnode/WindNODE_ABW/issues/33
+    results_tmp_el["CO2 emissions el. var"].at[15001000, 'gud'] = (
+        (extracted_results["GuD Dessau"]['out_el'].sum() *
+         parameters["Parameters el. generators"].at["gud", "emissions_var"]) +
+        (extracted_results["GuD Dessau"]['out_el'] /
+         (extracted_results["GuD Dessau"]['out_el'] + extracted_results["GuD Dessau"]['out_th']) *
+         extracted_results["GuD Dessau"]['in_gas'] *
+         parameters["Parameters el. generators"].at["gud", "emissions_var_comm"]
+        ).sum()) / 1e3
+    bhkw_gas_in = results["Stromerzeugung nach Gemeinde"]["bhkw"] / \
+                  parameters["Parameters el. generators"].at["bhkw", "sys_eff"]
+    results_tmp_el["CO2 emissions el. var"]["bhkw"] = (
+        (results["Stromerzeugung nach Gemeinde"]["bhkw"] *
+         parameters["Parameters el. generators"].at["bhkw", "emissions_var"]) +
+        (bhkw_gas_in *
+         parameters["Parameters el. generators"].at["bhkw", "sys_eff"] / (
+         parameters["Parameters el. generators"].at["bhkw", "sys_eff"] +
+         parameters["Parameters th. generators"].at["bhkw", "sys_eff"]
+         ) *
+         parameters["Parameters el. generators"].at["bhkw", "emissions_var_comm"]
+    )) / 1e3
+    results_tmp_el["CO2 emissions el. total"] = \
+        results_tmp_el["CO2 emissions el. fix"] + \
+        results_tmp_el["CO2 emissions el. var"]
 
     results.update(results_tmp_el)
 
@@ -1156,14 +1489,12 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         parameters['Installierte Kapazität PV-Batteriespeicher']["capacity"].rename("flex_bat_small")], axis=1)
     discharge_stor_el_tmp = results['Batteriespeicher nach Gemeinde']["discharge"].unstack("level").rename(
         columns={"large": "flex_bat_large", "small": "flex_bat_small"})
-    discharge_stor_el_tmp.index = discharge_stor_el_tmp.index.astype(int)
     results_tmp_stor_el = _calculate_co2_emissions(
         "stor el.",
         discharge_stor_el_tmp,
         inst_cap_bat_tmp,
         parameters["Parameters storages"].loc[parameters["Parameters storages"].index.str.startswith("flex_bat"), :])
     results.update(results_tmp_stor_el)
-
 
     # CO2 emissions heat
     # Note: costs for the commodity of PtH technologies (pth* and elenergy) is set to zero, because these costs are
@@ -1176,17 +1507,37 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
         params_heat_supply_tmp.loc[pth_tech + "_nostor"] = params_heat_supply_tmp.loc[pth_tech]
         params_heat_supply_tmp.drop(pth_tech, inplace=True)
     heat_generation = results["Wärmeerzeugung nach Gemeinde"].sum(level="ags")
-    heat_generation.index = heat_generation.index.astype(int)
-    results_tmp_th = _calculate_co2_emissions("th.",
-                                           heat_generation,
-                                           parameters["Installed capacity heat supply"],
-                                           params_heat_supply_tmp)
+    results_tmp_th = _calculate_co2_emissions(
+        "th.",
+        heat_generation,
+        parameters["Installed capacity heat supply"],
+        params_heat_supply_tmp)
+
+    # fix th. emissions for GuD Dessau and BHKWs manually,
+    # cf. https://github.com/windnode/WindNODE_ABW/issues/33
+    results_tmp_th["CO2 emissions th. var"].at[15001000, 'gud'] = (
+        extracted_results["GuD Dessau"]['out_th'] /
+        (extracted_results["GuD Dessau"]['out_el'] + extracted_results["GuD Dessau"]['out_th']) *
+        extracted_results["GuD Dessau"]['in_gas'] *
+        parameters["Parameters th. generators"].at["gud", "emissions_var_comm"]
+    ).sum() / 1e3
+    results_tmp_th["CO2 emissions th. var"]["bhkw"] = (
+        bhkw_gas_in *
+        parameters["Parameters th. generators"].at["bhkw", "sys_eff"] / (
+            parameters["Parameters el. generators"].at["bhkw", "sys_eff"] +
+            parameters["Parameters th. generators"].at["bhkw", "sys_eff"]
+            ) *
+        parameters["Parameters th. generators"].at["bhkw", "emissions_var_comm"]
+    ) / 1e3
+    results_tmp_th["CO2 emissions th. total"] = \
+        results_tmp_th["CO2 emissions th. fix"] + \
+        results_tmp_th["CO2 emissions th. var"]
+
     results.update(results_tmp_th)
 
     # CO2 emissions attributed to heat storages
     discharge_stor_th_tmp = results['Wärmespeicher nach Gemeinde']["discharge"].unstack("level").rename(
         columns={"cen": "stor_th_large", "dec": "stor_th_small"})
-    discharge_stor_th_tmp.index = discharge_stor_th_tmp.index.astype(int)
     stor_th_parameters = parameters["Parameters storages"].loc[
                          parameters["Parameters storages"].index.str.startswith("th_"), :].rename(
         index={"th_cen_storage": "stor_th_large",
@@ -1201,8 +1552,7 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     # CO2 emissions attributed to grid
     line_lengths_tmp = region.lines.set_index("line_id")["length"]
     line_lengths_tmp.index = line_lengths_tmp.index.astype(str)
-    line_capacity_length = parameters['Installed capacity grid per bus'].to_frame().join(line_lengths_tmp,
-                                                                                         on="line_id")
+    line_capacity_length = parameters['Installed capacity grid per bus'].to_frame().join(line_lengths_tmp, on="line_id")
     line_capacity_length = line_capacity_length["investment_existing"] * line_capacity_length["length"]
     results["CO2 emissions grid total"] = _calculate_co2_emissions(
         "grid",
@@ -1233,7 +1583,6 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
     # TODO: if you include it, make sure sum of LCOE calculated in create_highlevel_results() ignore these revenues
     # export_revenues = results["Stromnachfrage nach Gemeinde"]["export"] * -parameters["Parameters el. generators"].loc[
     #     "import", "opex_var_comm"]
-    # export_revenues.index = export_revenues.index.astype(int)
     # results["Total costs electricity supply"]["export"] = export_revenues
 
     # Calculate costs for electricity storages and add to el. supply costs df
@@ -1290,20 +1639,30 @@ def results_agsxlevelxtech(extracted_results, parameters, region):
 
     # Merge costs data of several heat technologies
     for k in list(costs_heat_generation_tmp.keys()):
-        results[k + " th."] = pd.concat([c[k] for c in [costs_heat_generation_tmp,
-                                                        costs_heat_storages_tmp,
-                                                        costs_heat_dist_heating] if k in c], axis=1).fillna(0)
+        results[k + " th."] = pd.concat([c[k] for c in [costs_heat_generation_tmp,costs_heat_storages_tmp,costs_heat_dist_heating] if k in c], axis=1).fillna(0)
     results["Total costs heat supply"] = results["Fix costs th."].\
         add(results["Variable costs th."], fill_value=0).\
         add(results["CO2 certificate cost th."], fill_value=0)
 
-    # Add Autarky
-    results["Autarky"] = pd.DataFrame()
-    results["Autarky"]['supply'] = extracted_results["Autarky"]['supply'].sum(level=1)
-    results["Autarky"]['demand'] = extracted_results["Autarky"]['demand'].sum(level=1)
-    results["Autarky"]['relative'] = results["Autarky"]['supply'].div(results["Autarky"]['demand'])
-    results["Autarky"]['hours'] = (extracted_results["Autarky"]['relative']>1).sum(level=1).astype(int)
-    results["Autarky"].index = results["Autarky"].index.astype(int)
+    # Autarky
+    results["Autarky"] = results['Stromerzeugung nach Gemeinde'].drop(columns='import').sum(axis=1).div(
+        results['Stromnachfrage nach Gemeinde'].drop(columns='export').sum(axis=1) +
+        results['Stromnachfrage Wärme nach Gemeinde'].sum(axis=1)
+    ) * 100
+    results["Autark hours"] = extracted_results["Autark hours"].mean(level="ags") * 100
+    # Battery Storage Figures/Ratios 
+    results["Battery Storage Figures"] = _calculate_battery_storage_figures(parameters, results['Batteriespeicher nach Gemeinde'])
+    results["Battery Storage Ratios"] = _calculate_storage_ratios(results["Battery Storage Figures"], region)
+    results["Heat Storage Figures"] = _calculate_heat_storage_figures(parameters, results['Wärmespeicher nach Gemeinde'])
+    results["Heat Storage Ratios"] = _calculate_storage_ratios(results["Heat Storage Figures"], region)
+
+    # DSM Figures
+    results["DSM Capacities"] = _calc_dsm_cap(region, hh_share=True)
+    # if no DSM Capacities installed utilization rate is 0 as well
+    if results["DSM Capacities"].all().sum() == 0:
+        results["DSM Utilization Rate"] = results["DSM Capacities"]
+    else:
+        results["DSM Utilization Rate"] = (extracted_results['DSM activation'].sum(level='ags') / results["DSM Capacities"].values).fillna(0) *1e2
 
     return results
 
@@ -1338,27 +1697,65 @@ def results_tech(results_axlxt):
     # Calculate levelized cost of heat
     results["LCOH"] = results_axlxt["Total costs heat supply"].sum() / results_axlxt['Wärmenachfrage nach Gemeinde'].sum().sum()
 
-    # Autarky
-    results["Autarky"] = results_axlxt["Autarky"].loc[:,['supply','demand']].sum(axis=0).rename("ABW")
-    results["Autarky"]["relative"] = results["Autarky"]['supply'] / results["Autarky"]['demand']
-
-
     return results
+
 
 def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     """Aggregate results to scalar values for each scenario"""
+    def _get_timesteps(region):
+        timestamps = pd.date_range(start=region.cfg['date_from'],
+                                   end=region.cfg['date_to'],
+                                   freq=region.cfg['freq'])
+        steps = len(timestamps)
+        return steps
+
+    def _calculate_storage_ratios_total(storage_figures, region):
+        """calculate storage ratios for heat or electricity
+        Parameters
+        ----------
+        storage_figures : pd.DataFrame
+            DF including: discharge, capacity, power_discharge
+
+        Return
+        ---------
+        storage_ratios : pd.DataFrame
+            'Full Load Hours', 'Total Cycles', 'Storage Usage Rate'
+        """
+
+        # full load hours
+        full_load_hours = storage_figures.discharge.sum().sum() / storage_figures.power_discharge.sum().sum()
+        full_load_hours = 0 if full_load_hours == nan else full_load_hours
+
+        # total
+        total_cycle = storage_figures.discharge.sum().sum() / storage_figures.capacity.sum().sum()
+        total_cycle = 0 if total_cycle == nan else total_cycle
+
+        # max
+        steps = _get_timesteps(region)
+        c_rate = storage_figures.power_discharge.sum().sum() / storage_figures.capacity.sum().sum()
+        c_crate = 1 if c_rate > 1 else c_rate
+        #[c_rate > 1] = 1 # Issue #127
+        max_cycle = 1/2 * steps * c_rate
+        max_cycle = 0 if max_cycle == nan else max_cycle
+
+        # relative
+        storage_usage_rate = total_cycle / max_cycle * 100
+        storage_usage_rate = 0 if storage_usage_rate == nan else storage_usage_rate
+
+        # combine
+        storage_ratios = pd.Series({'Full Discharge Hours':full_load_hours, 'Total Cycles':total_cycle, 'Utilization Rate':storage_usage_rate})
+
+        return storage_ratios
 
     idx = pd.IndexSlice
     highlevel = {}
 
     # TODO: Netzverluste af IMEX lines fehlen, müssen aber berücksichtigt werden, da sie bei Stromimport/-export anfallen
     highlevel["Grid losses"] = (results_tables["Stromnetzleitungen"]["in"] - results_tables["Stromnetzleitungen"]["out"]).abs().sum()
-    highlevel["Electricity generation"] = results_tables["Stromerzeugung nach Gemeinde"][
-        [col
-         for col in results_tables["Stromerzeugung nach Gemeinde"]
-         if col != 'import']
-    ].sum().sum()
-    highlevel["Electricity demand"] = results_tables["Stromnachfrage nach Gemeinde"].sum().sum()
+    highlevel["Electricity generation"] = results_tables[
+        "Stromerzeugung nach Gemeinde"].drop(columns='import').sum().sum()
+    highlevel["Electricity demand"] = results_tables[
+        "Stromnachfrage nach Gemeinde"].drop(columns='export').sum().sum()
     highlevel["Electricity demand for heating"] = results_tables["Stromnachfrage Wärme nach Gemeinde"].sum().sum()
     highlevel["Electricity demand total"] = highlevel["Electricity demand"] + highlevel["Electricity demand for heating"]
     highlevel["Heating demand"] = results_tables["Wärmenachfrage nach Gemeinde"].sum().sum()
@@ -1369,12 +1766,13 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Electricity exports % of demand"] = results_tables["Stromnachfrage nach Gemeinde"]["export"].sum() / \
                                            highlevel["Electricity demand total"] * 1e2
     highlevel["Balance"] = highlevel["Electricity imports"] - highlevel["Electricity exports"]
-    highlevel["Self-consumption annual"] = (1 - (
-        highlevel["Electricity imports"] / highlevel["Electricity demand total"])) * 100
-    highlevel["Self-consumption hourly"] = ((1 - (
-            results_txaxt["Stromimport"].sum(level="timestamp").sum(axis=1) / (
-            results_txaxt["Stromnachfrage"].sum(level="timestamp").sum(axis=1) +
-            results_txaxt["Stromnachfrage Wärme"].sum(level="timestamp").sum(axis=1)))) * 100).mean()
+    highlevel["Autarky"] = (highlevel["Electricity generation"] /
+                            highlevel["Electricity demand total"] * 100)
+    highlevel["Autark hours"] = (
+            results_txaxt["Stromerzeugung"].drop(columns='import').sum(axis=1).sum(level="timestamp") >
+            (results_txaxt['Stromnachfrage'].drop(columns='export').sum(axis=1).sum(level="timestamp") +
+             results_txaxt['Stromnachfrage Wärme'].sum(axis=1).sum(level="timestamp"))
+    ).mean() # mean of boolean is intended
     for re in results_tables["Area required"].columns:
         highlevel["Area required " + re] = results_tables["Area required"][re].sum()
 
@@ -1403,13 +1801,20 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     ) * 1e2
 
     # PV ground
-    highlevel["Area required rel. PV ground (current)"] = (
+    highlevel["Area required rel. PV ground (THIS SCENARIO)"] = (
             results_tables["Area required"]["pv_ground"].sum() /
             region.pot_areas_pv_scn(
                 scenario=re_params['pv_land_use_scenario'],
                 pv_usable_area_agri_max=re_params['pv_usable_area_agri_max']
             )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
     ) if re_params['pv_land_use_scenario'] != 'SQ' else 0
+    highlevel[f"Area required rel. PV ground H 0.1-perc agri"] = (
+            results_tables["Area required"]["pv_ground"].sum() /
+            region.pot_areas_pv_scn(
+                scenario='H',
+                pv_usable_area_agri_max=2086*0.1
+            )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
+    )
     highlevel[f"Area required rel. PV ground H 1-perc agri"] = (
             results_tables["Area required"]["pv_ground"].sum() /
             region.pot_areas_pv_scn(
@@ -1424,11 +1829,11 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
                 pv_usable_area_agri_max=2086*2
             )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
     )
-    highlevel[f"Area required rel. PV ground H 3-perc agri"] = (
+    highlevel[f"Area required rel. PV ground HS 0.1-perc agri"] = (
             results_tables["Area required"]["pv_ground"].sum() /
             region.pot_areas_pv_scn(
-                scenario='H',
-                pv_usable_area_agri_max=2086*3
+                scenario='HS',
+                pv_usable_area_agri_max=2086*0.1
             )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
     )
     highlevel[f"Area required rel. PV ground HS 1-perc agri"] = (
@@ -1445,35 +1850,28 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
                 pv_usable_area_agri_max=2086*2
             )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
     )
-    highlevel[f"Area required rel. PV ground HS 3-perc agri"] = (
-            results_tables["Area required"]["pv_ground"].sum() /
-            region.pot_areas_pv_scn(
-                scenario='HS',
-                pv_usable_area_agri_max=2086*3
-            )['with_agri_restrictions'].groupby('ags_id').agg('sum').sum() * 1e2
-    )
 
     # wind
-    highlevel["Area required rel. wind (current)"] = (
+    highlevel["Area required rel. Wind (THIS SCENARIO)"] = (
             results_tables["Area required"]["wind"].sum() /
             (region.pot_areas_wec_scn(
                 scenario=re_params['wec_land_use_scenario']
             ).sum() *
              (0.1 if re_params['wec_land_use_scenario'] != 'SQ' else 1)) * 1e2
     )
-    highlevel["Area required rel. wind 1000m wo forest 10-perc (VR/EG)"] = (
+    highlevel["Area required rel. Wind legal SQ (VR/EG)"] = (
             results_tables["Area required"]["wind"].sum() /
             region.pot_areas_wec_scn(scenario='SQ').sum() * 1e2
     )
-    highlevel["Area required rel. wind 1000m w forest 10-perc"] = (
+    highlevel["Area required rel. Wind 1000m w forest 10-perc"] = (
             results_tables["Area required"]["wind"].sum() /
             (region.pot_areas_wec_scn(scenario='s1000f1').sum() * 0.1) * 1e2
     )
-    highlevel["Area required rel. wind 500m wo forest 10-perc"] = (
+    highlevel["Area required rel. Wind 500m wo forest 10-perc"] = (
             results_tables["Area required"]["wind"].sum() /
             (region.pot_areas_wec_scn(scenario='s500f0').sum() * 0.1) * 1e2
     )
-    highlevel["Area required rel. wind 500m w forest 10-perc"] = (
+    highlevel["Area required rel. Wind 500m w forest 10-perc"] = (
             results_tables["Area required"]["wind"].sum() /
             (region.pot_areas_wec_scn(scenario='s500f1').sum() * 0.1) * 1e2
     )
@@ -1482,6 +1880,12 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
     highlevel["Total costs heat supply"] = results_t["Total costs heat supply"].sum()
     highlevel["LCOE"] = results_t["LCOE"].sum()
     highlevel["LCOH"] = results_t["LCOH"].sum()
+    # if Battery Storages consist of empty Dataframe -> 0
+    if results_tables['Battery Storage Figures']['capacity'].all().sum() == 0:
+        highlevel['Battery Storage Usage Rate'] = 0
+    else:
+        highlevel['Battery Storage Usage Rate'] = _calculate_storage_ratios_total(results_tables['Battery Storage Figures'], region)['Utilization Rate']
+    highlevel['Heat Storage Usage Rate'] = _calculate_storage_ratios_total(results_tables['Heat Storage Figures'], region)['Utilization Rate']
 
     # add multiindex including units to output
     mindex = [highlevel.keys(),
@@ -1496,22 +1900,27 @@ def create_highlevel_results(results_tables, results_t, results_txaxt, region):
 
 def create_scenario_notebook(scenario, run_id,
                              template="scenario_analysis_template.ipynb",
-                             path=os.path.join(wn_path[0], 'jupy')):
+                             output_path=os.path.join(wn_path[0], 'jupy'),
+                             kernel_name=None,
+                             force_new_results=False):
 
     # define data and paths
-    input_template = os.path.join(path, 'templates', template)
+    input_template = os.path.join(wn_path[0], 'jupy', 'templates', template)
     output_name = "scenario_analysis_{scenario}.ipynb".format(scenario=scenario)
-    output_notebook = os.path.join(path, output_name)
+    output_notebook = os.path.join(output_path, output_name)
 
     # execute notebook with specific parameter
     try:
         pm.execute_notebook(input_template, output_notebook,
                             parameters={
                                 "scenario": scenario,
-                                "run_timestamp": run_id},
-                            request_save_on_cell_execute=True)
+                                "run_timestamp": run_id,
+                                "force_new_results": force_new_results
+                            },
+                            request_save_on_cell_execute=True,
+                            kernel_name=kernel_name)
     except FileNotFoundError:
-        logger.warning(f'Template not found, skipping...')
+        logger.warning(f'Template or output path not found, skipping...')
         return scenario
     except Exception as ex:
         logger.warning(f'Scenario {scenario}: An exception of type {type(ex).__name__} occurred:')
@@ -1524,31 +1933,50 @@ def create_scenario_notebook(scenario, run_id,
 
 def create_multiple_scenario_notebooks(scenarios, run_id,
                                        template="scenario_analysis_template.ipynb",
-                                       path=os.path.join(wn_path[0], 'jupy'),
-                                       num_processes=None):
+                                       output_path=os.path.join(wn_path[0], 'jupy'),
+                                       num_processes=None,
+                                       kernel_name=None,
+                                       force_new_results=False):
 
     if isinstance(scenarios, str):
         scenarios = [scenarios]
 
-    # get list of available scenarios
+    # get list of available scenarios in run id folder
+    result_base_path = os.path.join(config.get_data_root_dir(),
+                                    config.get('user_dirs',
+                                               'results_dir')
+                                    )
     avail_scenarios = [file.split('.')[0]
-                       for file in os.listdir(os.path.join(wn_path[0],
-                                                           'scenarios'))
-                       if file.endswith(".scn")]
+                       for file in os.listdir(os.path.join(result_base_path,
+                                                           run_id))
+                       if not file.startswith('.')]
+    # get list of available scenarios for comparison
+    all_scenarios = [file.split('.')[0]
+                     for file in os.listdir(os.path.join(wn_path[0],
+                                                         'scenarios'))
+                     if file.endswith(".scn")]
+
+    if len(all_scenarios) > len(avail_scenarios):
+        logger.info(f'Available scenarios ({len(avail_scenarios)}) in run '
+                    f'{run_id} differ from the total number of scenarios '
+                    f'({len(all_scenarios)}).')
 
     # create scenario list
     if scenarios == ['all']:
         scenarios = avail_scenarios
 
-    logger.info(f'Creating notebooks for {len(scenarios)} scenarios...')
+    logger.info(f'Creating notebooks for {len(scenarios)} scenarios in {output_path} ...')
 
     pool = mp.Pool(processes=num_processes)
 
     errors = None
     for scen in scenarios:
-        errors = pool.apply_async(create_scenario_notebook,
-                                  args=(scen, run_id, template,),
-                                  kwds={"path": path}).get()
+        pool.apply_async(create_scenario_notebook,
+                         args=(scen, run_id, template,),
+                         kwds={"output_path": output_path,
+                               "kernel_name": kernel_name,
+                               "force_new_results": force_new_results}
+                         )
     pool.close()
     pool.join()
 
@@ -1556,3 +1984,65 @@ def create_multiple_scenario_notebooks(scenarios, run_id,
         logger.warning(f'Errors occured during creation of notebooks.')
     else:
         logger.info(f'Notebooks for {len(scenarios)} scenarios created without errors.')
+
+
+def create_comparative_notebook(scenarios, run_id,
+                                template="scenario_analysis_comparative_template.ipynb",
+                                output_path=os.path.join(wn_path[0], 'jupy'),
+                                kernel_name=None,
+                                force_new_results=False):
+    """Create comparative jupyter notebook with all scenarios"""
+
+    if isinstance(scenarios, str):
+        scenarios = [scenarios]
+
+    # get list of available scenarios in run id folder
+    result_base_path = os.path.join(config.get_data_root_dir(),
+                                    config.get('user_dirs',
+                                               'results_dir')
+                                    )
+    avail_scenarios = [file.split('.')[0]
+                       for file in os.listdir(os.path.join(result_base_path,
+                                                           run_id))
+                       if not file.startswith('.')]
+    # get list of available scenarios for comparison
+    all_scenarios = [file.split('.')[0]
+                     for file in os.listdir(os.path.join(wn_path[0],
+                                                         'scenarios'))
+                     if file.endswith(".scn")]
+
+    if len(all_scenarios) > len(avail_scenarios):
+        logger.info(f'Available scenarios ({len(avail_scenarios)}) in run '
+                    f'{run_id} differ from the total number of scenarios '
+                    f'({len(all_scenarios)}).')
+
+    # create scenario list
+    if scenarios == ['all']:
+        scenarios = avail_scenarios
+
+    logger.info(f'Creating comparative notebook for {len(scenarios)} scenarios in {output_path} ...')
+
+    # define data and paths
+    input_template = os.path.join(wn_path[0], 'jupy', 'templates', template)
+    output_name = "scenario_analysis_comparative.ipynb"
+    output_notebook = os.path.join(output_path, output_name)
+
+    # execute notebook with specific parameters
+    try:
+        pm.execute_notebook(input_template, output_notebook,
+                            parameters={
+                                "scenarios": scenarios,
+                                "run_timestamp": run_id,
+                                "force_new_results": force_new_results
+                            },
+                            request_save_on_cell_execute=True,
+                            kernel_name=kernel_name)
+    except FileNotFoundError:
+        logger.error(f'Template or output path not found.')
+        raise FileNotFoundError
+    except Exception as ex:
+        logger.error(f'An exception of type {type(ex).__name__} occurred:')
+        logger.error(ex)
+        raise Exception
+    else:
+        logger.info(f'Comparative notebook successfully created!')

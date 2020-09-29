@@ -8,6 +8,7 @@ import requests
 import pandas as pd
 import keyring
 import json
+import pickle
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import func
@@ -726,3 +727,94 @@ def load_results(timestamp, scenario):
         return None
 
     return results
+
+
+def export_processed_results(run_id, scn_id, results, region):
+    """Export processed results of analysis of a single scenario to pickle file
+    in directory ~/.windnode_abw/results/<run_timestamp>/<scenario>/processed/
+    which is created if not existent.
+
+    Parameters
+    ----------
+    run_id : :obj:`str`
+        Run id
+    scn_id : :obj:`str`
+        Scenario id
+    results : :obj:`dict`
+        Results from analysis
+    region : :class:`~.model.Region`
+        Region object belonging to results
+    """
+    results_path = os.path.join(config.get_data_root_dir(),
+                                config.get('user_dirs',
+                                           'results_dir'),
+                                run_id,
+                                scn_id,
+                                'processed'
+                                )
+
+    # if dir does not exist, create it
+    if not os.path.isdir(results_path):
+        os.mkdir(results_path)
+
+    logger.info(f'Exporting results to {results_path} ...')
+
+    # create dict to be pickled
+    results_dict = {'region': region,
+                    'results': results}
+
+    results_file = os.path.join(results_path,
+                                f'{run_id}_{scn_id}.pickle')
+
+    # dump!
+    try:
+        pickle.dump(results_dict, open(results_file, 'wb'))
+    except Exception as ex:
+        logger.warning(f'Could not export processed results! Details:')
+        logger.warning(ex)
+
+
+def load_processed_results(run_id, scn_id):
+    """Load processed results of analysis from pickle file
+
+    Parameters
+    ----------
+    run_id : :obj:`str`
+        Run id
+    scn_id : :obj:`str`
+        Scenario id
+
+    Returns
+    -------
+    :class:`~.model.Region`
+        Region object
+    :obj:`dict` of :obj:`dict`
+        Result dict
+    """
+    results_path = os.path.join(config.get_data_root_dir(),
+                                config.get('user_dirs',
+                                           'results_dir'),
+                                run_id,
+                                scn_id,
+                                'processed'
+                                )
+
+    # check if dir exists
+    if not os.path.isdir(results_path):
+        logger.info(f'Loading processed results: '
+                    f'Directory {results_path} not found, skipping...')
+        return None, None
+
+    results_file = os.path.join(results_path,
+                                f'{run_id}_{scn_id}.pickle')
+
+    # load!
+    logger.info(f'Loading processed results from {results_path} ...')
+    try:
+        results_dict = pickle.load(open(results_file, 'rb'))
+    except Exception as ex:
+        logger.warning(f'Could not load processed results! Details:')
+        logger.warning(ex)
+        return None, None
+
+    return results_dict['region'], results_dict['results']

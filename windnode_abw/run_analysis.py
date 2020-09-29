@@ -14,17 +14,17 @@ if __name__ == "__main__":
     # TODO: Nice-to-have: argparse
 
     # specify what to import (in path ~/.windnode_abw/)
-    run_timestamp = '2020-07-24_104145_1month'
+    run_timestamp = '2020-08-14_203324'
 
     # select multiple scenarios manually or use 'ALL' to analyze all
     # scenarios found in directory
     #scenarios = ['future', 'sq']
-    #scenarios = ['ALL']
-    scenarios = ['NEP2035']
+    scenarios = ['ALL']
+    #scenarios = ['NEP']
 
     regions_scns, results_scns = analysis(run_timestamp=run_timestamp,
-                       scenarios=scenarios)
+                                          scenarios=scenarios,
+                                          force_new_results=False)
 
     logger.info('===== All done! =====')
 
-    # DO STUFF WITH RESULTS (dict results_scns) HERE
