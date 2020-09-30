@@ -135,3 +135,19 @@ html_theme_options = {
     },
     "table_classes": ["plain"],
 }
+
+
+# NBSphinx config
+# nbsphinx_prolog = """
+# {% set docname =  env.doc2path(env.docname, base=None)|replace("notebooks/scenario_analysis_", "")|replace(".ipynb", "") %}
+# {% set scenariodocname = "Scenario: " ~ docname %}
+#
+# .. raw:: html
+#
+#    <h3 id={{ docname }}>
+#         {{ scenariodocname }}
+#         <a class="headerlink" href="#{{ docname }}" title="Permalink to this headline">
+#         ¶
+#         </a>
+#    </h3>
+# """
