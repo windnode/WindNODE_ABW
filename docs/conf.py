@@ -16,6 +16,21 @@
 
 import sphinx_material
 import os
+import pynodo
+
+
+ZENODO_DEPOSIT_ID = 676602
+
+def download_from_zenodo(deposit_id):
+    if 'ZENODO_ACCESS_TOKEN' in os.environ:
+        zen_files = pynodo.DepositionFiles(deposition=deposit_id,
+                                           access_token=os.environ["ZENODO_ACCESS_TOKEN"],
+                                           sandbox=True)
+
+        for file in zen_files.files.keys():
+            zen_files.download(file, "notebooks/")
+    else:
+        raise EnvironmentError("Variable `ZENODO_ACCESS_TOKEN` is missing.")
 
 
 def single_scenario_nb_toctree(target_file="_include/single_scenario_results.rst"):
@@ -35,6 +50,7 @@ def single_scenario_nb_toctree(target_file="_include/single_scenario_results.rst
 
 
 # Download results .ipynb and hook into documentation
+download_from_zenodo(ZENODO_DEPOSIT_ID)
 single_scenario_nb_toctree()
 
 
