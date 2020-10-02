@@ -38,6 +38,9 @@ def download_from_zenodo(deposit_id):
 
 
 def single_scenario_nb_toctree(target_file="_include/single_scenario_results.rst"):
+
+    os.makedirs("_include", exist_ok=True)
+
     files = os.listdir("notebooks")
     basenames = [os.path.splitext(file)[0] for file in files]
     names = [file.replace("scenario_analysis_", "") for file in basenames]
