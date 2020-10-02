@@ -22,6 +22,9 @@ import pynodo
 ZENODO_DEPOSIT_ID = 676602
 
 def download_from_zenodo(deposit_id):
+
+    os.makedirs("notebooks", exist_ok=True)
+
     if 'ZENODO_ACCESS_TOKEN' in os.environ:
         zen_files = pynodo.DepositionFiles(deposition=deposit_id,
                                            access_token=os.environ["ZENODO_ACCESS_TOKEN"],
