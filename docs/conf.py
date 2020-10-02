@@ -31,6 +31,7 @@ def download_from_zenodo(deposit_id):
                                            sandbox=True)
 
         for file in zen_files.files.keys():
+            print("Downloading {}...".format(file))
             zen_files.download(file, "notebooks/")
     else:
         raise EnvironmentError("Variable `ZENODO_ACCESS_TOKEN` is missing.")
