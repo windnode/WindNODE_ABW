@@ -19,7 +19,7 @@ import os
 import pynodo
 
 
-ZENODO_DEPOSIT_ID = 676602
+ZENODO_DEPOSIT_ID = 676824
 
 def download_from_zenodo(deposit_id):
 
