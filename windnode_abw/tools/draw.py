@@ -39,14 +39,16 @@ logger = logging.getLogger('windnode_abw')
 PRINT_NAMES = {
     'bhkw': "Large-scale CHP",
     'bio': "Biogas",
+    'demand': 'Demand',
     'gas': "Open-cycle gas turbine",
+    'grid': "Grid",
     'gud': "Combined-cycle gas turbine",
     'hydro': "Hydro",
-    'pv_ground': "PV ground",
+    'pv_ground': "PV ground-mounted",
     'pv_roof_large': "PV roof top (large)",
     'pv_roof_small': "PV roof top (small)",
     'wind': "Wind",
-    "export" : "Export (national grid)",
+    "export": "Export (national grid)",
     'import': "Import (national grid)",
     "el_heating": "electrical Heating",
     "elenergy": "Direct electric heating",
@@ -71,7 +73,7 @@ PRINT_NAMES = {
     "hh" : "Households",
     "ind" : "Industry",
     "rca" : "CTS+agriculture",
-    "conventional" : "Conventional",
+    "conventional": "Conventional",
     "el_hh" : "Electricity households",
     "el_rca" : "Electricity CTS+agriculture",
     "el_ind" : "Electricity industry",
@@ -99,12 +101,13 @@ PRINT_NAMES = {
 # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
 # https://plotly.com/python/builtin-colorscales/
 COLORS = {'bio': 'green',
+          'grid': 'grey',
           'hydro': 'royalblue',
-          'pv_ground' : 'goldenrod',
-          'pv_roof_large' : 'gold',
-          'pv_roof_small' : 'darkorange',
+          'pv_ground': 'goldenrod',
+          'pv_roof_large': 'gold',
+          'pv_roof_small': 'darkorange',
           'wind': 'skyblue',
-          'conventional':'grey',
+          'conventional': 'grey',
           'fuel_oil':'grey',
           'solar_heat': 'peru',
           'solar': 'peru',
@@ -140,6 +143,13 @@ COLORS = {'bio': 'green',
           "pth_GSHP_stor": "lightcoral",
 
          }
+
+# Color dict with PRINT_NAMES
+COLORS_PRINT = dict()
+for key in COLORS.keys():
+    COLORS_PRINT[PRINT_NAMES.get(key)] = COLORS[key]
+
+
 # RLI Colors
 #CMAP = px.colors.sequential.GnBu_r
 # WindNODE Colors
@@ -1057,3 +1067,55 @@ def calc_dsm_cap(region, hh_share=True):
     df_dsm_cap_down = df_dsm_cap_down * hh_share
     
     return df_dsm_cap_up, df_dsm_cap_down
+
+
+def get_emissions_formated(results):
+    """prepare emissions dataframe for sunburst"""
+    data_el = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions el. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions el. var'].sum(axis=0),
+    }).rename(index=PRINT_NAMES).reset_index().rename(columns={'index': 'technology'})
+    data_el['sector'] = 'Power'
+
+    data_th = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions th. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions th. var'].sum(axis=0),
+    }).rename(index=PRINT_NAMES).reset_index().rename(columns={'index': 'technology'})
+    data_th['sector'] = 'Heat'
+
+    data_stor_el = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions stor el. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions stor el. var'].sum(axis=0),
+    }).rename(index=PRINT_NAMES)
+    data_stor_el.index.name = None
+    data_stor_el = data_stor_el.reset_index().rename(columns={'index': 'technology'})
+    data_stor_el['sector'] = 'Power'
+
+    data_stor_th = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions stor th. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions stor th. var'].sum(axis=0),
+    }).rename(index=PRINT_NAMES)
+    data_stor_th.index.name = None
+    data_stor_th = data_stor_th.reset_index().rename(columns={'index': 'technology'})
+    data_stor_th['sector'] = 'Heat'
+
+    data_grid = pd.DataFrame(columns=data_el.columns)
+    data_grid.loc[0, 'fix'] = results['results_axlxt']['CO2 emissions grid total'].sum(axis=0) + \
+                              results['results_axlxt']['CO2 emissions grid new total'].sum(axis=0)
+    data_grid.loc[0, 'var'] = 0
+    data_grid.loc[0, 'technology'] = 'Grid'
+    data_grid.loc[0, 'sector'] = 'Grid'
+
+    data = pd.concat([data_el, data_th, data_stor_el, data_stor_th, data_grid],
+                     axis=0)
+
+    data_fix = data.copy()
+    data_var = data.copy()
+    data_fix = data_fix.drop(columns=['var']).rename(columns={'fix': 'emissions'})
+    data_fix['type'] = 'fix'
+    data_var = data_var.drop(columns=['fix']).rename(columns={'var': 'emissions'})
+    data_var['type'] = 'var'
+
+    df_data = pd.concat([data_fix, data_var]).reset_index(drop=True)
+
+    return df_data
