@@ -144,6 +144,10 @@ COLORS = {'bio': 'green',
 #CMAP = px.colors.sequential.GnBu_r
 # WindNODE Colors
 colors = n_colors('rgb(0, 200, 200)', 'rgb(255, 100, 0)', 21, colortype='rgb')
+# WindNODE Colormap
+cmap = n_colors((0, 200, 200), (255, 100, 0), 21)
+cmap = [unconvert_from_RGB_255(i) for i in cmap]
+cmap = ListedColormap(cmap)
 
 UNITS = {"relative": "%", "hours": "h", "Utilization Rate": "%", "Total Cycles": "cycles", "Full Discharge Hours":"h", "RE":"MWh", "DSM":"MWh", "Import":"MWh", "Lineload":"%"}
 
@@ -480,7 +484,7 @@ def sample_plots(region, results):
 
 
 # one geoplot to fit in subplots
-def plot_geoplot(name, data, region, ax, unit=None):
+def plot_geoplot(name, data, region, ax, unit=None, cmap=cmap):
     """plot geoplot from pd.Series
     Parameters
     ----------
@@ -499,9 +503,9 @@ def plot_geoplot(name, data, region, ax, unit=None):
     #cmap = cm.GnBu_r(np.linspace(0,1,40))
     #cmap = ListedColormap(cmap[:32,:-1])
     # WindNODE Colormap
-    cmap = n_colors((0, 200, 200), (255, 100, 0), 21)
-    cmap = [unconvert_from_RGB_255(i) for i in cmap]
-    cmap = ListedColormap(cmap)
+    # cmap = n_colors((0, 200, 200), (255, 100, 0), 21)
+    # cmap = [unconvert_from_RGB_255(i) for i in cmap]
+    # cmap = ListedColormap(cmap)
 
     gdf_region = gpd.GeoDataFrame(region.muns.loc[:,['gen', 'geom']],
                                   geometry='geom')
@@ -705,7 +709,7 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
 
     fig.update_layout(
         title='Power Generation and Demand of %s'% ags,
-        height = 700,
+        height= 700,
         #xaxis={'categoryorder':'category ascending'},
         xaxis_tickfont_size=14,
         yaxis=dict(
