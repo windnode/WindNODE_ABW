@@ -564,6 +564,7 @@ def plot_snd_total(region, df_supply, df_demand):
                                     '<extra></extra>', )
     fig.update_layout(
         title='Power Supply and Demand',
+        legend_title="Technology/Sector",
         barmode='relative',
         height=600,
         xaxis={'categoryorder':'category ascending'},
@@ -615,14 +616,14 @@ def plot_split_hbar(data, limit, ax, title=None, unit=None):
     ax2.set_title(title,loc='left', fontsize=12)
 
 
-def plot_timeseries(results_scn, kind='el', **kwargs):
+def plot_timeseries(results_scn, kind='Power', **kwargs):
     """plot generation and demand timeseries of either 'electrical' or 'thermal' components
     Parameters
     ----------
     results_scn : dict
         scenario result
     kind : str
-        'el' or 'th'
+        'Power' or 'Thermal'
     *ags : str/int
         ags number or 'ABW' for whole region
     """
@@ -633,7 +634,7 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
     # remove if ags in multiindex is converted to int
     ags = str(ags)
     
-    if kind =='el':
+    if kind =='Power':
         df_feedin = results_scn['flows_txaxt']['Stromerzeugung']
         df_demand = results_scn['flows_txaxt']['Stromnachfrage']
 
@@ -652,7 +653,7 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
             el_heating = results_scn['flows_txaxt']['Stromnachfrage Wärme'].loc[(slice(None),slice(None),ags),:].sum(level='timestamp')
             df_demand['el_heating'] = el_heating.sum(axis=1)
 
-    elif kind == 'th':
+    elif kind == 'Thermal':
         df_feedin = results_scn['flows_txaxt']['Wärmeerzeugung']
         df_demand = results_scn['flows_txaxt']['Wärmenachfrage']
 
@@ -662,7 +663,6 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
         else:  
             df_feedin = df_feedin.loc[(slice(None),ags),:].sum(level=0)#.loc[start:end,:]
             df_demand = df_demand.loc[(slice(None),ags),:].sum(level=0)
-
     #else:
     #    raise ValueError("Enter either 'el' or 'th'") 
    
@@ -694,6 +694,7 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
 
     fig.update_xaxes(
         title='Zoom',
+        showspikes=True,
         rangeslider_visible=True,
         rangeselector=dict(
             buttons=list([
@@ -708,8 +709,9 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
     )
 
     fig.update_layout(
-        title='Power Generation and Demand of %s'% ags,
-        height= 700,
+        title=f'{kind} Generation and Demand of {ags}',
+        legend_title="Technology/Sector",
+        height=700,
         #xaxis={'categoryorder':'category ascending'},
         xaxis_tickfont_size=14,
         yaxis=dict(
@@ -718,8 +720,11 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
             tickfont_size=14),
         autosize=True,
         )
+    fig.update_traces(hovertemplate='%{x}<br>' +
+                                    '%{fullData.name} <br>' +
+                                    'Power: %{y:.0f} MW <br>' +
+                                    '<extra></extra>', )  #
     fig.show()
-
 
 def get_timesteps(region):
     timestamps = pd.date_range(start=region._cfg['date_from'],
