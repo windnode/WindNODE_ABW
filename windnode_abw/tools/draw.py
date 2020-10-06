@@ -555,9 +555,11 @@ def plot_snd_total(region, df_supply, df_demand):
                              marker_color=COLORS[tech],
                             visible='legendonly'))
 
-
+    fig.update_traces(hovertemplate='%{fullData.name}<br>' +
+                                    '%{y:.1f} GWh <br>' +
+                                    '<extra></extra>', )
     fig.update_layout(
-        title='Power Generation and Demand',
+        title='Power Supply and Demand',
         barmode='relative',
         height=600,
         xaxis={'categoryorder':'category ascending'},
