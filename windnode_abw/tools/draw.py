@@ -25,6 +25,7 @@ import plotly.express as px
 import plotly.io as pio
 import plotly.graph_objs as go
 import plotly.offline as pltly
+from plotly.colors import n_colors, unconvert_from_RGB_255
 from plotly.subplots import make_subplots
 
 from oemof.outputlib import views
@@ -139,10 +140,12 @@ COLORS = {'bio': 'green',
           "pth_GSHP_stor": "lightcoral",
 
          }
+# RLI Colors
+#CMAP = px.colors.sequential.GnBu_r
+# WindNODE Colors
+colors = n_colors('rgb(0, 200, 200)', 'rgb(255, 100, 0)', 21, colortype='rgb')
 
-CMAP = px.colors.sequential.GnBu_r
-
-UNITS = {"relative": "%", "hours": "h", "Utilization Rate":"%", "Total Cycles": "cycles", "Full Discharge Hours":"h", "RE":"MWh", "DSM":"MWh", "Import":"MWh", "Lineload":"%"}
+UNITS = {"relative": "%", "hours": "h", "Utilization Rate": "%", "Total Cycles": "cycles", "Full Discharge Hours":"h", "RE":"MWh", "DSM":"MWh", "Import":"MWh", "Lineload":"%"}
 
 def draw_graph(grph, mun_ags=None,
                edge_labels=True, node_color='#AFAFAF',
@@ -492,8 +495,13 @@ def plot_geoplot(name, data, region, ax, unit=None):
     unit : str
         label of colorbar
     """
-    cmap = cm.GnBu_r(np.linspace(0,1,40))
-    cmap = ListedColormap(cmap[:32,:-1])
+    # Rli Colormap
+    #cmap = cm.GnBu_r(np.linspace(0,1,40))
+    #cmap = ListedColormap(cmap[:32,:-1])
+    # WindNODE Colormap
+    cmap = n_colors((0, 200, 200), (255, 100, 0), 21)
+    cmap = [unconvert_from_RGB_255(i) for i in cmap]
+    cmap = ListedColormap(cmap)
 
     gdf_region = gpd.GeoDataFrame(region.muns.loc[:,['gen', 'geom']],
                                   geometry='geom')
@@ -754,7 +762,7 @@ def get_storage_ratios(storage_figures, region):
     return storage_ratios
 
 
-def plot_storage_ratios(storage_ratios, region, title):
+def plot_storage_ratios(storage_ratios, region, title, colors):
     """plot storage ratios of either heat or electricity
     Parameters
     ----------
@@ -764,6 +772,9 @@ def plot_storage_ratios(storage_ratios, region, title):
         region
     title : str
         title of the figures
+    colors : list
+        list of rgb codes
+
     """
     sub_titles = storage_ratios.columns.get_level_values(level=0).unique()
     rows = storage_ratios.sum(level=0, axis=1)
@@ -800,7 +811,7 @@ def plot_storage_ratios(storage_ratios, region, title):
                        name=key,
                        legendgroup=key,
                        customdata=ags,
-                       marker_color=CMAP[col+i],
+                       marker_color=colors[col+i],
                        opacity=0.7,
                       showlegend= not bool(col),
                        visible=visible,
@@ -816,7 +827,7 @@ def plot_storage_ratios(storage_ratios, region, title):
                            orientation='v',
                            name='ABW',
                            legendgroup="ABW",
-                           marker_color=CMAP[col],
+                           marker_color=colors[col],
                            showlegend= not bool(col),
                            visible='legendonly',
                           hovertemplate = hovertemplate,),
