@@ -40,12 +40,14 @@ PRINT_NAMES = {
     'bhkw': "Large-scale CHP",
     'bio': "Biogas",
     'demand': 'Demand',
+    'district_heating': 'District Heating',
     'gas': "Open-cycle gas turbine",
     'grid': "Grid",
     'grid new': 'Grid new',
     'gud': "Combined-cycle gas turbine",
     'hydro': "Hydro",
     'pv_ground': "PV ground-mounted",
+    "pv_roof": "PV roof",
     'pv_roof_large': "PV roof top (large)",
     'pv_roof_small': "PV roof top (small)",
     'wind': "Wind",
@@ -96,12 +98,13 @@ PRINT_NAMES = {
     "s1000f1":"Area required rel. Wind 1000m w forest 10-perc",
     "s500f0":"Area required rel. Wind 500m wo forest 10-perc",
     "s500f1":"Area required rel. Wind 500m w forest 10-perc",
-    "pv_roof":"PV roof",
+
 }
 
 # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
 # https://plotly.com/python/builtin-colorscales/
 COLORS = {'bio': 'green',
+          'district_heating': 'plum',
           'grid': 'grey',
           'grid new': 'darkgrey',
           'hydro': 'royalblue',
@@ -143,7 +146,10 @@ COLORS = {'bio': 'green',
           "pth_ASHP_stor": "lightpink",
           "pth_GSHP_nostor": "lightcoral",
           "pth_GSHP_stor": "lightcoral",
-
+          "flex_bat_large": "sandybrown",
+          "flex_bat_small": "burlywood",
+          "stor_th_large": "rosybrown",
+          "stor_th_small": "indianred",
          }
 
 # Color dict with PRINT_NAMES
