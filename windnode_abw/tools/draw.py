@@ -42,6 +42,7 @@ PRINT_NAMES = {
     'demand': 'Demand',
     'gas': "Open-cycle gas turbine",
     'grid': "Grid",
+    'grid new': 'Grid new',
     'gud': "Combined-cycle gas turbine",
     'hydro': "Hydro",
     'pv_ground': "PV ground-mounted",
@@ -102,6 +103,7 @@ PRINT_NAMES = {
 # https://plotly.com/python/builtin-colorscales/
 COLORS = {'bio': 'green',
           'grid': 'grey',
+          'grid new': 'darkgrey',
           'hydro': 'royalblue',
           'pv_ground': 'goldenrod',
           'pv_roof_large': 'gold',
@@ -1069,8 +1071,8 @@ def calc_dsm_cap(region, hh_share=True):
     return df_dsm_cap_up, df_dsm_cap_down
 
 
-def get_emissions_formated(results):
-    """prepare emissions dataframe for sunburst"""
+def get_emissions_sb_formated(results):
+    """format emissions dataframe for sunburst"""
     data_el = pd.DataFrame({
         'fix': results['results_axlxt']['CO2 emissions el. fix'].sum(axis=0),
         'var': results['results_axlxt']['CO2 emissions el. var'].sum(axis=0),
@@ -1117,5 +1119,45 @@ def get_emissions_formated(results):
     data_var['type'] = 'var'
 
     df_data = pd.concat([data_fix, data_var]).reset_index(drop=True)
+
+    return df_data
+
+
+def get_emissions_type_formatted(results):
+    """format emissions dataframe per type for barplot"""
+    # Electricity
+    data_el = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions el. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions el. var'].sum(axis=0),
+    })
+    # Storage el
+    data_stor_el = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions stor el. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions stor el. var'].sum(axis=0),
+    })
+    data_el = data_el.append(data_stor_el)
+    # Grid
+    data_el.loc['Grid', 'fix'] = results['results_axlxt']['CO2 emissions grid total'].sum(axis=0) + \
+                                 results['results_axlxt']['CO2 emissions grid new total'].sum(axis=0)
+
+    # Heat
+    data_th = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions th. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions th. var'].sum(axis=0),
+    })
+    # Storage th
+    data_stor_th = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions stor th. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions stor th. var'].sum(axis=0),
+    })
+    data_th = data_th.append(data_stor_th)
+
+    # concat
+    df_data = pd.concat([data_el, data_th, ], axis=1,
+                        keys=['Electricity Supply', 'Heat Supply'], sort=True)
+
+    df_data = df_data.fillna(0)
+    # df_data = df_data[(df_data!=0).any(axis=1)]
+    df_data = df_data.rename(index=PRINT_NAMES)
 
     return df_data
