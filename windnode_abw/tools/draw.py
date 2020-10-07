@@ -813,7 +813,7 @@ def plot_storage_ratios(storage_ratios, region, title, colors):
     subplot_size = subplot_size.where(subplot_size>=0.2, 0.2)
 
     fig = make_subplots(rows=1, cols=2,
-                        horizontal_spacing=0.15,
+                        horizontal_spacing=0.2,
                         column_widths=list(subplot_size),
                         #column_widths=[0.2, 0.8],
                         subplot_titles=(sub_titles[0], sub_titles[1]),
