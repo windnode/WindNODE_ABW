@@ -504,6 +504,44 @@ def sample_plots(region, results):
     plt.show()
 
 
+def plot_grid(region, lines=False, buses=False):
+    """plot ABW Region, optional with powerlines and buses"""
+    with sns.axes_style("white"):
+        fig, ax = plt.subplots(figsize=(20, 10))
+
+        gdf_region = gpd.GeoDataFrame(region.muns, geometry='geom')
+
+        # gdf_region.plot(ax=ax, color='white', edgecolor='#aaaaaa')
+        gdf_region.plot(ax=ax, color=cmap(1), edgecolor='white', alpha=1)
+
+        for idx, row in gdf_region.iterrows():
+            ax.annotate(s=row['gen'],
+                        xy=(row['geom'].centroid.x, row['geom'].centroid.y),
+                        ha='center',
+                        va='bottom',
+                        color='black',
+                        size=14)
+
+        gdf_region['centroid'] = gdf_region['geom'].centroid
+        gdf_centroid = gpd.GeoDataFrame(gdf_region, geometry='centroid')
+        gdf_centroid.plot(ax=ax, color=cmap(20), markersize=30, alpha=1)
+        if lines:
+            gdf_lines = gpd.GeoDataFrame(region.lines, geometry='geom')
+            gdf_lines.plot(ax=ax, color='#88aaaa', linewidth=1.5, alpha=1)
+        if buses:
+            gdf_buses = gpd.GeoDataFrame(region.buses, geometry='geom')
+            gdf_buses.plot(ax=ax, color='#338888', markersize=6, alpha=1)
+
+        ax.set_yticklabels([])
+        ax.set_xticklabels([])
+
+        ax.set_title('Region ABW mit Hochspannungsnetz',
+                     fontsize=16,
+                     fontweight='normal')
+        sns.despine(ax=ax, top=True, bottom=True, left=True, right=True)
+        plt.show()
+
+
 # one geoplot to fit in subplots
 def plot_geoplot(name, data, region, ax, unit=None, cmap=cmap):
     """plot geoplot from pd.Series
