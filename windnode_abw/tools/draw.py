@@ -535,7 +535,7 @@ def plot_grid(region, lines=False, buses=False):
         ax.set_yticklabels([])
         ax.set_xticklabels([])
 
-        ax.set_title('Region ABW mit Hochspannungsnetz',
+        ax.set_title('Region Anhalt-Bitterfeld-Wittenberg',
                      fontsize=16,
                      fontweight='normal')
         sns.despine(ax=ax, top=True, bottom=True, left=True, right=True)
