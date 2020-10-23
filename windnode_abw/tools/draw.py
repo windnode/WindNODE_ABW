@@ -103,6 +103,8 @@ PRINT_NAMES = {
     "s500f1": "Area required rel. Wind 500m w forest 10-perc",
 
 }
+UNITS = {"relative": "%", "hours": "h", "Utilization Rate": "%", "Total Cycles": "cycles", "Full Discharge Hours": "h",
+         "RE": "MWh", "DSM": "MWh", "Import": "MWh", "Lineload": "%"}
 
 # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
 # https://plotly.com/python/builtin-colorscales/
@@ -160,17 +162,20 @@ COLORS_PRINT = dict()
 for key in COLORS.keys():
     COLORS_PRINT[PRINT_NAMES.get(key)] = COLORS[key]
 
-# RLI Colors
-# CMAP = px.colors.sequential.GnBu_r
-# WindNODE Colors
-colors = n_colors('rgb(0, 200, 200)', 'rgb(255, 100, 0)', 21, colortype='rgb')
-# WindNODE Colormap
-cmap = n_colors((0, 200, 200), (255, 100, 0), 21)
-cmap = [unconvert_from_RGB_255(i) for i in cmap]
-cmap = ListedColormap(cmap)
 
-UNITS = {"relative": "%", "hours": "h", "Utilization Rate": "%", "Total Cycles": "cycles", "Full Discharge Hours": "h",
-         "RE": "MWh", "DSM": "MWh", "Import": "MWh", "Lineload": "%"}
+def set_colors():
+    # RLI Colors
+    # CMAP = px.colors.sequential.GnBu_r
+    # WindNODE Colors
+    colors = n_colors('rgb(0, 200, 200)', 'rgb(255, 100, 0)', 21, colortype='rgb')
+    # WindNODE Colormap
+    cmap = n_colors((0, 200, 200), (255, 100, 0), 21)
+    cmap = [unconvert_from_RGB_255(i) for i in cmap]
+    cmap = ListedColormap(cmap)
+    return cmap, colors
+
+
+cmap, colors = set_colors()
 
 
 def draw_graph(grph, mun_ags=None,
@@ -923,7 +928,13 @@ def plot_storage_ratios(storage_ratios, region, title):
     fig.show()
 
 
-def plot_key_scenario_results(results_scns, scenarios, cmap_name):
+def plot_key_scenario_results(results_scns, scenarios, cmap_name='WindNODE'):
+
+    if cmap_name == 'WindNODE':
+        cmap_dot_plot = n_colors((0, 200, 200), (255, 100, 0), len(scenarios))
+        cmap_dot_plot = [unconvert_from_RGB_255(i) for i in cmap_dot_plot]
+    else:
+        cmap_dot_plot = sns.color_palette(cmap_name, len(scenarios))
     return_data = {}
 
     plots = {
@@ -1064,7 +1075,7 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
 
         # Draw a dot plot using the stripplot function
         g.map(sns.stripplot, size=10, orient="h",
-              palette=sns.color_palette(cmap_name, len(scenarios)),
+              palette=cmap_dot_plot,
               linewidth=1, edgecolor="w")
 
         # Set 2nd title for columns (top)
