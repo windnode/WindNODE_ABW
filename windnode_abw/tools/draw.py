@@ -962,11 +962,8 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name='WindNODE'):
             },
         3: {'highlevel_results': [('Autarky', '%'), ('Net DSM activation', 'MWh'), ('Battery Storage Usage Rate', '%'),
                                   ('Heat Storage Usage Rate', '%')],
-            'results_axlxt': [  # ('Batteriespeicher nach Gemeinde', 'discharge', 'MWh'),
-                # ('Wärmespeicher nach Gemeinde', 'discharge', 'MWh'),
-                ('DSM Capacities', 'Demand decrease', 'MWh')],
+            'results_axlxt': [('DSM Capacities', 'Demand decrease', 'MWh')],
             'col_order': ['Scenario', 'Autarky [%]', 'El. Storage Use [%]',
-                          # 'El. Storage Use [GWh]','Heat Storage Use [GWh]'
                           'Heat Storage Use [%]', 'DSM Utilization Rate [%]'],
             'title': 'Flexibility Commitment'
             }
@@ -1034,20 +1031,11 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name='WindNODE'):
             data_axlxt.rename(columns=col_mapping, inplace=True)
             data = pd.concat([data_hl, data_axlxt], axis=1)
         if no == 3:
-            # data_axlxt['Batteriespeicher nach Gemeinde [GWh]'] = data_axlxt['Batteriespeicher nach Gemeinde [MWh]'] / 1e3
-            # data_axlxt['Wärmespeicher nach Gemeinde [GWh]'] = data_axlxt['Wärmespeicher nach Gemeinde [MWh]'] / 1e3
             data_axlxt['DSM Utilization Rate [%]'] = data_hl['Net DSM activation [MWh]'] / data_axlxt[
                 'DSM Capacities [MWh]'] * 1e2
             data_axlxt['DSM Utilization Rate [%]'] = data_axlxt['DSM Utilization Rate [%]'].fillna(0)
-            data_axlxt.drop(columns=[  # 'Batteriespeicher nach Gemeinde [MWh]',
-                # 'Wärmespeicher nach Gemeinde [MWh]',
-                'DSM Capacities [MWh]'], inplace=True)
+            data_axlxt.drop(columns=['DSM Capacities [MWh]'], inplace=True)
             data_hl.drop(columns=['Net DSM activation [MWh]'], inplace=True)
-            # col_mapping = {
-            #     'Batteriespeicher nach Gemeinde [GWh]': 'El. Storage Use [GWh]',
-            #     'Wärmespeicher nach Gemeinde [GWh]': 'Heat Storage Use [GWh]',
-            # }
-            # data_axlxt.rename(columns=col_mapping, inplace=True)
             data = pd.concat([data_hl, data_axlxt], axis=1)
 
         # sort all plots by total costs
