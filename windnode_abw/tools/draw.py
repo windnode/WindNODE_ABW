@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 import os
+import warnings
 
 import seaborn as sns
 
@@ -928,7 +929,7 @@ def plot_storage_ratios(storage_ratios, region, title):
     fig.show()
 
 
-def plot_key_scenario_results(results_scns, scenarios, cmap_name='WindNODE'):
+def plot_key_scenario_results(results_scns, scenarios, cmap_name='WindNODE', scenario_order=None):
 
     if cmap_name == 'WindNODE':
         cmap_dot_plot = n_colors((0, 200, 200), (255, 100, 0), len(scenarios))
@@ -1038,17 +1039,24 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name='WindNODE'):
             data_hl.drop(columns=['Net DSM activation [MWh]'], inplace=True)
             data = pd.concat([data_hl, data_axlxt], axis=1)
 
-        # sort all plots by total costs
-        if no == 1:
-            # data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
-            data.sort_values(by='Total Costs [bnEUR]', inplace=True)
-            sort_order = data.index
+        # # sort all plots by total costs
+        # if no == 1:
+        #     # data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
+        #     data.sort_values(by='Total Costs [bnEUR]', inplace=True)
+        #     sort_order = data.index
+        # else:
+        #     data = data.reindex(sort_order)
+        #
+        # data = data.reset_index().rename(columns={'index': 'Scenario'})
+        #
+        if set(scenario_order) != set(scenarios):
+            warnings.warn("scenario_order is not complete. Falling back to original order!")
+            scenario_order = scenarios
         else:
-            data = data.reindex(sort_order)
-
+            data = data.loc[scenario_order]
         data = data.reset_index().rename(columns={'index': 'Scenario'})
 
-        # reorder columns
+        # # reorder columns
         data = data[params['col_order']]
 
         g = sns.PairGrid(data,
