@@ -1272,3 +1272,85 @@ scenario_order = ['StatusQuo',
                   'ISE_RE++_DSM_BAT_PTH']
 
 
+def pot_area_land_use(regions_scns, scenarios):
+    """draw bar chart to decribe the power potential restricted by land use scenarios"""
+    # get potential areas per land use scenario
+    pv_ground = pd.Series({f'{sc}_{faktor}': regions_scns['ISE'].pot_areas_pv_scn(
+        scenario=sc, pv_usable_area_agri_max=2086 * faktor)['with_agri_restrictions'].sum()
+                           for sc in ['HS', 'H'] for faktor in [0.1, 1, 2]})
+    wind = pd.Series({sc: regions_scns['ISE'].pot_areas_wec_scn(
+        scenario=sc).sum() * faktor for sc, faktor in zip(['SQ', 's1000f1', 's500f0', 's500f1'],
+                                                          [1, 0.1, 0.1, 0.1])})
+    pv_roof_tmp = regions_scns['ISE'].pot_areas_pv_roof.sum(axis=0)
+    re_pot_config = regions_scns['ISE'].cfg['scn_data']['generation']['re_potentials']
+    pv_roof = pd.Series(
+        {'roof': pv_roof_tmp['area_resid_ha'] * re_pot_config['pv_roof_resid_usable_area'] +
+                 pv_roof_tmp['area_ind_ha'] * re_pot_config['pv_roof_ind_usable_area']}
+    )
+
+    df_pot_area = pd.concat([pv_ground, pv_roof, wind], keys=['pv_ground', 'pv_roof', 'wind'])
+
+    # Land use
+    df_area = pd.DataFrame({scn: regions_scns[scn].cfg['scn_data']['generation']['re_potentials']
+                            for scn in scenarios}).T
+    df_land_use = pd.concat([
+        df_area['pv_roof_land_use'],  # ha/Mwp
+        df_area['pv_land_use'].rename('pv_ground_land_use'),  # ha/MWp
+        (df_area['wec_land_use'] / df_area['wec_nom_power']).rename('wind_land_use')],  # ha /MW
+        axis=1)
+
+    highlight_dict = {
+        'wind': {'Wind legal SQ \(VR/EG\)': '<b>Wind legal SQ (VR/EG)</b>'},
+        'pv_ground': {'PV ground HS 0.1-perc agri': '<b>PV ground HS 0.1-perc agri</b>'},
+        'pv_roof': {'PV rooftop': '<b>PV rooftop</b>'}
+    }
+    PRINT_NAMES_WO_REL = {k: v.replace('Area required rel. ', '') for k, v in PRINT_NAMES.items()}
+    CMAP = {'wind': colors[0], 'pv_ground': colors[20], 'pv_roof': colors[10]}
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    # potential Capacity
+    for i, (tech, df) in enumerate(df_pot_area.groupby(level=0)):
+        data = df.loc[tech] / df_land_use.loc['ISE', tech + '_land_use']
+        data = data.rename(index=PRINT_NAMES_WO_REL)
+        data.index = data.index.str.replace(list(highlight_dict[tech].keys())[0],
+                                            list(highlight_dict[tech].values())[0])
+
+        fig.add_trace(
+            go.Bar(x=data.index,
+                   y=data / 1e3,
+                   orientation='v',
+                   name=PRINT_NAMES_WO_REL[tech],
+                   marker_color=CMAP[tech],
+                   legendgroup=tech,
+                   opacity=1,
+                   offsetgroup=1,
+                   hovertemplate='%{y:.1f} GW'))
+
+        data = df.loc[tech] / df.loc[(tech, ['HS_0.1', 'roof', 'SQ'])].values * 100
+        data = data.rename(index=PRINT_NAMES_WO_REL)
+        data.index = data.index.str.replace(list(highlight_dict[tech].keys())[0],
+                                            list(highlight_dict[tech].values())[0])
+
+        fig.add_trace(
+            go.Bar(x=data.index,
+                   y=data,
+                   orientation='v',
+                   name='rel. to legal SQ',
+                   marker_color='grey',
+                   legendgroup=tech,
+                   showlegend=True,
+                   opacity=0.4,
+                   offsetgroup=2,
+                   hovertemplate='%{y:.1f} %'),
+            secondary_y=True)
+
+    fig.update_layout(title_text='RES Power Potential in Land Use Scenarios',
+                      autosize=True,
+                      barmode='group',
+                      hovermode="x unified")
+
+    fig.update_yaxes(title="GW", showspikes=True, secondary_y=False)
+    fig.update_yaxes(title="%", showspikes=True, secondary_y=True)
+    # fig.write_image("RES_power_potential_vs_Landuse_scenarios.png", format="png", scale=2, width=1080)
+    fig.show()
