@@ -40,6 +40,8 @@ import logging
 
 logger = logging.getLogger('windnode_abw')
 
+
+
 PRINT_NAMES = {
     'bhkw': "Large-scale CHP",
     'bio': "Biogas",
@@ -595,6 +597,10 @@ def plot_geoplot(name, data, region, ax, unit=None, cmap=cmap):
     ax.set_yticklabels([])
     ax.set_xticklabels([])
     ax.grid(False)
+
+# ######################
+# single scenario notebook
+# ######################
 
 
 def plot_snd_total(region, df_supply, df_demand):
@@ -1219,3 +1225,50 @@ def get_emissions_type_formatted(results):
     df_data = df_data.rename(index=PRINT_NAMES)
 
     return df_data
+
+# ##########################
+# ## multi scenario notebooks
+# ##########################
+
+
+scenario_order = ['StatusQuo',
+                  'NEP_RE-',
+                  'NEP_RE-_DSM',
+                  'NEP_RE-_DSM+',
+                  'NEP_RE-_BAT',
+                  'NEP_RE-_BAT+',
+                  'NEP_RE-_PTH',
+                  'NEP_RE-_PTH+',
+                  'NEP_RE-_DSM_BAT_PTH',
+                  'NEP_RE-_DSM+_BAT+_PTH+',
+                  'NEP_RE-_AUT80_DSM_BAT_PTH',
+                  'NEP_RE-_AUT80_DSM+_BAT+_PTH+',
+                  'NEP_RE-_AUT90_DSM_BAT_PTH',
+                  'NEP_RE-_AUT90_DSM+_BAT+_PTH+',
+                  'NEP',
+                  'NEP_DSM_BAT_PTH',
+                  'NEP_AUT90_DSM_BAT_PTH',
+                  'NEP_DSM+_BAT+_PTH+',
+                  'NEP_WIND+_DSM_BAT_PTH',
+                  'NEP_WIND+_DSM+_BAT+_PTH+',
+                  'NEP_PV+_DSM_BAT_PTH',
+                  'NEP_PV+_DSM+_BAT+_PTH+',
+                  'NEP_RE++_DSM_BAT_PTH',
+                  'ISE_RE-',
+                  'ISE_RE-_DSM',
+                  'ISE_RE-_DSM+',
+                  'ISE_RE-_BAT',
+                  'ISE_RE-_BAT+',
+                  'ISE_RE-_PTH',
+                  'ISE_RE-_PTH+',
+                  'ISE_RE-_DSM_BAT_PTH',
+                  'ISE_RE-_DSM+_BAT+_PTH+',
+                  'ISE_RE-_AUT80_DSM_BAT_PTH',
+                  'ISE_RE-_AUT80_DSM+_BAT+_PTH+',
+                  'ISE_RE-_AUT90_DSM++_BAT++_PTH++',
+                  'ISE',
+                  'ISE_DSM_BAT_PTH',
+                  'ISE_DSM+_BAT+_PTH+',
+                  'ISE_RE++_DSM_BAT_PTH']
+
+
