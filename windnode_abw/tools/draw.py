@@ -551,7 +551,7 @@ def plot_grid(region, lines=False, buses=False):
 
 
 # one geoplot to fit in subplots
-def plot_geoplot(name, data, region, ax, unit=None, cmap=cmap):
+def plot_geoplot(name, data, region, ax, unit=None, cmap=None, vmin=None, vmax=None):
     """plot geoplot from pd.Series
     Parameters
     ----------
@@ -589,7 +589,9 @@ def plot_geoplot(name, data, region, ax, unit=None, cmap=cmap):
                     legend=True,
                     cmap=cmap,
                     cax=cax,
-                    legend_kwds={'label': unit}
+                    legend_kwds={'label': unit},
+                    vmin=vmin,
+                    vmax=vmax,
                     )
 
     # Set title, remove ticks/grid
