@@ -1272,7 +1272,7 @@ scenario_order = ['StatusQuo',
                   'ISE_RE++_DSM_BAT_PTH']
 
 
-def pot_area_land_use(regions_scns, scenarios):
+def power_pot_land_use(regions_scns, scenarios):
     """draw bar chart to decribe the power potential restricted by land use scenarios"""
     # get potential areas per land use scenario
     pv_ground = pd.Series({f'{sc}_{faktor}': regions_scns['ISE'].pot_areas_pv_scn(
