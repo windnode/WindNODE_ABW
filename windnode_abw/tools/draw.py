@@ -1408,19 +1408,21 @@ def power_pot_scenarios(regions_scns, scenarios):
                     for scn in ref_scenarios[year].values()]
     }, index=ref_scenarios[year].keys()) for year in ref_scenarios.keys()], keys=ref_scenarios.keys(), names=['year', 'scenario'])
 
-    # merge WIND+ and PV+ and reorder
-    re_caps.loc[('NEP 2035', 'RE+'), :] = re_caps.loc[('NEP 2035', ('WIND+', 'PV+')),:].max()
-    re_caps.drop([('NEP 2035', 'WIND+'), ('NEP 2035', 'PV+')], inplace=True)
+    # # merge WIND+ and PV+ and reorder
+    # re_caps.loc[('NEP 2035', 'RE+'), :] = re_caps.loc[('NEP 2035', ('WIND+', 'PV+')),:].max()
+    # re_caps.drop([('NEP 2035', 'WIND+'), ('NEP 2035', 'PV+')], inplace=True)
+    #
+    # re_areas.loc[('NEP 2035', 'RE+'), :] = re_areas.loc[('NEP 2035', ('WIND+', 'PV+')),:].max()
+    # re_areas.drop([('NEP 2035', 'WIND+'), ('NEP 2035', 'PV+')], inplace=True)
 
-    re_areas.loc[('NEP 2035', 'RE+'), :] = re_areas.loc[('NEP 2035', ('WIND+', 'PV+')),:].max()
-    re_areas.drop([('NEP 2035', 'WIND+'), ('NEP 2035', 'PV+')], inplace=True)
+    # order = [('NEP 2035', 'RE-'), ('NEP 2035', 'RE'), ('NEP 2035', 'RE+'), ('NEP 2035', 'RE++'),
+    #          ('ISE 2050', 'RE-'), ('ISE 2050', 'RE'), ('ISE 2050', 'RE++')]
 
-    order = [('NEP 2035', 'RE-'), ('NEP 2035', 'RE'), ('NEP 2035', 'RE+'), ('NEP 2035', 'RE++'),
-             ('ISE 2050', 'RE-'), ('ISE 2050', 'RE'), ('ISE 2050', 'RE++')]
+    order = [('NEP 2035', 'RE-'), ('NEP 2035', 'RE'), ('NEP 2035', 'WIND+'), ('NEP 2035', 'PV+'),
+             ('NEP 2035', 'RE++'), ('ISE 2050', 'RE-'), ('ISE 2050', 'RE'), ('ISE 2050', 'RE++')]
 
     re_areas = re_areas.reindex(index=order)
     re_caps = re_caps.reindex(index=order)
-
 
     re_areas_ref = re_areas.copy()
     re_areas_ref['pv_roof'] = re_areas.loc['NEP 2035', 'RE++']['pv_roof'] # use pv roof pot. from RE++ as ref.
@@ -1432,7 +1434,6 @@ def power_pot_scenarios(regions_scns, scenarios):
 
     CMAP = {'wind': colors[0], 'pv_ground': colors[10], 'pv_roof': colors[20]}
 
-
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
     xlabels = [list(re_areas_rel.index.get_level_values(1)),
@@ -1440,36 +1441,33 @@ def power_pot_scenarios(regions_scns, scenarios):
                re_areas_rel.index]
 
     for i, tech in enumerate(re_areas_rel.columns):
-        fig.add_trace(go.Bar(y=re_caps[tech]/1000,
-                    x=xlabels,
-                    name=PRINT_NAMES_WO_REL[tech],
-                    marker_color=CMAP[tech],
-                    showlegend=True,
-                    legendgroup=tech,
-                    orientation='v',
-                    hovertemplate='%{y:.1f} GW'),)
+        fig.add_trace(go.Bar(y=re_caps[tech] / 1000,
+                             x=xlabels,
+                             name=PRINT_NAMES_WO_REL[tech],
+                             marker_color=CMAP[tech],
+                             showlegend=True,
+                             legendgroup=tech,
+                             orientation='v',
+                             hovertemplate='%{y:.1f} GW'), )
         fig.add_trace(go.Bar(y=re_areas_rel[tech],
-                    x=xlabels,
-                    name='rel. to legal SQ',
-                    marker_color='red',
-                    showlegend=True,
-                    width=0.07,
-                    legendgroup=tech,
-                    orientation='v',
-                    hovertemplate='%{y:.1f} %',
-                    opacity=0.5,),
-                    secondary_y=True)
+                             x=xlabels,
+                             name='rel. to legal SQ',
+                             marker_color='red',
+                             showlegend=True,
+                             width=0.07,
+                             legendgroup=tech,
+                             orientation='v',
+                             hovertemplate='%{y:.1f} %',
+                             opacity=0.5, ),
+                      secondary_y=True)
 
     fig.update_layout(yaxis=dict(
                           titlefont_size=16,
                           tickfont_size=12),
-                      #yaxis2=dict(overlaying='y2'),
                       title_text='RES Power Potential in RE Scenarios',
                       autosize=True,
                       barmode='group',
-                      hovermode="x unified",
-                      #legend=dict(orientation="h", yanchor="bottom",y=1.02, xanchor="right",x=0.95)
-                     )
+                      hovermode="x unified",)
 
     fig.update_yaxes(title="GW", showspikes=True, dtick=1, secondary_y=False)
     fig.update_yaxes(title="%", showspikes=True, dtick=100, secondary_y=True)
