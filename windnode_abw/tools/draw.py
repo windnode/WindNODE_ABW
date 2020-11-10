@@ -170,11 +170,11 @@ for key in COLORS.keys():
     COLORS_PRINT[PRINT_NAMES.get(key)] = COLORS[key]
 
 
-def set_colors():
+def set_colors(steps=21):
     # RLI Colors
     # CMAP = px.colors.sequential.GnBu_r
     # WindNODE Colors
-    colors = n_colors('rgb(0, 200, 200)', 'rgb(255, 100, 0)', 21, colortype='rgb')
+    colors = n_colors('rgb(0, 200, 200)', 'rgb(255, 100, 0)', steps, colortype='rgb')
     # WindNODE Colormap
     cmap = n_colors((0, 200, 200), (255, 100, 0), 21)
     cmap = [unconvert_from_RGB_255(i) for i in cmap]
