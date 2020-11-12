@@ -49,20 +49,26 @@ def create_scn_table_docs():
 
     header_lines = [0,1,2,3]
 
-    # import scenario table
+    # import scenario and RES installed capacity tables
     scn_df = pd.read_csv(os.path.join(windnode_abw.__path__[0],
                                       'scenarios',
                                       'scenarios.csv'),
                          sep=';',
                          header=header_lines,
                          )
+    res_capacity = pd.read_csv(os.path.join(windnode_abw.__path__[0],
+                                      'scenarios',
+                                      'scenarios_installed_power.csv'),
+                         sep=';',
+                         ).set_index(["base_scenario", "landuse_scenario"])
 
     # set scenario name as index
     df_idx = pd.Index([_[0] for _ in scn_df.xs(("general", "id"), axis=1).values])
     df = scn_df.set_index(df_idx, "Scenario")
 
     mapping_dict = {
-        "PV capacity [MW]": ("generation", "re_potentials", "pv_installed_power"),
+        "PV capacity (ground) [MW]": ("generation", "re_potentials", "pv_installed_power"),
+        "PV capacity (rooftop) [MW]": ("generation", "re_potentials", "pv_roof_installed_power"),
         "Wind capacity [MW]": ("generation", "re_potentials", "wec_installed_power"),
         "Autarky level [minimum % of demand]": ("grid", "extgrid", "import"),
         "Demand-Side Management [% of households]": ("flexopt", "dsm", "params"),
@@ -84,6 +90,19 @@ def create_scn_table_docs():
         "Autarky level [minimum % of demand]"]) * 100
     extracted_df["Demand-Side Management [% of households]"] = extracted_df[
         "Demand-Side Management [% of households]"] * 100
+
+    # Add correct RES installation numbers
+    scenario_args = extracted_df.index.str.extract(
+        (?P<base_scenario>StatusQuo|NEP|ISE)_?(?P<landuse_scenario>RE-|PV\+|WIND\+|RE\+\+)?")
+    scenario_args.index = extracted_df.index
+
+    for idx, row in scenario_args.iterrows():
+        res_tmp = res_capacity.loc[[(row["base_scenario"], row["landuse_scenario"])]]
+
+        extracted_df.loc[idx, 'PV capacity (ground) [MW]'] = int(res_tmp["pv_installed_power"])
+        extracted_df.loc[idx, 'PV capacity (rooftop) [MW]'] = int(res_tmp["pv_roof_installed_power"])
+        extracted_df.loc[idx, 'Wind capacity [MW]'] = int(res_tmp["wec_installed_power"])
+
 
     # save to docs subfolder
     scn_table_path = os.path.join(PARENTDIR, 'scenario_overview.rst')
