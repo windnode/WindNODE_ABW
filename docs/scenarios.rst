@@ -42,6 +42,12 @@ Scenarios data in detail
 
 .. include:: scenario_overview.rst
 
+.. note::
+
+   The scenario *ISE_RE-_AUT90_DSM_BAT_PTH* is not listed here, because it creates an infeasible optimization problem.
+   This scenario replicates assumptions made in *ISE_RE-_AUT80_DSM_BAT_PTH* except for the limit on electricity supply
+   from the national grid which is further reduced to 10 %.
+
 
 Renewable energy installations (RE)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
