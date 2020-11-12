@@ -74,7 +74,7 @@ def create_scn_table_docs():
         "Demand-Side Management [% of households]": ("flexopt", "dsm", "params"),
         "Battery storage (large) [MWh]": ("flexopt", "flex_bat_large", "params"),
         "Battery storage (PV storage) [MWh]": ("flexopt", "flex_bat_small", "params"),
-        "Thermal storage (dec. heating) [MWh]": ("storage", "th_dec_pth_storage", "general"),
+        "Dec. heating systems with storage [%]": ("storage", "th_dec_pth_storage", "general"),
         "Thermal storage (district heating) [MWh]": ("storage", "th_cen_storage", "general"),
 
     }
@@ -93,7 +93,7 @@ def create_scn_table_docs():
 
     # Add correct RES installation numbers
     scenario_args = extracted_df.index.str.extract(
-        (?P<base_scenario>StatusQuo|NEP|ISE)_?(?P<landuse_scenario>RE-|PV\+|WIND\+|RE\+\+)?")
+        "(?P<base_scenario>StatusQuo|NEP|ISE)_?(?P<landuse_scenario>RE-|PV\+|WIND\+|RE\+\+)?")
     scenario_args.index = extracted_df.index
 
     for idx, row in scenario_args.iterrows():

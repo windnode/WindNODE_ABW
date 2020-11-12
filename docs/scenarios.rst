@@ -50,3 +50,11 @@ but RES generation capacity from :cite:`ISE2020`.
 Spatial allocation of battery storage capacity follows the same idea down to municipality level.
 
 .. include:: battery_storage_scenarios.rst
+
+
+Power-to-heat
+^^^^^^^^^^^^^
+
+The inherent thermal storage capacity induced by pipes in decentral heating systems is assumed with 20 l/kW of installed heat pump power according to suggestions by the manufacturer Viessmann :cite:`viessmann2011`.
+
+.. include:: pth_scenarios.rst
