@@ -33,6 +33,8 @@ def _df2rst(df, filepath):
 
 def create_tech_scn_table_docs():
     tab_names = [
+        "re_scenarios_nep",
+        "re_scenarios_ise",
         "dsm_scenarios_nep",
         "dsm_scenarios_ise",
         "battery_storage_scenarios",

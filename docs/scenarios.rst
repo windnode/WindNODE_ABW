@@ -41,6 +41,28 @@ Scenarios data in detail
 .. include:: scenario_overview.rst
 
 
+Renewable energy installations (RE)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Capacity of renewable energy sources (RES) is taken from studies investigating future energy supply of Germany.
+Based on an in-depth analysis of available sites for RES installations, the capacity is further restricted.
+
+NEP
+"""
+
+Capacity in the "NEP scenarios" is taken from :cite:`NEP2021`.
+
+.. include:: re_scenarios_nep.rst
+
+
+ISE
+"""
+
+Capacity in the "ISE scenarios" is taken from :cite:`ISE2020`.
+
+.. include:: re_scenarios_ise.rst
+
+
 Demand-side management (DSM)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
