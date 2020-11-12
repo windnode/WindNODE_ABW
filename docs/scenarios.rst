@@ -29,6 +29,13 @@ Based on these dimensions 39 computable scenarios are defined which are describe
 Research questions
 ------------------
 
+During workshops with stakeholder from the region Anhalt-Bitterfeld-Wittenberg (ABW), important topics related to
+energy supply where identified. Thereof, the following three research questions resulted:
+
+* To what extent can the region be supplied by renewables considering the available area?
+* Which degree of autarkic energy supply is realizable in this region?
+* How can new flexibility options support the integration of RES and enhance energy autarky?
+
 Time horizon
 ------------
 
