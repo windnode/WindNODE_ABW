@@ -41,6 +41,26 @@ Scenarios data in detail
 .. include:: scenario_overview.rst
 
 
+Demand-side management (DSM)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The number of household equipped with DSM infrastructure (devices and ICT) is varied.
+
+NEP
+"""
+
+Parameters applied for "NEP scenarios".
+
+.. include:: dsm_scenarios_nep.rst
+
+
+ISE
+"""
+
+Parameters applied for "ISE scenarios".
+
+.. include:: dsm_scenarios_ise.rst
+
 Battery storage capacity
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
