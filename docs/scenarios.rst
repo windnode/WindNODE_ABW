@@ -12,6 +12,8 @@ of the demand side.
 The generation capacity fundamentally derives from two studies. For the year 2035 we follow the assumptions by the
 Netzentwicklungsplan 2035 (2021) :cite:`NEP2021`. For the climate neutral scenario, which might be in 2050, the
 scenarios base on a Studie by Fraunhofer ISE :cite:`ISE2020`.
+For reference and as basis for data preparation of future scenarios *NEP* and *ISE*, a scenario for the status quo
+is defined. Demand and generation is expected to remain the same as in 2017 in this scenario.
 
 The second main dimension that describe how much flexibility is deployed to the system, splits into four sub-dimensions.
 
