@@ -35,8 +35,8 @@ The study of :cite:`ISE2020` frames the assumptions made for climate neutral sce
 
 .. _scenario-details:
 
-Scenario data in detail
------------------------
+Scenarios data in detail
+------------------------
 
 .. include:: scenario_overview.rst
 
