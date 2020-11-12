@@ -55,6 +55,18 @@ Spatial allocation of battery storage capacity follows the same idea down to mun
 Power-to-heat
 ^^^^^^^^^^^^^
 
-The inherent thermal storage capacity induced by pipes in decentral heating systems is assumed with 20 l/kW of installed heat pump power according to suggestions by the manufacturer Viessmann :cite:`viessmann2011`.
+The inherent thermal storage capacity induced by pipes in decentral heating systems is assumed with 20 l/kW of
+installed heat pump power according to suggestions by the manufacturer Viessmann :cite:`viessmann2011`.
 
 .. include:: pth_scenarios.rst
+
+
+Autarky
+^^^^^^^
+
+With the scenario dimension autarkic supply, it is investigated how region's energy demand can be supplied under
+constrained imports of electricity.
+Autarky on annual balance of 80 % and 90 % is analyzed based in the in-depth investigation of regional autarky in RES
+based electricity supply by :cite:`moeller2020`.
+
+.. include:: autarky_scenarios.rst
