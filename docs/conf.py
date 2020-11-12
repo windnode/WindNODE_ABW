@@ -33,7 +33,9 @@ def _df2rst(df, filepath):
 
 def create_tech_scn_table_docs():
 
-    tab_names = ["battery_storage_scenarios"]
+    tab_names = ["battery_storage_scenarios",
+                 "pth_scenarios",
+                 "autarky_scenarios"]
 
     for tab in tab_names:
         df = pd.read_csv(os.path.join(PARENTDIR,
