@@ -40,8 +40,6 @@ import logging
 
 logger = logging.getLogger('windnode_abw')
 
-
-
 PRINT_NAMES = {
     'bhkw': "Large-scale CHP",
     'bio': "Biogas",
@@ -137,12 +135,12 @@ COLORS = {'bio': 'green',
           'gas_boiler': 'lightgrey',
           "wood": "maroon",
           "coal": "black",
-          'import': 'maroon',
-          'export': 'olive',
+          'import': 'limegreen',
+          'export': 'brown',
           'demand': 'darkgray',
-          'rca': 'gray',
-          'hh': 'darkmagenta',
-          'ind': 'darkslategray',
+          'rca': 'darkseagreen',
+          'hh': 'coral',
+          'ind': 'lightslategrey',
           'el_rca': 'gray',
           'el_hh': 'darkmagenta',
           'el_ind': 'darkslategray',
@@ -183,7 +181,7 @@ def set_colors(steps=21):
 
 
 cmap, colors = set_colors()
-
+colors_r = list(reversed(colors))
 
 def draw_graph(grph, mun_ags=None,
                edge_labels=True, node_color='#AFAFAF',
