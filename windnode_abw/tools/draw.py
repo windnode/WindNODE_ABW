@@ -801,9 +801,9 @@ def plot_timeseries(results_scn, kind='Power', **kwargs):
 
 
 def get_timesteps(region):
-    timestamps = pd.date_range(start=region._cfg['date_from'],
-                               end=region._cfg['date_to'],
-                               freq=region._cfg['freq'])
+    timestamps = pd.date_range(start=region.cfg['date_from'],
+                               end=region.cfg['date_to'],
+                               freq=region.cfg['freq'])
     steps = len(timestamps)
     return steps
 
