@@ -1,4 +1,4 @@
-;Title;Wind energy;PV ground mounted;PV rooftop
-RE-;Legal status quo (2017);Capacity limited to designated areas for wind energy (VR/EG).;Areas along highways, railway tracks and 0.1 % of agricultural land (strict and weak restrictions apply).;Capacity according to ISE.
-none;ISE;Capacity according to ISE.;Capacity according to ISE.;Capacity according to ISE.
-RE++;Highly increased wind+PV;Minimum distance of wind energy converters to settlements reduced to 500 m and wind installations in forests allowed.;Areas along highways, railway tracks and 1.0 % of agricultural land (only strict restrictions apply).;Usage of 100 % of available roof area.
+,Title,Wind energy,PV ground mounted,PV rooftop
+RE-,Legal status quo (2017),Capacity limited to designated areas for wind energy (VR/EG).,Areas along highways and railway tracks and 0.1 % of agricultural land (strict and weak restrictions apply).,Capacity according to ISE.
+none,ISE,Capacity according to ISE.,Capacity according to ISE.,Capacity according to ISE.
+RE++,Highly increased wind+PV,Minimum distance of wind energy converters to settlements reduced to 500 m and wind installations in forests allowed.,Areas along highways and railway tracks and 1.0 % of agricultural land (only strict restrictions apply).,Usage of 100 % of available roof area.
