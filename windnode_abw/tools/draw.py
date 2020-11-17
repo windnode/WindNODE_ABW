@@ -1436,7 +1436,7 @@ def power_pot_scenarios(regions_scns, scenarios):
                               'ISE 2050': re_areas.loc['ISE 2050'].div(re_areas_ref.loc['ISE 2050', 'RE-'])*100})
     PRINT_NAMES_WO_REL = {k: v.replace('Area required rel. ', '') for k, v in PRINT_NAMES.items()}
 
-    CMAP = {'wind': colors[0], 'pv_ground': colors[10], 'pv_roof': colors[20]}
+    CMAP = {'wind': colors[0], 'pv_ground': colors[20], 'pv_roof': colors[10]}
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
