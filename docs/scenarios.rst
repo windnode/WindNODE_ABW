@@ -61,11 +61,15 @@ Renewable energy installations (RE)
 
 Capacity of renewable energy sources (RES) is taken from studies investigating future energy supply of Germany.
 Based on an in-depth analysis of available sites for RES installations, the capacity is further restricted.
+See :ref:`land_availability_label` for a detailed analysis of the restriction areas.
+
+Note, that the national capacity given in both studies are disaggregated to the region using different strategies:
+**MORE DETAILS?***
 
 NEP
 """
 
-Capacity in the "NEP scenarios" is taken from :cite:`NEP2021`.
+Capacity in the "NEP scenarios" is build upon :cite:`NEP2021`.
 
 .. include:: re_scenarios_nep.rst
 
@@ -73,7 +77,7 @@ Capacity in the "NEP scenarios" is taken from :cite:`NEP2021`.
 ISE
 """
 
-Capacity in the "ISE scenarios" is taken from :cite:`ISE2020`.
+Capacity in the "ISE scenarios" is build upon :cite:`ISE2020`.
 
 .. include:: re_scenarios_ise.rst
 

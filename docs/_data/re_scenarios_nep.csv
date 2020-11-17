@@ -1,6 +1,6 @@
-,Description
-RE-,Wind and PV capacity is limited to the capacity installable on available areas according to legal status quo of 2017.
-none,no restrictions on installable capacity due to available areas.
-WIND+,Minimum distance to settlements reduced to 500 m and wind installations in forests not allowed. No restrictions for PV installations.
-PV+,"Minimum distance to settlements of 1,000 m and wind installations in forests not allowed."
-RE++,Minimum distance of wind energy converters to settlements reduced to 500 m and wind installations in forests allowed.
+;Title;Wind energy;PV ground mounted;PV rooftop
+RE-;Legal status quo (2017);Capacity limited to designated areas for wind energy (VR/EG).;Areas along highways, railway tracks and 0.1 % of agricultural land (strict and weak restrictions apply).;Capacity according to NEP.
+none;NEP;Capacity according to NEP.;Capacity according to NEP.;Capacity according to NEP.
+WIND+;Increased wind;Minimum distance to settlements reduced to 500 m and wind installations in forests not allowed.;Capacity according to NEP.;Capacity according to NEP.
+PV+;Increased PV;Capacity according to NEP.;Areas along highways, railway tracks and 1.0 % of agricultural land (strict and weak restrictions apply).;Usage of 50 % of available roof area.
+RE++;Highly increased wind+PV;Minimum distance of wind energy converters to settlements reduced to 500 m and wind installations in forests allowed.;Areas along highways, railway tracks and 1.0 % of agricultural land (only strict restrictions apply).;Usage of 100 % of available roof area.
