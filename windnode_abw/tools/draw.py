@@ -1456,7 +1456,7 @@ def power_pot_scenarios(regions_scns, scenarios):
         fig.add_trace(go.Bar(y=re_areas_rel[tech],
                              x=xlabels,
                              name='rel. to legal SQ',
-                             marker_color='red',
+                             marker_color='black',
                              showlegend=True,
                              width=0.07,
                              legendgroup=tech,
