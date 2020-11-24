@@ -35,7 +35,7 @@ setup(
         'psutil',
         'seaborn',
         'plotly',
-        'papermill'
+        'papermill',
         'Pyomo==5.6.7',
         'PyUtilib==5.7.2'
     ],
