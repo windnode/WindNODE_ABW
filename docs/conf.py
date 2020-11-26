@@ -20,7 +20,7 @@ import pynodo
 import logging
 
 
-ZENODO_DEPOSIT_ID = 693907
+ZENODO_DEPOSIT_ID = 4290455
 
 def download_from_zenodo(deposit_id):
 
@@ -33,7 +33,7 @@ def download_from_zenodo(deposit_id):
         if 'ZENODO_ACCESS_TOKEN' in os.environ:
             zen_files = pynodo.DepositionFiles(deposition=deposit_id,
                                                access_token=os.environ["ZENODO_ACCESS_TOKEN"],
-                                               sandbox=True)
+                                               sandbox=False)
 
             for file in zen_files.files.keys():
                 print("Downloading {}...".format(file))
