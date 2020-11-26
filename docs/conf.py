@@ -49,6 +49,8 @@ def single_scenario_nb_toctree(target_file="_include/single_scenario_results.rst
 
     os.makedirs("_include", exist_ok=True)
 
+    prolog = "Results for each scenario are presented on a separate page. Please click on one of the links below.\n\n"
+
     files = os.listdir("notebooks")
     basenames = [os.path.splitext(file)[0] for file in files]
     names = [file.replace("scenario_analysis_", "") for file in basenames]
@@ -61,7 +63,7 @@ def single_scenario_nb_toctree(target_file="_include/single_scenario_results.rst
     header = ".. toctree::\n   :maxdepth: 1\n\n"
 
     with open(target_file, "w") as text_file:
-        text_file.write("{0}".format(header + toctree_links))
+        text_file.write("{0}".format(prolog + header + toctree_links))
 
 
 # Download results .ipynb and hook into documentation
