@@ -20,7 +20,7 @@ setup(
     install_requires = [
         'oemof',
         'shapely',
-        'pandas',
+        'pandas >=1, <1.1',
         'geopandas',
         'GeoAlchemy2',
         'matplotlib',
@@ -35,7 +35,11 @@ setup(
         'psutil',
         'seaborn',
         'plotly',
-        'papermill'
+        'papermill',
+        'Pyomo==5.6.7',
+        'PyUtilib==5.7.2',
+        'kaleido',
+        'notebook'
     ],
     package_data={
         'windnode_abw': [
