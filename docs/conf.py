@@ -17,24 +17,32 @@
 import sphinx_material
 import os
 import pynodo
+import logging
 
 
 ZENODO_DEPOSIT_ID = 693907
 
 def download_from_zenodo(deposit_id):
 
-    os.makedirs("notebooks", exist_ok=True)
+    notebooks_path = "notebooks"
+    os.makedirs(notebooks_path, exist_ok=True)
 
-    if 'ZENODO_ACCESS_TOKEN' in os.environ:
-        zen_files = pynodo.DepositionFiles(deposition=deposit_id,
-                                           access_token=os.environ["ZENODO_ACCESS_TOKEN"],
-                                           sandbox=True)
+    # Make sure the directory 'notebooks/' is empty, otherwise skip download
+    if not os.listdir(notebooks_path):
 
-        for file in zen_files.files.keys():
-            print("Downloading {}...".format(file))
-            zen_files.download(file, "notebooks/")
+        if 'ZENODO_ACCESS_TOKEN' in os.environ:
+            zen_files = pynodo.DepositionFiles(deposition=deposit_id,
+                                               access_token=os.environ["ZENODO_ACCESS_TOKEN"],
+                                               sandbox=True)
+
+            for file in zen_files.files.keys():
+                print("Downloading {}...".format(file))
+                zen_files.download(file, notebooks_path)
+        else:
+            raise EnvironmentError("Variable `ZENODO_ACCESS_TOKEN` is missing.")
     else:
-        raise EnvironmentError("Variable `ZENODO_ACCESS_TOKEN` is missing.")
+        logging.warning(f"Notebooks {notebooks_path} directory is not empty. I won't download anything. "
+                        f"Docs are built with present *.ipynb files.")
 
 
 def single_scenario_nb_toctree(target_file="_include/single_scenario_results.rst"):
