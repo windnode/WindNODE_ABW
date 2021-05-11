@@ -1,5 +1,5 @@
 sphinx>=2
 nbsphinx
-sphinxcontrib-bibtex
+sphinxcontrib-bibtex<2.0.0
 sphinx-material
 pynodo
