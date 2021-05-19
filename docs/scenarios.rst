@@ -122,6 +122,9 @@ Power-to-heat
 
 The inherent thermal storage capacity induced by pipes in decentral heating systems is assumed with 20 l/kW of
 installed heat pump power according to suggestions by the manufacturer Viessmann :cite:`viessmann2011`.
+The additional heat storage capacity for buffering is estimated with 60 l/kW of installed heat pump power.
+For the scenarios _PTH+_ and _PTH++_ an increased heating storage capacity for heating systems equipped with heat
+pumps is assumed. Total heat storage capacity is given in brackets in the table below. 
 
 .. include:: pth_scenarios.rst
 
