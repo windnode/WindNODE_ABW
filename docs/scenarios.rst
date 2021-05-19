@@ -39,6 +39,9 @@ energy supply where identified. Thereof, the following three research questions 
 Time horizon
 ------------
 
+The model includes scenarios for the years 2035 and 2050. Data for describing the status quo is taken mostly from the
+year 2017.
+The network development plan :cite:`NEP2021` provides the basis for defining the scenario for the year 2035.
 The study of :cite:`ISE2020` frames the assumptions made for climate neutral scenarios in 2050.
 
 
