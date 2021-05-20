@@ -1,7 +1,7 @@
 Scenarios
 =========
 
-The scenarios are build along to main dimensions: generation capacity of RES and diffusion of flexibility options.
+The scenarios are build along two main dimensions: generation capacity of RES and diffusion of flexibility options.
 We look at the years 2035 and 2050. Aside from expected generation capacity the pillars also define the characteristics
 of the demand side.
 
@@ -11,7 +11,7 @@ of the demand side.
 
 The generation capacity fundamentally derives from two studies. For the year 2035 we follow the assumptions by the
 Netzentwicklungsplan 2035 (2021) :cite:`NEP2021`. For the climate neutral scenario, which might be in 2050, the
-scenarios base on a Studie by Fraunhofer ISE :cite:`ISE2020`.
+scenarios base on a study by Fraunhofer ISE :cite:`ISE2020`.
 For reference and as basis for data preparation of future scenarios *NEP* and *ISE*, a scenario for the status quo
 is defined. Demand and generation is expected to remain the same as in 2017 in this scenario.
 
@@ -21,7 +21,7 @@ The second main dimension that describe how much flexibility is deployed to the 
    :width: 75 %
    :align: center
 
-Based on these dimensions 39 computable scenarios are defined which are described in detail in :ref:`scenario-details`.
+Based on these dimensions, 39 computable scenarios are defined which are described in detail in :ref:`scenario-details`.
 
 
 .. _research-questions:
@@ -29,7 +29,7 @@ Based on these dimensions 39 computable scenarios are defined which are describe
 Research questions
 ------------------
 
-During workshops with stakeholder from the region Anhalt-Bitterfeld-Wittenberg (ABW), important topics related to
+During workshops with stakeholders from the region Anhalt-Bitterfeld-Wittenberg (ABW), important topics related to
 energy supply where identified. Thereof, the following three research questions resulted:
 
 * To what extent can the region be supplied by renewables considering the available area?
@@ -72,8 +72,8 @@ See :ref:`land_availability_label` for a detailed analysis of the restriction ar
 
 For estimating the future RES capacity in the region Anhalt-Bitterfeld-Wittenberg (and in the individual
 municipalities), a *prox-to-now* approach is used. This means, the national increase of RES generation capacity is
-disaggreted to each municipality by the existing capacity. For example, a 80 % increase of PV generation capacity
-translates to an increase of PV capacity for each municipality by 80 %.
+disaggregated to each municipality by the existing capacity. For example, a 80 % increase of PV generation capacity at
+national level translates to an increase of PV capacity for each municipality by 80 % of the existing capacity.
 Thereby, the maximum available land is respected and in case of not sufficient space in one municipality, exceeding
 capacitiy is located in a neighboring municipality.
 
@@ -99,9 +99,9 @@ Capacity in the "ISE scenarios" is build upon :cite:`ISE2020`.
 Demand-side management (DSM)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The number of household equipped with DSM infrastructure (devices and ICT) is varied.
+The number of households equipped with DSM infrastructure (devices and ICT) is varied.
 The numbers used in each scenario variation are derived from :cite:`styczynski2015`. They estimate the numbers of
-households that are being equipped with DSM by technical Realisierbarkeit (german: *Realisierbarkeitsfaktor*) and
+households that are being equipped with DSM by technical feasibility (german: *Realisierbarkeitsfaktor*) and
 user-side acceptance (german: Akzeptanzfaktor).
 Values for the year 2035 (NEP) are estimated applying a linear interpolation.
 
@@ -134,13 +134,14 @@ Spatial allocation of battery storage capacity follows the same idea down to mun
 Power-to-heat
 ^^^^^^^^^^^^^
 
-By 2035, for the NEP scenario, it is assumed that 15 % of the total heat demand are supplied by heat pumps.
+By 2035, for the NEP scenario, it is assumed that 15 % of the total heat demand is supplied by heat pumps.
 For the climate neutral scenario in 2050 it is estimated that 70 % of the total heat demand is covered by heat supply
 from heat pumps.
 The inherent thermal storage capacity induced by pipes in decentral heating systems is assumed with 20 l/kW of
 installed heat pump power according to suggestions by the manufacturer Viessmann :cite:`viessmann2011`.
-The additional heat storage capacity for buffering is estimated with 60 l/kW of installed heat pump power.
-For the scenarios _PTH+_ and _PTH++_ an increased heating storage capacity for heating systems equipped with heat
+The additional heat storage capacity for buffering (which provides flexibility) is estimated with 60 l/kW of installed
+heat pump power.
+For the scenarios *PTH+* and *PTH++* an increased heating storage capacity for heating systems equipped with heat
 pumps is assumed. Total heat storage capacity is given in brackets in the table below.
 
 .. include:: pth_scenarios.rst
