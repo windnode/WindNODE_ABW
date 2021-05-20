@@ -15,12 +15,115 @@
 # sys.path.insert(0, os.path.abspath('.'))
 
 import sphinx_material
+import pandas as pd
 import os
+import windnode_abw
+import pathlib
 import pynodo
 import logging
 
 
+PARENTDIR = pathlib.Path(__file__).parent.absolute()
 ZENODO_DEPOSIT_ID = 4292516
+
+def _df2rst(df, filepath):
+    headers = df.columns
+
+    with open(filepath, "w") as fh:
+        df.to_markdown(buf=fh, tablefmt="grid", headers=headers)
+
+
+def create_tech_scn_table_docs():
+    tab_names = [
+        "re_scenarios_nep",
+        "re_scenarios_ise",
+        "dsm_scenarios_nep",
+        "dsm_scenarios_ise",
+        "battery_storage_scenarios",
+        "pth_scenarios",
+        "autarky_scenarios"
+    ]
+
+    for tab in tab_names:
+        df = pd.read_csv(os.path.join(PARENTDIR,
+                                      "_data",
+                                      "{}.csv".format(tab)),
+                         index_col="Unnamed: 0")
+
+        _df2rst(df, os.path.join(PARENTDIR, "{}.rst".format(tab)))
+
+
+def create_scn_table_docs():
+    """Prepare scenario data for docs table"""
+
+    header_lines = [0,1,2,3]
+
+    # import scenario and RES installed capacity tables
+    scn_df = pd.read_csv(os.path.join(windnode_abw.__path__[0],
+                                      'scenarios',
+                                      'scenarios.csv'),
+                         sep=';',
+                         header=header_lines,
+                         )
+    res_capacity = pd.read_csv(os.path.join(windnode_abw.__path__[0],
+                                      'scenarios',
+                                      'scenarios_installed_power.csv'),
+                         sep=';',
+                         ).set_index(["base_scenario", "landuse_scenario"])
+
+    # set scenario name as index
+    df_idx = pd.Index([_[0] for _ in scn_df.xs(("general", "id"), axis=1).values])
+    df = scn_df.set_index(df_idx, "Scenario")
+
+    mapping_dict = {
+        "PV capacity (ground) [MW]": ("generation", "re_potentials", "pv_installed_power"),
+        "PV capacity (rooftop) [MW]": ("generation", "re_potentials", "pv_roof_installed_power"),
+        "Wind capacity [MW]": ("generation", "re_potentials", "wec_installed_power"),
+        "Autarky level [minimum % of demand]": ("grid", "extgrid", "import"),
+        "Demand-Side Management [% of households]": ("flexopt", "dsm", "params"),
+        "Battery storage (large) [MWh]": ("flexopt", "flex_bat_large", "params"),
+        "Battery storage (PV storage) [MWh]": ("flexopt", "flex_bat_small", "params"),
+        "Dec. heating systems with storage [%]": ("storage", "th_dec_pth_storage", "general"),
+        "Thermal storage (district heating) [MWh]": ("storage", "th_cen_storage", "general"),
+
+    }
+
+    scn_dict = {
+        new_cols: [_[0] for _ in df.xs(old_cols, axis=1).values] for new_cols, old_cols in mapping_dict.items()
+    }
+
+    extracted_df = pd.DataFrame.from_dict(scn_dict).set_index(df_idx)
+
+    # hack some data
+    extracted_df["Autarky level [minimum % of demand]"] = (1 - extracted_df[
+        "Autarky level [minimum % of demand]"]) * 100
+    extracted_df["Demand-Side Management [% of households]"] = extracted_df[
+        "Demand-Side Management [% of households]"] * 100
+
+    # Add correct RES installation numbers
+    scenario_args = extracted_df.index.str.extract(
+        "(?P<base_scenario>StatusQuo|NEP|ISE)_?(?P<landuse_scenario>RE-|PV\+|WIND\+|RE\+\+)?")
+    scenario_args.index = extracted_df.index
+
+    for idx, row in scenario_args.iterrows():
+        res_tmp = res_capacity.loc[[(row["base_scenario"], row["landuse_scenario"])]]
+
+        extracted_df.loc[idx, 'PV capacity (ground) [MW]'] = int(res_tmp["pv_installed_power"])
+        extracted_df.loc[idx, 'PV capacity (rooftop) [MW]'] = int(res_tmp["pv_roof_installed_power"])
+        extracted_df.loc[idx, 'Wind capacity [MW]'] = int(res_tmp["wec_installed_power"])
+
+
+    # save to docs subfolder
+    scn_table_path = os.path.join(PARENTDIR, 'scenario_overview.rst')
+    print(scn_table_path)
+
+    headers = extracted_df.columns
+
+    with open(scn_table_path, "w") as fh:
+        extracted_df.to_markdown(buf=fh, tablefmt="grid", headers=headers)
+
+    return extracted_df
+
 
 def download_from_zenodo(deposit_id):
 
@@ -70,6 +173,10 @@ def single_scenario_nb_toctree(target_file="_include/single_scenario_results.rst
 download_from_zenodo(ZENODO_DEPOSIT_ID)
 single_scenario_nb_toctree()
 
+# Create required data and tables
+create_scn_table_docs()
+create_tech_scn_table_docs()
+
 
 # -- Project information -----------------------------------------------------
 
@@ -96,7 +203,8 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', "_include"]
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', "_data"]
+
 
 master_doc = 'index'
 

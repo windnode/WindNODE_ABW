@@ -1,0 +1,10 @@
+base_scenario;landuse_scenario;wec_installed_power;pv_installed_power;pv_roof_installed_power
+StatusQuo;;717;445;95
+NEP;RE-;750;1288;206
+NEP;;1237;1268;206
+NEP;WIND+;1840;1268;206
+NEP;PV+;1237;3165;560
+NEP;RE++;3095;4246;1125
+ISE;RE-;750;1610;803
+ISE;;2694;3716;803
+ISE;RE++;3095;5308;1374
