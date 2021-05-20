@@ -3,7 +3,7 @@
     year = 2035
 [commodities]
     commodities = fuel_oil, natural_gas, wood, coal, solar, methane
-    methane_share = 0.55
+    methane_share = 0.0
 [demand]
     [[dem_el_general]]
         sectors = hh, rca, ind
@@ -151,7 +151,7 @@
             conversion_factor = 0.95
     [[dsm]]
         [[[params]]]
-            hh_share = 0.21
+            hh_share = 0.0
             method = interval
             shift_interval = 24
             delay_time = 12

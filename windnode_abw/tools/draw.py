@@ -1,6 +1,7 @@
 import networkx as nx
 
 from matplotlib import rcParams
+
 rcParams['font.family'] = 'sans-serif'
 rcParams['font.sans-serif'] = 'Roboto'
 rcParams['font.weight'] = 'normal'
@@ -18,6 +19,7 @@ import geopandas as gpd
 import os
 
 import seaborn as sns
+
 # set seaborn style
 sns.set()
 
@@ -25,6 +27,7 @@ import plotly.express as px
 import plotly.io as pio
 import plotly.graph_objs as go
 import plotly.offline as pltly
+from plotly.colors import n_colors, unconvert_from_RGB_255
 from plotly.subplots import make_subplots
 
 from oemof.outputlib import views
@@ -33,19 +36,25 @@ from oemof.graph import create_nx_graph
 from windnode_abw.model.region.tools import calc_dsm_cap_up, calc_dsm_cap_down
 
 import logging
+
 logger = logging.getLogger('windnode_abw')
 
 PRINT_NAMES = {
     'bhkw': "Large-scale CHP",
     'bio': "Biogas",
+    'demand': 'Demand',
+    'district_heating': 'District Heating',
     'gas': "Open-cycle gas turbine",
+    'grid': "Grid",
+    'grid new': 'Grid new',
     'gud': "Combined-cycle gas turbine",
     'hydro': "Hydro",
     'pv_ground': "PV ground-mounted",
+    "pv_roof": "PV roof",
     'pv_roof_large': "PV roof top (large)",
     'pv_roof_small': "PV roof top (small)",
     'wind': "Wind",
-    "export" : "Export (national grid)",
+    "export": "Export (national grid)",
     'import': "Import (national grid)",
     "el_heating": "electrical Heating",
     "elenergy": "Direct electric heating",
@@ -57,56 +66,71 @@ PRINT_NAMES = {
     "wood": "Wood heating",
     "coal": "Coal heating",
     "pth": "Power-to-heat (district heating)",
-    "pth_ASHP" : "Air source heat pump",
-    "pth_ASHP_nostor" : "Air source heat pump, no storage",
-    "pth_ASHP_stor" : "Air source heat pump, storage",
-    "pth_GSHP" : "Ground source heat pump",
-    "pth_GSHP_nostor" :"Ground source heat pump, no storage",
-    "pth_GSHP_stor" : "Ground source heat pump, storage",
-    "stor_th_large" : "Thermal storage (district heating)",
-    "stor_th_small" : "Thermal storage",
-    "flex_bat_large" : "Large-scale battery storage",
-    "flex_bat_small" : "PV system battery storage",
-    "hh" : "Households",
-    "ind" : "Industry",
-    "rca" : "CTS+agriculture",
-    "conventional" : "Conventional",
-    "el_hh" : "Electricity households",
-    "el_rca" : "Electricity CTS+agriculture",
-    "el_ind" : "Electricity industry",
-    "th_hh_efh" : "Heat single-family houses",
-    "th_hh_mfh" : "Heat apartment buildings",
+    "pth_ASHP": "Air source heat pump",
+    "pth_ASHP_nostor": "Air source heat pump, no storage",
+    "pth_ASHP_stor": "Air source heat pump, storage",
+    "pth_GSHP": "Ground source heat pump",
+    "pth_GSHP_nostor": "Ground source heat pump, no storage",
+    "pth_GSHP_stor": "Ground source heat pump, storage",
+    "stor_th_large": "Thermal storage (district heating)",
+    "stor_th_small": "Thermal storage",
+    "flex_bat_large": "Large-scale battery storage",
+    "flex_bat_small": "PV system battery storage",
+    "hh": "Households",
+    "ind": "Industry",
+    "rca": "CTS+agriculture",
+    "conventional": "Conventional",
+    "el_hh": "Electricity households",
+    "el_rca": "Electricity CTS+agriculture",
+    "el_ind": "Electricity industry",
+    "th_hh_efh": "Heat single-family houses",
+    "th_hh_mfh": "Heat apartment buildings",
     "th_rca": "Heat CTS+agriculture",
-    "hh_efh" : "Single-family houses",
-    "hh_mfh" : "Apartment buildings",
+    "hh_efh": "Single-family houses",
+    "hh_mfh": "Apartment buildings",
     "ABW-export": "Export (regional)",
-    "ABW-import": "Import (regional)"
+    "ABW-import": "Import (regional)",
+    "roof": "Area required rel. PV rooftop",
+    "H_0.1": "Area required rel. PV ground H 0.1-perc agri",
+    "H_1": "Area required rel. PV ground H 1-perc agri",
+    "H_2": "Area required rel. PV ground H 2-perc agri",
+    "HS_0.1": "Area required rel. PV ground HS 0.1-perc agri",
+    "HS_1": "Area required rel. PV ground HS 1-perc agri",
+    "HS_2": "Area required rel. PV ground HS 2-perc agri",
+    "SQ": "Area required rel. Wind legal SQ (VR/EG)",
+    "s1000f1": "Area required rel. Wind 1000m w forest 10-perc",
+    "s500f0": "Area required rel. Wind 500m wo forest 10-perc",
+    "s500f1": "Area required rel. Wind 500m w forest 10-perc",
+
 }
 
 # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
 # https://plotly.com/python/builtin-colorscales/
 COLORS = {'bio': 'green',
+          'district_heating': 'plum',
+          'grid': 'grey',
+          'grid new': 'darkgrey',
           'hydro': 'royalblue',
-          'pv_ground' : 'goldenrod',
-          'pv_roof_large' : 'gold',
-          'pv_roof_small' : 'darkorange',
+          'pv_ground': 'goldenrod',
+          'pv_roof_large': 'gold',
+          'pv_roof_small': 'darkorange',
           'wind': 'skyblue',
-          'conventional':'grey',
-          'fuel_oil':'grey',
+          'conventional': 'grey',
+          'fuel_oil': 'grey',
           'solar_heat': 'peru',
           'solar': 'peru',
           'el_heating': 'red',
           'elenergy': 'red',
-          'gud':'teal',
-          'natural_gas':'teal',
-          'bhkw' : 'seagreen',
-          'gas' : 'lightgrey',
-          'gas_boiler' : 'lightgrey',
+          'gud': 'teal',
+          'natural_gas': 'teal',
+          'bhkw': 'seagreen',
+          'gas': 'lightgrey',
+          'gas_boiler': 'lightgrey',
           "wood": "maroon",
           "coal": "black",
-          'import' : 'maroon',
-          'export' : 'olive',
-          'demand' : 'darkgray',
+          'import': 'maroon',
+          'export': 'olive',
+          'demand': 'darkgray',
           'rca': 'gray',
           'hh': 'darkmagenta',
           'ind': 'darkslategray',
@@ -117,7 +141,7 @@ COLORS = {'bio': 'green',
           'hh_efh': 'plum',
           'th_hh_mfh': 'fuchsia',
           'hh_mfh': 'fuchsia',
-          'th_rca' : 'crimson',
+          'th_rca': 'crimson',
           'ABW-export': 'mediumpurple',
           'ABW-import': 'mediumorchid',
           "pth": "indianred",
@@ -125,18 +149,35 @@ COLORS = {'bio': 'green',
           "pth_ASHP_stor": "lightpink",
           "pth_GSHP_nostor": "lightcoral",
           "pth_GSHP_stor": "lightcoral",
+          "flex_bat_large": "sandybrown",
+          "flex_bat_small": "burlywood",
+          "stor_th_large": "rosybrown",
+          "stor_th_small": "indianred",
+          }
 
-         }
+# Color dict with PRINT_NAMES
+COLORS_PRINT = dict()
+for key in COLORS.keys():
+    COLORS_PRINT[PRINT_NAMES.get(key)] = COLORS[key]
 
-CMAP = px.colors.sequential.GnBu_r
+# RLI Colors
+# CMAP = px.colors.sequential.GnBu_r
+# WindNODE Colors
+colors = n_colors('rgb(0, 200, 200)', 'rgb(255, 100, 0)', 21, colortype='rgb')
+# WindNODE Colormap
+cmap = n_colors((0, 200, 200), (255, 100, 0), 21)
+cmap = [unconvert_from_RGB_255(i) for i in cmap]
+cmap = ListedColormap(cmap)
 
-UNITS = {"relative": "%", "hours": "h", "Utilization Rate":"%", "Total Cycles": "times", "Full Discharge Hours":"h", "RE":"MWh", "DSM":"MWh", "Import":"MWh", "Lineload":"%"}
+UNITS = {"relative": "%", "hours": "h", "Utilization Rate": "%", "Total Cycles": "cycles", "Full Discharge Hours": "h",
+         "RE": "MWh", "DSM": "MWh", "Import": "MWh", "Lineload": "%"}
+
 
 def draw_graph(grph, mun_ags=None,
                edge_labels=True, node_color='#AFAFAF',
                edge_color='#CFCFCF', plot=True, node_size=2000,
                with_labels=True, arrows=True, layout='neato',
-               node_pos = None, font_size=10):
+               node_pos=None, font_size=10):
     """
     Draw a graph (from oemof examples)
 
@@ -295,7 +336,7 @@ def debug_plot_results(esys, region):
     logger.info('Plotting results...')
 
     results = esys.results['main']
-    #om_flows = esys.results['om_flows']
+    # om_flows = esys.results['om_flows']
 
     imex_bus_results = views.node(results, 'b_th_dec_15001000_hh_efh')
     imex_bus_results_flows = imex_bus_results['sequences']
@@ -332,7 +373,6 @@ def debug_plot_results(esys, region):
 
 
 def sample_plots(region, results):
-
     ##############
     # PLOT: Grid #
     ##############
@@ -444,7 +484,7 @@ def sample_plots(region, results):
                 round(max(demand.sum(axis=1)) / 100 + 1) * 100)
     plt.legend()
     plt.show()
-    
+
     #############################
     # PLOT: Dec. th. generation #
     #############################
@@ -464,9 +504,46 @@ def sample_plots(region, results):
     plt.show()
 
 
+def plot_grid(region, lines=False, buses=False):
+    """plot ABW Region, optional with powerlines and buses"""
+    with sns.axes_style("white"):
+        fig, ax = plt.subplots(figsize=(20, 10))
+
+        gdf_region = gpd.GeoDataFrame(region.muns, geometry='geom')
+
+        # gdf_region.plot(ax=ax, color='white', edgecolor='#aaaaaa')
+        gdf_region.plot(ax=ax, color=cmap(1), edgecolor='white', alpha=1)
+
+        for idx, row in gdf_region.iterrows():
+            ax.annotate(s=row['gen'],
+                        xy=(row['geom'].centroid.x, row['geom'].centroid.y),
+                        ha='center',
+                        va='bottom',
+                        color='black',
+                        size=14)
+
+        gdf_region['centroid'] = gdf_region['geom'].centroid
+        gdf_centroid = gpd.GeoDataFrame(gdf_region, geometry='centroid')
+        gdf_centroid.plot(ax=ax, color=cmap(20), markersize=30, alpha=1)
+        if lines:
+            gdf_lines = gpd.GeoDataFrame(region.lines, geometry='geom')
+            gdf_lines.plot(ax=ax, color='#88aaaa', linewidth=1.5, alpha=1)
+        if buses:
+            gdf_buses = gpd.GeoDataFrame(region.buses, geometry='geom')
+            gdf_buses.plot(ax=ax, color='#338888', markersize=6, alpha=1)
+
+        ax.set_yticklabels([])
+        ax.set_xticklabels([])
+
+        ax.set_title('Region Anhalt-Bitterfeld-Wittenberg',
+                     fontsize=16,
+                     fontweight='normal')
+        sns.despine(ax=ax, top=True, bottom=True, left=True, right=True)
+        plt.show()
+
 
 # one geoplot to fit in subplots
-def plot_geoplot(name, data, region, ax, unit=None):
+def plot_geoplot(name, data, region, ax, unit=None, cmap=cmap):
     """plot geoplot from pd.Series
     Parameters
     ----------
@@ -481,17 +558,22 @@ def plot_geoplot(name, data, region, ax, unit=None):
     unit : str
         label of colorbar
     """
-    cmap = cm.GnBu_r(np.linspace(0,1,40))
-    cmap = ListedColormap(cmap[:32,:-1])
+    # Rli Colormap
+    # cmap = cm.GnBu_r(np.linspace(0,1,40))
+    # cmap = ListedColormap(cmap[:32,:-1])
+    # WindNODE Colormap
+    # cmap = n_colors((0, 200, 200), (255, 100, 0), 21)
+    # cmap = [unconvert_from_RGB_255(i) for i in cmap]
+    # cmap = ListedColormap(cmap)
 
-    gdf_region = gpd.GeoDataFrame(region.muns.loc[:,['gen', 'geom']],
+    gdf_region = gpd.GeoDataFrame(region.muns.loc[:, ['gen', 'geom']],
                                   geometry='geom')
     gdf_region = gdf_region.join(data,
                                  how='inner')
 
     # size the colorbar to plot
     divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right" , size="5%", pad=0.05)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
 
     #
     gdf_region.plot(column=data.values,
@@ -500,14 +582,13 @@ def plot_geoplot(name, data, region, ax, unit=None):
                     cmap=cmap,
                     cax=cax,
                     legend_kwds={'label': unit}
-                   )
+                    )
 
     # Set title, remove ticks/grid
     ax.set_title(name)
     ax.set_yticklabels([])
     ax.set_xticklabels([])
     ax.grid(False)
-
 
 
 def plot_snd_total(region, df_supply, df_demand):
@@ -520,7 +601,7 @@ def plot_snd_total(region, df_supply, df_demand):
         yearly total per ags
     df_demand : pd.DataFrame
         yearly total per ags
-    """    
+    """
     fig = go.Figure()
     for tech, data in df_supply.iteritems():
         fig.add_trace(go.Bar(x=region.muns['gen'],
@@ -528,26 +609,27 @@ def plot_snd_total(region, df_supply, df_demand):
                              name=PRINT_NAMES[tech],
                              marker_color=COLORS[tech]))
 
-
-
     for tech, data in df_demand.iteritems():
         fig.add_trace(go.Bar(x=region.muns['gen'],
                              y=-data / 1e3,
                              name=PRINT_NAMES[tech],
                              marker_color=COLORS[tech],
-                            visible='legendonly'))
+                             visible='legendonly'))
 
-
+    fig.update_traces(hovertemplate='%{fullData.name}<br>' +
+                                    '%{y:.1f} GWh <br>' +
+                                    '<extra></extra>', )
     fig.update_layout(
-        title='Power Generation and Demand',
+        title='Power Supply and Demand',
+        legend_title="Technology/Sector",
         barmode='relative',
         height=600,
-        xaxis={'categoryorder':'category ascending'},
+        xaxis={'categoryorder': 'category ascending'},
         xaxis_tickfont_size=14,
         yaxis=dict(title='GWh',
-            titlefont_size=16,
-            tickfont_size=14),
-            autosize=True)
+                   titlefont_size=16,
+                   tickfont_size=14),
+        autosize=True)
     fig.show()
 
 
@@ -573,80 +655,79 @@ def plot_split_hbar(data, limit, ax, title=None, unit=None):
     ax.set_title(title)
     # split subplot
     inner = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=ax, wspace=0.35, hspace=0.2)
-    
+
     # left plot
     ax1 = plt.subplot(inner[0])
-    data_left.plot(kind='barh', ax=ax1)#, color=colors_hight(df_data_left.values, 'winter'))
+    data_left.plot(kind='barh', ax=ax1)  # , color=colors_hight(df_data_left.values, 'winter'))
     ax1.set_ylabel('AGS')
     ax1.set_xlabel(unit)
-    ax1.set_xlim([0,limit])
-    ax1.set_title(title, loc='left', fontsize=12)    
-
+    ax1.set_xlim([0, limit])
+    ax1.set_title(title, loc='left', fontsize=12)
 
     # right plot
     ax2 = plt.subplot(inner[1])
-    data_right.plot(kind='barh', ax=ax2)# color=colors_hight(df_data_right.values, 'winter'))
+    data_right.plot(kind='barh', ax=ax2)  # color=colors_hight(df_data_right.values, 'winter'))
     ax2.set_ylabel(None)
     ax2.set_xlabel(unit)
-    ax2.set_title(title,loc='left', fontsize=12)
+    ax2.set_title(title, loc='left', fontsize=12)
 
 
-
-def plot_timeseries(results_scn, kind='el', **kwargs):
+def plot_timeseries(results_scn, kind='Power', **kwargs):
     """plot generation and demand timeseries of either 'electrical' or 'thermal' components
     Parameters
     ----------
     results_scn : dict
         scenario result
     kind : str
-        'el' or 'th'
+        'Power' or 'Thermal'
     *ags : str/int
         ags number or 'ABW' for whole region
     """
-    #start = kwargs.get('start', region.cfg['date_from'])
-    #end = kwargs.get('end', region.cfg['date_to'])
+    # start = kwargs.get('start', region.cfg['date_from'])
+    # end = kwargs.get('end', region.cfg['date_to'])
     ags = kwargs.get('ags', 'ABW')
-    
+
     # remove if ags in multiindex is converted to int
     ags = str(ags)
-    
-    if kind =='el':
+
+    if kind == 'Power':
         df_feedin = results_scn['flows_txaxt']['Stromerzeugung']
         df_demand = results_scn['flows_txaxt']['Stromnachfrage']
 
-        if ags=='ABW':
-            df_feedin = df_feedin.sum(level=0)#.loc[start:end,:]
-            df_demand = df_demand.sum(level=0)#.loc[start:end,:]
-            df_demand = df_demand.join(results_scn['flows_txaxt']['Stromnachfrage Wärme'].sum(level=2).sum(axis=1).rename('el_heating'))
+        if ags == 'ABW':
+            df_feedin = df_feedin.sum(level=0)  # .loc[start:end,:]
+            df_demand = df_demand.sum(level=0)  # .loc[start:end,:]
+            df_demand = df_demand.join(
+                results_scn['flows_txaxt']['Stromnachfrage Wärme'].sum(level=2).sum(axis=1).rename('el_heating'))
 
         else:
             # add intra regional exchange
-            df_feedin = df_feedin.join(results_scn['flows_txaxt']['Intra-regional exchange']['import'].rename('ABW-import'))#.loc[(slice(None), ags)])
-            df_demand = df_demand.join(results_scn['flows_txaxt']['Intra-regional exchange']['export'].rename('ABW-export'))#.loc[(slice(None), ags)])
+            df_feedin = df_feedin.join(results_scn['flows_txaxt']['Intra-regional exchange']['import'].rename(
+                'ABW-import'))  # .loc[(slice(None), ags)])
+            df_demand = df_demand.join(results_scn['flows_txaxt']['Intra-regional exchange']['export'].rename(
+                'ABW-export'))  # .loc[(slice(None), ags)])
 
-            df_feedin = df_feedin.loc[(slice(None),ags),:].sum(level=0)#.loc[start:end,:]
-            df_demand = df_demand.loc[(slice(None),ags),:].sum(level=0)
-            el_heating = results_scn['flows_txaxt']['Stromnachfrage Wärme'].loc[(slice(None),slice(None),ags),:].sum(level='timestamp')
+            df_feedin = df_feedin.loc[(slice(None), ags), :].sum(level=0)  # .loc[start:end,:]
+            df_demand = df_demand.loc[(slice(None), ags), :].sum(level=0)
+            el_heating = results_scn['flows_txaxt']['Stromnachfrage Wärme'].loc[(slice(None), slice(None), ags), :].sum(
+                level='timestamp')
             df_demand['el_heating'] = el_heating.sum(axis=1)
 
-    elif kind == 'th':
+    elif kind == 'Thermal':
         df_feedin = results_scn['flows_txaxt']['Wärmeerzeugung']
         df_demand = results_scn['flows_txaxt']['Wärmenachfrage']
 
-        if ags=='ABW':
-            df_feedin = df_feedin.sum(level=0)#.loc[start:end,:]
-            df_demand = df_demand.sum(level=0)#.loc[start:end,:]
-        else:  
-            df_feedin = df_feedin.loc[(slice(None),ags),:].sum(level=0)#.loc[start:end,:]
-            df_demand = df_demand.loc[(slice(None),ags),:].sum(level=0)
-
-    #else:
+        if ags == 'ABW':
+            df_feedin = df_feedin.sum(level=0)  # .loc[start:end,:]
+            df_demand = df_demand.sum(level=0)  # .loc[start:end,:]
+        else:
+            df_feedin = df_feedin.loc[(slice(None), ags), :].sum(level=0)  # .loc[start:end,:]
+            df_demand = df_demand.loc[(slice(None), ags), :].sum(level=0)
+    # else:
     #    raise ValueError("Enter either 'el' or 'th'") 
-   
-
 
     # what is conventional
-    #df_residual_load = df_demand.sum(axis=1) - df_feedin.drop(columns=['conventional']).sum(axis=1)
+    # df_residual_load = df_demand.sum(axis=1) - df_feedin.drop(columns=['conventional']).sum(axis=1)
 
     fig = go.Figure()
 
@@ -656,8 +737,8 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
                                  name=PRINT_NAMES[tech],
                                  fill='tonexty',
                                  mode='none',
-                                 #fillcolor=COLORS[tech],
-                                stackgroup='one'))
+                                 fillcolor=COLORS[tech],
+                                 stackgroup='one'))
 
     for tech, data in df_demand.iteritems():
         fig.add_trace(go.Scatter(x=data.index,
@@ -665,12 +746,12 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
                                  name=PRINT_NAMES[tech],
                                  fill='tonexty',
                                  mode='none',
-                                 #fillcolor=COLORS[tech],
-                                stackgroup='two'))
-
+                                 fillcolor=COLORS[tech],
+                                 stackgroup='two'))
 
     fig.update_xaxes(
         title='Zoom',
+        showspikes=True,
         rangeslider_visible=True,
         rangeselector=dict(
             buttons=list([
@@ -679,23 +760,29 @@ def plot_timeseries(results_scn, kind='el', **kwargs):
                 dict(count=14, label="2w", step="day", stepmode="backward"),
                 dict(count=7, label="1w", step="day", stepmode="backward"),
                 dict(count=3, label="3d", step="day", stepmode="backward"),
-                #dict(step="all")
+                # dict(step="all")
             ])
         )
     )
 
     fig.update_layout(
-        title='Power Generation and Demand of %s'% ags,
-        height = 700,
-        #xaxis={'categoryorder':'category ascending'},
+        title=f'{kind} Generation and Demand of {ags}',
+        legend_title="Technology/Sector",
+        height=700,
+        # xaxis={'categoryorder':'category ascending'},
         xaxis_tickfont_size=14,
         yaxis=dict(
             title='MW',
             titlefont_size=16,
             tickfont_size=14),
         autosize=True,
-        )
+    )
+    fig.update_traces(hovertemplate='%{x}<br>' +
+                                    '%{fullData.name} <br>' +
+                                    'Power: %{y:.0f} MW <br>' +
+                                    '<extra></extra>', )  #
     fig.show()
+
 
 def get_timesteps(region):
     timestamps = pd.date_range(start=region._cfg['date_from'],
@@ -703,6 +790,7 @@ def get_timesteps(region):
                                freq=region._cfg['freq'])
     steps = len(timestamps)
     return steps
+
 
 def get_storage_ratios(storage_figures, region):
     """calculate storage ratios for heat or electricity
@@ -728,19 +816,20 @@ def get_storage_ratios(storage_figures, region):
     steps = get_timesteps(region)
     c_rate = storage_figures.power_discharge / storage_figures.capacity
     c_rate[c_rate > 1] = 1
-    max_cycle = 1/2 * steps * c_rate
+    max_cycle = 1 / 2 * steps * c_rate
     max_cycle = max_cycle.fillna(0)
 
     # relative
-    storage_usage_rate  = total_cycle / max_cycle * 100
+    storage_usage_rate = total_cycle / max_cycle * 100
     storage_usage_rate = storage_usage_rate.fillna(0)
 
     # combine
     storage_ratios = pd.concat([full_load_hours, total_cycle, storage_usage_rate], axis=1,
-                                     keys=['Full Discharge Hours', 'Total Cycles', 'Utilization Rate'])
+                               keys=['Full Discharge Hours', 'Total Cycles', 'Utilization Rate'])
     storage_ratios = storage_ratios.swaplevel(axis=1)
-    
+
     return storage_ratios
+
 
 def plot_storage_ratios(storage_ratios, region, title):
     """plot storage ratios of either heat or electricity
@@ -753,77 +842,247 @@ def plot_storage_ratios(storage_ratios, region, title):
     title : str
         title of the figures
     """
+    stor_colors = {'Full Discharge Hours': colors[0],
+                   'Total Cycles': colors[10],
+                   'Utilization Rate': colors[20],
+                   'ABW': 'crimson'}
     sub_titles = storage_ratios.columns.get_level_values(level=0).unique()
     rows = storage_ratios.sum(level=0, axis=1)
-    subplot_size = (rows!= 0).sum() / (rows!= 0).sum().sum()
+    subplot_size = (rows != 0).sum() / (rows != 0).sum().sum()
     subplot_size = subplot_size.replace(np.inf, 0)
-    subplot_size = subplot_size.where(subplot_size<=0.8, 0.8)
-    subplot_size = subplot_size.where(subplot_size>=0.2, 0.2)
+    subplot_size = subplot_size.where(subplot_size <= 0.8, 0.8)
+    subplot_size = subplot_size.where(subplot_size >= 0.2, 0.2)
 
     fig = make_subplots(rows=1, cols=2,
-                        horizontal_spacing=0.1,
+                        horizontal_spacing=0.2,
                         column_widths=list(subplot_size),
-                        #column_widths=[0.2, 0.8],
+                        # column_widths=[0.2, 0.8],
                         subplot_titles=(sub_titles[0], sub_titles[1]),
-                       specs=[[{"secondary_y": True}, {"secondary_y": True}]])
+                        specs=[[{"secondary_y": True}, {"secondary_y": True}]])
 
-    for col, (stor, df) in enumerate(storage_ratios.groupby(level=0, axis=1)):
+    for subplot, (stor, df_stor) in enumerate(storage_ratios.groupby(level=0, axis=1)):
 
-        for i, (key, df) in enumerate(df[stor].items()):
+        for ratio, df in df_stor[stor].items():
 
-            secondary_y = True if key == 'Utilization rate'else False
-            visible = 'legendonly' if key == 'Full Discharge Hours' else True
+            secondary_y = True if ratio == 'Utilization Rate' else False
+            visible = 'legendonly' if ratio == 'Full Discharge Hours' else True
 
-            df = df[df!=0].dropna()
+            df = df[df != 0].dropna()
             ags = df.index
             df = df.rename(index=region.muns.gen.to_dict())
+            hovertemplate = f'{ratio}: ' + '%{y:.2f}' + f' {UNITS[ratio]}'
 
-            hovertemplate = f'{key}: '+'%{y:.2f}'+f' {UNITS[key]}'
-
-    # --- total ---
+            # municipalities
             fig.add_trace(
                 go.Bar(x=df.index,
-                       y=df.values, 
+                       y=df.values,
                        orientation='v',
-                       name=key,
-                       legendgroup=key,
-                       customdata=ags,
-                       marker_color=CMAP[col+i],
-                       opacity=0.7,
-                      showlegend= not bool(col),
+                       name=ratio,
+                       legendgroup=ratio,
+                       marker_color=stor_colors[ratio],
+                       offsetgroup=ratio,
+                       showlegend=bool(subplot),
                        visible=visible,
-                      hovertemplate = hovertemplate + '<extra>%{customdata}</extra>',),
-                row=1, col=col+1,
+                       hovertemplate=hovertemplate),
+                row=1, col=subplot + 1,
                 secondary_y=secondary_y)
 
-    # --- ABW ---
-            if key == 'Total Cycles':
+            # --- ABW ---
+            if ratio == 'Total Cycles':
                 fig.add_trace(
-                    go.Bar(x=['ABW'],
-                           y=[df.mean()],
-                           orientation='v',
-                           name='ABW',
-                           legendgroup="ABW",
-                           marker_color=CMAP[col],
-                           showlegend= not bool(col),
-                           visible='legendonly',
-                          hovertemplate = hovertemplate,),
-                    row=1, col=col+1,
-                    secondary_y=secondary_y)        
+                    go.Scatter(x=df.index,
+                               y=len(df)*[df.mean()],
+                               orientation='v',
+                               name='ABW',
+                               legendgroup="ABW",
+                               mode='lines',
+                               line=dict(dash='dash'),
+                               marker_color=stor_colors['ABW'],
+                               showlegend=bool(subplot),
+                               visible='legendonly',
+                               hovertemplate=hovertemplate, ),
+                    row=1, col=subplot + 1,
+                    secondary_y=False)
 
-    # === Layout ===
+                # === Layout ===
     fig.update_layout(title=title,
-                        autosize=True,
-                       hovermode="x unified",
-                      legend=dict(orientation="h",
-                                    yanchor="bottom",
-                                    y=1.05,
-                                    xanchor="right",
-                                    x=1))
-    fig.update_yaxes(title_text="total", row=1, col=1, anchor="x", secondary_y=False)
-    fig.update_yaxes(title_text="relative in %", row=1, col=2, anchor="x2", secondary_y=True)
+                      autosize=True,
+                      hovermode="x unified",
+                      legend=dict(traceorder='normal',
+                                  orientation="h",
+                                  yanchor="bottom",
+                                  y=1.05,
+                                  xanchor="right",
+                                  x=1))
+
+    fig.update_yaxes(title_text="Full Cycles/Discharge Hours", row=1, col=1, anchor="x", secondary_y=False)
+    fig.update_yaxes(title_text="Full Cycles/Discharge Hours", row=1, col=2, anchor="x2", secondary_y=False)
+    fig.update_yaxes(title_text="Utilization Rate %", row=1, col=1, anchor="x", secondary_y=True)
+    fig.update_yaxes(title_text="Utilization Rate %", row=1, col=2, anchor="x2", secondary_y=True)
     fig.update_xaxes(type='category', tickangle=45)
     fig.show()
+
+
+def plot_key_scenario_results(results_scns, scenarios, cmap_name):
+    return_data = {}
+
+    plots = {
+        1: {'highlevel_results': [('Total costs electricity supply', 'EUR'),
+                                  ('Total costs heat supply', 'EUR'),
+                                  ('LCOE', 'EUR/MWh'),
+                                  ('LCOH', 'EUR/MWh'),
+                                  ('CO2 emissions el.', 'tCO2'),
+                                  ('CO2 emissions th.', 'tCO2'),
+                                  ('Electricity generation', 'MWh')],
+            'results_axlxt': [],
+            'col_order': ['Scenario', 'Total Costs [bnEUR]', 'LCOE [EUR/MWh]',
+                          'LCOH [EUR/MWh]', 'Specific Emissions [g/kWh]'],
+            'title': 'Costs and Emissions'
+            },
+        2: {'highlevel_results': [('Area required rel. Wind legal SQ (VR/EG)', '%'),
+                                  ('Area required rel. PV ground H 0.1-perc agri', '%'),
+                                  ('Electricity exports', 'MWh')],
+            'results_axlxt': [('Intra-regional exchange', 'export', 'MWh')],
+            'col_order': ['Scenario', 'RES Area Wind (VR/EG) [%]',
+                          'RES Area PV ground [%]',
+                          'Intra-reg. Exchange [TWh]',
+                          'El. Exports [TWh]'],
+            'title': 'Land Use and Energy Balance'
+            },
+        3: {'highlevel_results': [('Autarky', '%'), ('Net DSM activation', 'MWh'), ('Battery Storage Usage Rate', '%'),
+                                  ('Heat Storage Usage Rate', '%')],
+            'results_axlxt': [  # ('Batteriespeicher nach Gemeinde', 'discharge', 'MWh'),
+                # ('Wärmespeicher nach Gemeinde', 'discharge', 'MWh'),
+                ('DSM Capacities', 'Demand decrease', 'MWh')],
+            'col_order': ['Scenario', 'Autarky [%]', 'El. Storage Use [%]',
+                          # 'El. Storage Use [GWh]','Heat Storage Use [GWh]'
+                          'Heat Storage Use [%]', 'DSM Utilization Rate [%]'],
+            'title': 'Flexibility Commitment'
+            }
+    }
+
+    for no, params in plots.items():
+
+        #####################################
+        # get and process highlevel_results #
+        #####################################
+        data_hl = pd.DataFrame(
+            ({f'{name} [{unit}]': results_scns[scn]['highlevel_results'][(name, unit)]
+              for name, unit in params['highlevel_results']}
+             for scn in scenarios),
+            index=scenarios
+        )
+
+        if no == 1:
+            data_hl['Total Costs [bnEUR]'] = (data_hl['Total costs electricity supply [EUR]'] +
+                                              data_hl['Total costs heat supply [EUR]']) / 1e9
+            data_hl['Emissions [MtCO2]'] = (data_hl['CO2 emissions el. [tCO2]'] +
+                                            data_hl['CO2 emissions th. [tCO2]']) / 1e6
+            data_hl['Specific Emissions [g/kWh]'] = data_hl['Emissions [MtCO2]'] / data_hl[
+                'Electricity generation [MWh]'] * 1e9
+
+            data_hl.drop(columns=['Total costs electricity supply [EUR]',
+                                  'Total costs heat supply [EUR]',
+                                  'CO2 emissions el. [tCO2]',
+                                  'CO2 emissions th. [tCO2]',
+                                  'Emissions [MtCO2]'],
+                         inplace=True)
+        elif no == 2:
+            data_hl['Electricity exports [TWh]'] = data_hl['Electricity exports [MWh]'] / 1e6
+            data_hl.drop(columns=['Electricity exports [MWh]'], inplace=True)
+
+            col_mapping = {
+                'Area required rel. Wind legal SQ (VR/EG) [%]': 'RES Area Wind (VR/EG) [%]',
+                'Area required rel. PV ground H 0.1-perc agri [%]': 'RES Area PV ground [%]',
+                'Electricity exports [TWh]': 'El. Exports [TWh]'
+            }
+            data_hl.rename(columns=col_mapping, inplace=True)
+        elif no == 3:
+            col_mapping = {"Battery Storage Usage Rate [%]": "El. Storage Use [%]",
+                           "Heat Storage Usage Rate [%]": "Heat Storage Use [%]"}
+            data_hl.rename(columns=col_mapping, inplace=True)
+
+        #################################
+        # get and process results_axlxt #
+        #################################
+        data_axlxt = pd.DataFrame(
+            ({f'{name} [{unit}]': results_scns[scn]['results_axlxt'][name][col].sum(axis=0)
+              for name, col, unit in params['results_axlxt']}
+             for scn in scenarios),
+            index=scenarios
+        )
+        if no == 1:
+            data = data_hl
+        if no == 2:
+            data_axlxt['Intra-regional exchange [TWh]'] = data_axlxt['Intra-regional exchange [MWh]'] / 1e6
+            data_axlxt.drop(columns=['Intra-regional exchange [MWh]'], inplace=True)
+
+            col_mapping = {
+                'Intra-regional exchange [TWh]': 'Intra-reg. Exchange [TWh]'
+            }
+            data_axlxt.rename(columns=col_mapping, inplace=True)
+            data = pd.concat([data_hl, data_axlxt], axis=1)
+        if no == 3:
+            # data_axlxt['Batteriespeicher nach Gemeinde [GWh]'] = data_axlxt['Batteriespeicher nach Gemeinde [MWh]'] / 1e3
+            # data_axlxt['Wärmespeicher nach Gemeinde [GWh]'] = data_axlxt['Wärmespeicher nach Gemeinde [MWh]'] / 1e3
+            data_axlxt['DSM Utilization Rate [%]'] = data_hl['Net DSM activation [MWh]'] / data_axlxt[
+                'DSM Capacities [MWh]'] * 1e2
+            data_axlxt['DSM Utilization Rate [%]'] = data_axlxt['DSM Utilization Rate [%]'].fillna(0)
+            data_axlxt.drop(columns=[  # 'Batteriespeicher nach Gemeinde [MWh]',
+                # 'Wärmespeicher nach Gemeinde [MWh]',
+                'DSM Capacities [MWh]'], inplace=True)
+            data_hl.drop(columns=['Net DSM activation [MWh]'], inplace=True)
+            # col_mapping = {
+            #     'Batteriespeicher nach Gemeinde [GWh]': 'El. Storage Use [GWh]',
+            #     'Wärmespeicher nach Gemeinde [GWh]': 'Heat Storage Use [GWh]',
+            # }
+            # data_axlxt.rename(columns=col_mapping, inplace=True)
+            data = pd.concat([data_hl, data_axlxt], axis=1)
+
+        # sort all plots by total costs
+        if no == 1:
+            # data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
+            data.sort_values(by='Total Costs [bnEUR]', inplace=True)
+            sort_order = data.index
+        else:
+            data = data.reindex(sort_order)
+
+        data = data.reset_index().rename(columns={'index': 'Scenario'})
+
+        # reorder columns
+        data = data[params['col_order']]
+
+        g = sns.PairGrid(data,
+                         x_vars=data.columns[1:], y_vars=['Scenario'],
+                         height=10, aspect=.25)
+
+        plt.subplots_adjust(top=0.9)
+        # plt.suptitle(f'Key Results {no}/{len(plots.keys())}: {params["title"]}',
+        plt.suptitle(f'Key Results {no}/{len(plots.keys())}',
+                     size=20,
+                     horizontalalignment='left')
+
+        # Draw a dot plot using the stripplot function
+        g.map(sns.stripplot, size=10, orient="h",
+              palette=sns.color_palette(cmap_name, len(scenarios)),
+              linewidth=1, edgecolor="w")
+
+        # Set 2nd title for columns (top)
+        titles = list(data.columns[1:])
+
+        for ax, title in zip(g.axes.flat, titles):
+            # Set a different title for each axes
+            ax.set(title=title)
+
+            # Make the grid horizontal instead of vertical
+            ax.xaxis.grid(False)
+            ax.yaxis.grid(True)
+
+        sns.despine(left=True, bottom=True)
+
+        return_data[no] = data
+
+    return return_data
 
 
 def calc_dsm_cap(region, hh_share=True):
@@ -840,23 +1099,116 @@ def calc_dsm_cap(region, hh_share=True):
         max demand increase potential
     df_dsm_cap_down : pd.DataFrame
         max demand decrease potential
-    
     """
-
     if 0 < hh_share < 1:
         pass
     elif hh_share:
         hh_share = region.cfg['scn_data']['flexopt']['dsm']['params']['hh_share']
     else:
         hh_share = 1
-    
-    dsm_cap_up = {ags:calc_dsm_cap_up(region.dsm_ts, ags,
-                     mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in region.muns.index}
+
+    dsm_cap_up = {ags: calc_dsm_cap_up(region.dsm_ts, ags,
+                                       mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in
+                  region.muns.index}
     df_dsm_cap_up = pd.DataFrame(dsm_cap_up).loc[region.cfg['date_from']:region.cfg['date_to']]
     df_dsm_cap_up = df_dsm_cap_up * hh_share
 
-    dsm_cap_down = {ags:calc_dsm_cap_down(region.dsm_ts, ags,
-                     mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in region.muns.index}
+    dsm_cap_down = {ags: calc_dsm_cap_down(region.dsm_ts, ags,
+                                           mode=region.cfg['scn_data']['flexopt']['dsm']['params']['mode']) for ags in
+                    region.muns.index}
     df_dsm_cap_down = pd.DataFrame(dsm_cap_down).loc[region.cfg['date_from']:region.cfg['date_to']]
     df_dsm_cap_down = df_dsm_cap_down * hh_share
+
     return df_dsm_cap_up, df_dsm_cap_down
+
+
+def get_emissions_sb_formated(results):
+    """format emissions dataframe for sunburst"""
+    data_el = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions el. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions el. var'].sum(axis=0),
+    }).rename(index=PRINT_NAMES).reset_index().rename(columns={'index': 'technology'})
+    data_el['sector'] = 'Power'
+
+    data_th = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions th. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions th. var'].sum(axis=0),
+    }).rename(index=PRINT_NAMES).reset_index().rename(columns={'index': 'technology'})
+    data_th['sector'] = 'Heat'
+
+    data_stor_el = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions stor el. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions stor el. var'].sum(axis=0),
+    }).rename(index=PRINT_NAMES)
+    data_stor_el.index.name = None
+    data_stor_el = data_stor_el.reset_index().rename(columns={'index': 'technology'})
+    data_stor_el['sector'] = 'Power'
+
+    data_stor_th = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions stor th. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions stor th. var'].sum(axis=0),
+    }).rename(index=PRINT_NAMES)
+    data_stor_th.index.name = None
+    data_stor_th = data_stor_th.reset_index().rename(columns={'index': 'technology'})
+    data_stor_th['sector'] = 'Heat'
+
+    data_grid = pd.DataFrame(columns=data_el.columns)
+    data_grid.loc[0, 'fix'] = results['results_axlxt']['CO2 emissions grid total'].sum(axis=0) + \
+                              results['results_axlxt']['CO2 emissions grid new total'].sum(axis=0)
+    data_grid.loc[0, 'var'] = 0
+    data_grid.loc[0, 'technology'] = 'Grid'
+    data_grid.loc[0, 'sector'] = 'Grid'
+
+    data = pd.concat([data_el, data_th, data_stor_el, data_stor_th, data_grid],
+                     axis=0)
+
+    data_fix = data.copy()
+    data_var = data.copy()
+    data_fix = data_fix.drop(columns=['var']).rename(columns={'fix': 'emissions'})
+    data_fix['type'] = 'fix'
+    data_var = data_var.drop(columns=['fix']).rename(columns={'var': 'emissions'})
+    data_var['type'] = 'var'
+
+    df_data = pd.concat([data_fix, data_var]).reset_index(drop=True)
+
+    return df_data
+
+
+def get_emissions_type_formatted(results):
+    """format emissions dataframe per type for barplot"""
+    # Electricity
+    data_el = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions el. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions el. var'].sum(axis=0),
+    })
+    # Storage el
+    data_stor_el = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions stor el. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions stor el. var'].sum(axis=0),
+    })
+    data_el = data_el.append(data_stor_el)
+    # Grid
+    data_el.loc['Grid', 'fix'] = results['results_axlxt']['CO2 emissions grid total'].sum(axis=0) + \
+                                 results['results_axlxt']['CO2 emissions grid new total'].sum(axis=0)
+
+    # Heat
+    data_th = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions th. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions th. var'].sum(axis=0),
+    })
+    # Storage th
+    data_stor_th = pd.DataFrame({
+        'fix': results['results_axlxt']['CO2 emissions stor th. fix'].sum(axis=0),
+        'var': results['results_axlxt']['CO2 emissions stor th. var'].sum(axis=0),
+    })
+    data_th = data_th.append(data_stor_th)
+
+    # concat
+    df_data = pd.concat([data_el, data_th, ], axis=1,
+                        keys=['Electricity Supply', 'Heat Supply'], sort=True)
+
+    df_data = df_data.fillna(0)
+    # df_data = df_data[(df_data!=0).any(axis=1)]
+    df_data = df_data.rename(index=PRINT_NAMES)
+
+    return df_data

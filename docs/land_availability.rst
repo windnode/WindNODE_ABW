@@ -1,5 +1,3 @@
-.. _land_availability_label:
-
 Land availability
 =================
 

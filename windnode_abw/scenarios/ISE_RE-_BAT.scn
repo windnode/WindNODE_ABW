@@ -151,7 +151,7 @@
             conversion_factor = 0.95
     [[dsm]]
         [[[params]]]
-            hh_share = 0.4
+            hh_share = 0.0
             method = interval
             shift_interval = 24
             delay_time = 12

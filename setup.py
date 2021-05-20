@@ -20,7 +20,7 @@ setup(
     install_requires = [
         'oemof',
         'shapely',
-        'pandas >= 1',
+        'pandas',
         'geopandas',
         'GeoAlchemy2',
         'matplotlib',
@@ -38,8 +38,14 @@ setup(
         'papermill'
     ],
     package_data={
-        'windnode_abw': [os.path.join("scenarios", "*.csv")]
-    },
+        'windnode_abw': [
+            os.path.join('config',
+                         'config_system'),
+            os.path.join('config',
+                         '*.cfg'),
+            os.path.join("scenarios", "*.csv")
+        ]
+        },
     cmdclass={
       'install': InstallSetup}
 )

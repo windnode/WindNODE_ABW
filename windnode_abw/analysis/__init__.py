@@ -118,7 +118,7 @@ def analysis(run_timestamp, scenarios='ALL',
 
                 # Add more parameters derived from flows + parameters
                 results_scns[scn_id]['flows_txaxt'] = additional_results_txaxt(results_scns[scn_id]['flows_txaxt'],
-                                                                               results_scns[scn_id]['parameters'])
+                    results_scns[scn_id]['parameters'])
 
                 # Aggregate flow results along different dimensions (outdated, see #29)
                 # only used to access DSM demand increase/decrease
