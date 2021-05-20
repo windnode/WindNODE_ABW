@@ -66,8 +66,15 @@ Capacity of renewable energy sources (RES) is taken from studies investigating f
 Based on an in-depth analysis of available sites for RES installations, the capacity is further restricted.
 See :ref:`land_availability_label` for a detailed analysis of the restriction areas.
 
-Note, that the national capacity given in both studies are disaggregated to the region using different strategies:
-**MORE DETAILS?***
+For estimating the future RES capacity in the region Anhalt-Bitterfeld-Wittenberg (and in the individual
+municipalities), a *prox-to-now* approach is used. This means, the national increase of RES generation capacity is
+disaggreted to each municipality by the existing capacity. For example, a 80 % increase of PV generation capacity
+translates to an increase of PV capacity for each municipality by 80 %.
+Thereby, the maximum available land is respected and in case of not sufficient space in one municipality, exceeding
+capacitiy is located in a neighboring municipality.
+
+Details of the disaggregation of RES capacity for each of the options along the scenario dimension RES capacity are
+explained in the following two tables.
 
 NEP
 """
