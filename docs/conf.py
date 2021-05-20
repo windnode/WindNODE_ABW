@@ -19,10 +19,12 @@ import pandas as pd
 import os
 import windnode_abw
 import pathlib
+import pynodo
+import logging
 
 
 PARENTDIR = pathlib.Path(__file__).parent.absolute()
-
+ZENODO_DEPOSIT_ID = 4292516
 
 def _df2rst(df, filepath):
     headers = df.columns
@@ -123,6 +125,54 @@ def create_scn_table_docs():
     return extracted_df
 
 
+def download_from_zenodo(deposit_id):
+
+    notebooks_path = "notebooks"
+    os.makedirs(notebooks_path, exist_ok=True)
+
+    # Make sure the directory 'notebooks/' is empty, otherwise skip download
+    if not os.listdir(notebooks_path):
+
+        if 'ZENODO_ACCESS_TOKEN' in os.environ:
+            zen_files = pynodo.DepositionFiles(deposition=deposit_id,
+                                               access_token=os.environ["ZENODO_ACCESS_TOKEN"],
+                                               sandbox=False)
+
+            for file in zen_files.files.keys():
+                print("Downloading {}...".format(file))
+                zen_files.download(file, notebooks_path)
+        else:
+            raise EnvironmentError("Variable `ZENODO_ACCESS_TOKEN` is missing.")
+    else:
+        logging.warning(f"Notebooks {notebooks_path} directory is not empty. I won't download anything. "
+                        f"Docs are built with present *.ipynb files.")
+
+
+def single_scenario_nb_toctree(target_file="_include/single_scenario_results.rst"):
+
+    os.makedirs("_include", exist_ok=True)
+
+    prolog = "Results for each scenario are presented on a separate page. Please click on one of the links below.\n\n"
+
+    files = os.listdir("notebooks")
+    basenames = [os.path.splitext(file)[0] for file in files]
+    names = [file.replace("scenario_analysis_", "") for file in basenames]
+
+    toctree_links = ""
+
+    for file in names:
+        link = "   {name} <notebooks/scenario_analysis_{name}>\n".format(name=file)
+        toctree_links += link
+    header = ".. toctree::\n   :maxdepth: 1\n\n"
+
+    with open(target_file, "w") as text_file:
+        text_file.write("{0}".format(prolog + header + toctree_links))
+
+
+# Download results .ipynb and hook into documentation
+download_from_zenodo(ZENODO_DEPOSIT_ID)
+single_scenario_nb_toctree()
+
 # Create required data and tables
 create_scn_table_docs()
 create_tech_scn_table_docs()
@@ -154,6 +204,7 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', "_data"]
+
 
 master_doc = 'index'
 
@@ -246,3 +297,19 @@ html_theme_options = {
     },
     "table_classes": ["plain"],
 }
+
+
+# NBSphinx config
+# nbsphinx_prolog = """
+# {% set docname =  env.doc2path(env.docname, base=None)|replace("notebooks/scenario_analysis_", "")|replace(".ipynb", "") %}
+# {% set scenariodocname = "Scenario: " ~ docname %}
+#
+# .. raw:: html
+#
+#    <h3 id={{ docname }}>
+#         {{ scenariodocname }}
+#         <a class="headerlink" href="#{{ docname }}" title="Permalink to this headline">
+#         ¶
+#         </a>
+#    </h3>
+# """

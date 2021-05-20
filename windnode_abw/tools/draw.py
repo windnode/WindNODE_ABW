@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 import os
+import warnings
 
 import seaborn as sns
 
@@ -46,6 +47,8 @@ PRINT_NAMES = {
     'district_heating': 'District Heating',
     'gas': "Open-cycle gas turbine",
     'grid': "Grid",
+    'Grid': 'Grid',
+    'Grid new': 'Grid new',
     'grid new': 'Grid new',
     'gud': "Combined-cycle gas turbine",
     'hydro': "Hydro",
@@ -103,6 +106,8 @@ PRINT_NAMES = {
     "s500f1": "Area required rel. Wind 500m w forest 10-perc",
 
 }
+UNITS = {"relative": "%", "hours": "h", "Utilization Rate": "%", "Total Cycles": "cycles", "Full Discharge Hours": "h",
+         "RE": "MWh", "DSM": "MWh", "Import": "MWh", "Lineload": "%"}
 
 # https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
 # https://plotly.com/python/builtin-colorscales/
@@ -110,6 +115,8 @@ COLORS = {'bio': 'green',
           'district_heating': 'plum',
           'grid': 'grey',
           'grid new': 'darkgrey',
+          'Grid': 'grey',
+          'Grid new': 'darkgrey',
           'hydro': 'royalblue',
           'pv_ground': 'goldenrod',
           'pv_roof_large': 'gold',
@@ -128,12 +135,12 @@ COLORS = {'bio': 'green',
           'gas_boiler': 'lightgrey',
           "wood": "maroon",
           "coal": "black",
-          'import': 'maroon',
-          'export': 'olive',
+          'import': 'limegreen',
+          'export': 'brown',
           'demand': 'darkgray',
-          'rca': 'gray',
-          'hh': 'darkmagenta',
-          'ind': 'darkslategray',
+          'rca': 'darkseagreen',
+          'hh': 'coral',
+          'ind': 'lightslategrey',
           'el_rca': 'gray',
           'el_hh': 'darkmagenta',
           'el_ind': 'darkslategray',
@@ -160,18 +167,21 @@ COLORS_PRINT = dict()
 for key in COLORS.keys():
     COLORS_PRINT[PRINT_NAMES.get(key)] = COLORS[key]
 
-# RLI Colors
-# CMAP = px.colors.sequential.GnBu_r
-# WindNODE Colors
-colors = n_colors('rgb(0, 200, 200)', 'rgb(255, 100, 0)', 21, colortype='rgb')
-# WindNODE Colormap
-cmap = n_colors((0, 200, 200), (255, 100, 0), 21)
-cmap = [unconvert_from_RGB_255(i) for i in cmap]
-cmap = ListedColormap(cmap)
 
-UNITS = {"relative": "%", "hours": "h", "Utilization Rate": "%", "Total Cycles": "cycles", "Full Discharge Hours": "h",
-         "RE": "MWh", "DSM": "MWh", "Import": "MWh", "Lineload": "%"}
+def set_colors(steps=21):
+    # RLI Colors
+    # CMAP = px.colors.sequential.GnBu_r
+    # WindNODE Colors
+    colors = n_colors('rgb(0, 200, 200)', 'rgb(255, 100, 0)', steps, colortype='rgb')
+    # WindNODE Colormap
+    cmap = n_colors((0, 200, 200), (255, 100, 0), 21)
+    cmap = [unconvert_from_RGB_255(i) for i in cmap]
+    cmap = ListedColormap(cmap)
+    return cmap, colors
 
+
+cmap, colors = set_colors()
+colors_r = list(reversed(colors))
 
 def draw_graph(grph, mun_ags=None,
                edge_labels=True, node_color='#AFAFAF',
@@ -543,7 +553,7 @@ def plot_grid(region, lines=False, buses=False):
 
 
 # one geoplot to fit in subplots
-def plot_geoplot(name, data, region, ax, unit=None, cmap=cmap):
+def plot_geoplot(name, data, region, ax, unit=None, cmap=None, vmin=None, vmax=None):
     """plot geoplot from pd.Series
     Parameters
     ----------
@@ -581,7 +591,9 @@ def plot_geoplot(name, data, region, ax, unit=None, cmap=cmap):
                     legend=True,
                     cmap=cmap,
                     cax=cax,
-                    legend_kwds={'label': unit}
+                    legend_kwds={'label': unit},
+                    vmin=vmin,
+                    vmax=vmax,
                     )
 
     # Set title, remove ticks/grid
@@ -589,6 +601,10 @@ def plot_geoplot(name, data, region, ax, unit=None, cmap=cmap):
     ax.set_yticklabels([])
     ax.set_xticklabels([])
     ax.grid(False)
+
+# ######################
+# single scenario notebook
+# ######################
 
 
 def plot_snd_total(region, df_supply, df_demand):
@@ -785,9 +801,9 @@ def plot_timeseries(results_scn, kind='Power', **kwargs):
 
 
 def get_timesteps(region):
-    timestamps = pd.date_range(start=region._cfg['date_from'],
-                               end=region._cfg['date_to'],
-                               freq=region._cfg['freq'])
+    timestamps = pd.date_range(start=region.cfg['date_from'],
+                               end=region.cfg['date_to'],
+                               freq=region.cfg['freq'])
     steps = len(timestamps)
     return steps
 
@@ -923,7 +939,13 @@ def plot_storage_ratios(storage_ratios, region, title):
     fig.show()
 
 
-def plot_key_scenario_results(results_scns, scenarios, cmap_name):
+def plot_key_scenario_results(results_scns, scenarios, cmap_name='WindNODE', scenario_order=None):
+
+    if cmap_name == 'WindNODE':
+        cmap_dot_plot = n_colors((0, 200, 200), (255, 100, 0), len(scenarios))
+        cmap_dot_plot = [unconvert_from_RGB_255(i) for i in cmap_dot_plot]
+    else:
+        cmap_dot_plot = sns.color_palette(cmap_name, len(scenarios))
     return_data = {}
 
     plots = {
@@ -951,11 +973,8 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
             },
         3: {'highlevel_results': [('Autarky', '%'), ('Net DSM activation', 'MWh'), ('Battery Storage Usage Rate', '%'),
                                   ('Heat Storage Usage Rate', '%')],
-            'results_axlxt': [  # ('Batteriespeicher nach Gemeinde', 'discharge', 'MWh'),
-                # ('Wärmespeicher nach Gemeinde', 'discharge', 'MWh'),
-                ('DSM Capacities', 'Demand decrease', 'MWh')],
+            'results_axlxt': [('DSM Capacities', 'Demand decrease', 'MWh')],
             'col_order': ['Scenario', 'Autarky [%]', 'El. Storage Use [%]',
-                          # 'El. Storage Use [GWh]','Heat Storage Use [GWh]'
                           'Heat Storage Use [%]', 'DSM Utilization Rate [%]'],
             'title': 'Flexibility Commitment'
             }
@@ -1023,33 +1042,31 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
             data_axlxt.rename(columns=col_mapping, inplace=True)
             data = pd.concat([data_hl, data_axlxt], axis=1)
         if no == 3:
-            # data_axlxt['Batteriespeicher nach Gemeinde [GWh]'] = data_axlxt['Batteriespeicher nach Gemeinde [MWh]'] / 1e3
-            # data_axlxt['Wärmespeicher nach Gemeinde [GWh]'] = data_axlxt['Wärmespeicher nach Gemeinde [MWh]'] / 1e3
             data_axlxt['DSM Utilization Rate [%]'] = data_hl['Net DSM activation [MWh]'] / data_axlxt[
                 'DSM Capacities [MWh]'] * 1e2
             data_axlxt['DSM Utilization Rate [%]'] = data_axlxt['DSM Utilization Rate [%]'].fillna(0)
-            data_axlxt.drop(columns=[  # 'Batteriespeicher nach Gemeinde [MWh]',
-                # 'Wärmespeicher nach Gemeinde [MWh]',
-                'DSM Capacities [MWh]'], inplace=True)
+            data_axlxt.drop(columns=['DSM Capacities [MWh]'], inplace=True)
             data_hl.drop(columns=['Net DSM activation [MWh]'], inplace=True)
-            # col_mapping = {
-            #     'Batteriespeicher nach Gemeinde [GWh]': 'El. Storage Use [GWh]',
-            #     'Wärmespeicher nach Gemeinde [GWh]': 'Heat Storage Use [GWh]',
-            # }
-            # data_axlxt.rename(columns=col_mapping, inplace=True)
             data = pd.concat([data_hl, data_axlxt], axis=1)
 
-        # sort all plots by total costs
-        if no == 1:
-            # data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
-            data.sort_values(by='Total Costs [bnEUR]', inplace=True)
-            sort_order = data.index
+        # # sort all plots by total costs
+        # if no == 1:
+        #     # data.sort_values(by='LCOE [EUR/MWh]', inplace=True)
+        #     data.sort_values(by='Total Costs [bnEUR]', inplace=True)
+        #     sort_order = data.index
+        # else:
+        #     data = data.reindex(sort_order)
+        #
+        # data = data.reset_index().rename(columns={'index': 'Scenario'})
+        #
+        if set(scenario_order) != set(scenarios):
+            warnings.warn("scenario_order is not complete. Falling back to original order!")
+            scenario_order = scenarios
         else:
-            data = data.reindex(sort_order)
-
+            data = data.loc[scenario_order]
         data = data.reset_index().rename(columns={'index': 'Scenario'})
 
-        # reorder columns
+        # # reorder columns
         data = data[params['col_order']]
 
         g = sns.PairGrid(data,
@@ -1064,7 +1081,7 @@ def plot_key_scenario_results(results_scns, scenarios, cmap_name):
 
         # Draw a dot plot using the stripplot function
         g.map(sns.stripplot, size=10, orient="h",
-              palette=sns.color_palette(cmap_name, len(scenarios)),
+              palette=cmap_dot_plot,
               linewidth=1, edgecolor="w")
 
         # Set 2nd title for columns (top)
@@ -1212,3 +1229,251 @@ def get_emissions_type_formatted(results):
     df_data = df_data.rename(index=PRINT_NAMES)
 
     return df_data
+
+# ##########################
+# ## multi scenario notebooks
+# ##########################
+
+
+scenario_order = ['StatusQuo',
+                  'NEP_RE-',
+                  'NEP_RE-_DSM',
+                  'NEP_RE-_DSM+',
+                  'NEP_RE-_BAT',
+                  'NEP_RE-_BAT+',
+                  'NEP_RE-_PTH',
+                  'NEP_RE-_PTH+',
+                  'NEP_RE-_DSM_BAT_PTH',
+                  'NEP_RE-_DSM+_BAT+_PTH+',
+                  'NEP_RE-_AUT80_DSM_BAT_PTH',
+                  'NEP_RE-_AUT80_DSM+_BAT+_PTH+',
+                  'NEP_RE-_AUT90_DSM_BAT_PTH',
+                  'NEP_RE-_AUT90_DSM+_BAT+_PTH+',
+                  'NEP',
+                  'NEP_DSM_BAT_PTH',
+                  'NEP_AUT90_DSM_BAT_PTH',
+                  'NEP_DSM+_BAT+_PTH+',
+                  'NEP_WIND+_DSM_BAT_PTH',
+                  'NEP_WIND+_DSM+_BAT+_PTH+',
+                  'NEP_PV+_DSM_BAT_PTH',
+                  'NEP_PV+_DSM+_BAT+_PTH+',
+                  'NEP_RE++_DSM_BAT_PTH',
+                  'ISE_RE-',
+                  'ISE_RE-_DSM',
+                  'ISE_RE-_DSM+',
+                  'ISE_RE-_BAT',
+                  'ISE_RE-_BAT+',
+                  'ISE_RE-_PTH',
+                  'ISE_RE-_PTH+',
+                  'ISE_RE-_DSM_BAT_PTH',
+                  'ISE_RE-_DSM+_BAT+_PTH+',
+                  'ISE_RE-_AUT80_DSM_BAT_PTH',
+                  'ISE_RE-_AUT80_DSM+_BAT+_PTH+',
+                  'ISE_RE-_AUT90_DSM++_BAT++_PTH++',
+                  'ISE',
+                  'ISE_DSM_BAT_PTH',
+                  'ISE_DSM+_BAT+_PTH+',
+                  'ISE_RE++_DSM_BAT_PTH']
+
+
+def power_pot_land_use(regions_scns, scenarios):
+    """draw bar chart to decribe the power potential restricted by land use scenarios"""
+    # get potential areas per land use scenario
+    pv_ground = pd.Series({f'{sc}_{faktor}': regions_scns['ISE'].pot_areas_pv_scn(
+        scenario=sc, pv_usable_area_agri_max=2086 * faktor)['with_agri_restrictions'].sum()
+                           for sc in ['HS', 'H'] for faktor in [0.1, 1, 2]})
+    wind = pd.Series({sc: regions_scns['ISE'].pot_areas_wec_scn(
+        scenario=sc).sum() * faktor for sc, faktor in zip(['SQ', 's1000f1', 's500f0', 's500f1'],
+                                                          [1, 0.1, 0.1, 0.1])})
+    pv_roof_tmp = regions_scns['ISE'].pot_areas_pv_roof.sum(axis=0)
+    re_pot_config = regions_scns['ISE'].cfg['scn_data']['generation']['re_potentials']
+    pv_roof = pd.Series(
+        {'roof': pv_roof_tmp['area_resid_ha'] * re_pot_config['pv_roof_resid_usable_area'] +
+                 pv_roof_tmp['area_ind_ha'] * re_pot_config['pv_roof_ind_usable_area']}
+    )
+
+    df_pot_area = pd.concat([pv_ground, pv_roof, wind], keys=['pv_ground', 'pv_roof', 'wind'])
+
+    # Land use
+    df_area = pd.DataFrame({scn: regions_scns[scn].cfg['scn_data']['generation']['re_potentials']
+                            for scn in scenarios}).T
+    df_land_use = pd.concat([
+        df_area['pv_roof_land_use'],  # ha/Mwp
+        df_area['pv_land_use'].rename('pv_ground_land_use'),  # ha/MWp
+        (df_area['wec_land_use'] / df_area['wec_nom_power']).rename('wind_land_use')],  # ha /MW
+        axis=1)
+
+    highlight_dict = {
+        'wind': {'Wind legal SQ \(VR/EG\)': '<b>Wind legal SQ (VR/EG)</b>'},
+        'pv_ground': {'PV ground HS 0.1-perc agri': '<b>PV ground HS 0.1-perc agri</b>'},
+        'pv_roof': {'PV rooftop': '<b>PV rooftop</b>'}
+    }
+    PRINT_NAMES_WO_REL = {k: v.replace('Area required rel. ', '') for k, v in PRINT_NAMES.items()}
+    CMAP = {'wind': colors[0], 'pv_ground': colors[20], 'pv_roof': colors[10]}
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    # potential Capacity
+    for i, (tech, df) in enumerate(df_pot_area.groupby(level=0)):
+        data = df.loc[tech] / df_land_use.loc['ISE', tech + '_land_use']
+        data = data.rename(index=PRINT_NAMES_WO_REL)
+        data.index = data.index.str.replace(list(highlight_dict[tech].keys())[0],
+                                            list(highlight_dict[tech].values())[0])
+
+        fig.add_trace(
+            go.Bar(x=data.index,
+                   y=data / 1e3,
+                   orientation='v',
+                   name=PRINT_NAMES_WO_REL[tech],
+                   marker_color=CMAP[tech],
+                   legendgroup=tech,
+                   opacity=1,
+                   offsetgroup=1,
+                   hovertemplate='%{y:.1f} GW'))
+
+        data = df.loc[tech] / df.loc[(tech, ['HS_0.1', 'roof', 'SQ'])].values * 100
+        data = data.rename(index=PRINT_NAMES_WO_REL)
+        data.index = data.index.str.replace(list(highlight_dict[tech].keys())[0],
+                                            list(highlight_dict[tech].values())[0])
+
+        fig.add_trace(
+            go.Bar(x=data.index,
+                   y=data,
+                   orientation='v',
+                   name='rel. to legal SQ',
+                   marker_color='grey',
+                   legendgroup=tech,
+                   showlegend=True,
+                   opacity=0.4,
+                   offsetgroup=2,
+                   hovertemplate='%{y:.1f} %'),
+            secondary_y=True)
+
+    fig.update_layout(title_text='RES Power Potential in Land Use Scenarios',
+                      autosize=True,
+                      barmode='group',
+                      hovermode="x unified")
+
+    fig.update_yaxes(title="GW", showspikes=True, secondary_y=False)
+    fig.update_yaxes(title="%", showspikes=True, secondary_y=True)
+    # fig.write_image("RES_power_potential_vs_Landuse_scenarios.png", format="png", scale=2, width=1080)
+    fig.show()
+
+
+def power_pot_scenarios(regions_scns, scenarios):
+    """draw bar chart to decribe the power potential restricted by land use scenarios"""
+    # define reference scenarios
+    ref_scenarios = {
+        'NEP 2035': {
+            'RE-': 'NEP_RE-',
+            'RE': 'NEP',
+            'WIND+': 'NEP_WIND+_DSM_BAT_PTH',
+            'PV+': 'NEP_PV+_DSM_BAT_PTH',
+            'RE++': 'NEP_RE++_DSM_BAT_PTH'
+        },
+        'ISE 2050': {
+            'RE-': 'ISE_RE-',
+            'RE': 'ISE',
+            'RE++': 'ISE_RE++_DSM_BAT_PTH'
+        }
+    }
+
+    # Land use
+    df_area = pd.DataFrame({scn: regions_scns[scn].cfg['scn_data']['generation']['re_potentials']
+                            for scn in scenarios}).T
+    df_land_use = pd.concat([
+        df_area['pv_roof_land_use'],  # ha/Mwp
+        df_area['pv_land_use'].rename('pv_ground_land_use'),  # ha/MWp
+        (df_area['wec_land_use'] / df_area['wec_nom_power']).rename('wind_land_use')],  # ha /MW
+        axis=1)
+
+    # get capacity data
+    re_caps=pd.concat([pd.DataFrame({
+        'wind': [regions_scns[scn].muns['gen_capacity_wind'].sum()
+                 for scn in ref_scenarios[year].values()],
+        'pv_ground': [regions_scns[scn].muns['gen_capacity_pv_ground'].sum()
+                      for scn in ref_scenarios[year].values()],
+        'pv_roof': [(regions_scns[scn].muns['gen_capacity_pv_roof_small'].sum() +
+                     regions_scns[scn].muns['gen_capacity_pv_roof_large'].sum())
+                    for scn in ref_scenarios[year].values()]
+    }, index=ref_scenarios[year].keys()) for year in ref_scenarios.keys()], keys=ref_scenarios.keys(), names=['year', 'scenario'])
+
+
+    # get rel area data
+    re_areas=pd.concat([pd.DataFrame({
+        'wind': [regions_scns[scn].muns['gen_capacity_wind'].sum() *
+                 df_land_use.loc[scn]['wind_land_use']
+                 for scn in ref_scenarios[year].values()],
+        'pv_ground': [regions_scns[scn].muns['gen_capacity_pv_ground'].sum() *
+                      df_land_use.loc[scn]['pv_ground_land_use']
+                      for scn in ref_scenarios[year].values()],
+        'pv_roof': [(regions_scns[scn].muns['gen_capacity_pv_roof_small'].sum() + regions_scns[scn].muns['gen_capacity_pv_roof_large'].sum()) *
+                    df_land_use.loc[scn]['pv_roof_land_use']
+                    for scn in ref_scenarios[year].values()]
+    }, index=ref_scenarios[year].keys()) for year in ref_scenarios.keys()], keys=ref_scenarios.keys(), names=['year', 'scenario'])
+
+    # # merge WIND+ and PV+ and reorder
+    # re_caps.loc[('NEP 2035', 'RE+'), :] = re_caps.loc[('NEP 2035', ('WIND+', 'PV+')),:].max()
+    # re_caps.drop([('NEP 2035', 'WIND+'), ('NEP 2035', 'PV+')], inplace=True)
+    #
+    # re_areas.loc[('NEP 2035', 'RE+'), :] = re_areas.loc[('NEP 2035', ('WIND+', 'PV+')),:].max()
+    # re_areas.drop([('NEP 2035', 'WIND+'), ('NEP 2035', 'PV+')], inplace=True)
+
+    # order = [('NEP 2035', 'RE-'), ('NEP 2035', 'RE'), ('NEP 2035', 'RE+'), ('NEP 2035', 'RE++'),
+    #          ('ISE 2050', 'RE-'), ('ISE 2050', 'RE'), ('ISE 2050', 'RE++')]
+
+    order = [('NEP 2035', 'RE-'), ('NEP 2035', 'RE'), ('NEP 2035', 'WIND+'), ('NEP 2035', 'PV+'),
+             ('NEP 2035', 'RE++'), ('ISE 2050', 'RE-'), ('ISE 2050', 'RE'), ('ISE 2050', 'RE++')]
+
+    re_areas = re_areas.reindex(index=order)
+    re_caps = re_caps.reindex(index=order)
+
+    re_areas_ref = re_areas.copy()
+    re_areas_ref['pv_roof'] = re_areas.loc['NEP 2035', 'RE++']['pv_roof'] # use pv roof pot. from RE++ as ref.
+
+    # create rel. numbers
+    re_areas_rel = pd.concat({'NEP 2035': re_areas.loc['NEP 2035'].div(re_areas_ref.loc['NEP 2035', 'RE-'])*100,
+                              'ISE 2050': re_areas.loc['ISE 2050'].div(re_areas_ref.loc['ISE 2050', 'RE-'])*100})
+    PRINT_NAMES_WO_REL = {k: v.replace('Area required rel. ', '') for k, v in PRINT_NAMES.items()}
+
+    CMAP = {'wind': colors[0], 'pv_ground': colors[20], 'pv_roof': colors[10]}
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    xlabels = [list(re_areas_rel.index.get_level_values(1)),
+               list(re_areas_rel.index.get_level_values(0)),
+               re_areas_rel.index]
+
+    for i, tech in enumerate(re_areas_rel.columns):
+        fig.add_trace(go.Bar(y=re_caps[tech] / 1000,
+                             x=xlabels,
+                             name=PRINT_NAMES_WO_REL[tech],
+                             marker_color=CMAP[tech],
+                             showlegend=True,
+                             legendgroup=tech,
+                             orientation='v',
+                             hovertemplate='%{y:.1f} GW'), )
+        fig.add_trace(go.Bar(y=re_areas_rel[tech],
+                             x=xlabels,
+                             name='rel. to legal SQ',
+                             marker_color='black',
+                             showlegend=True,
+                             width=0.07,
+                             legendgroup=tech,
+                             orientation='v',
+                             hovertemplate='%{y:.1f} %',
+                             opacity=0.5, ),
+                      secondary_y=True)
+
+    fig.update_layout(yaxis=dict(
+                          titlefont_size=16,
+                          tickfont_size=12),
+                      title_text='RES Power Potential in RE Scenarios',
+                      autosize=True,
+                      barmode='group',
+                      hovermode="x unified",)
+
+    fig.update_yaxes(title="GW", showspikes=True, dtick=1, secondary_y=False)
+    fig.update_yaxes(title="%", showspikes=True, dtick=100, secondary_y=True)
+    #fig.write_image("RES_power_potential_vs_REx_scenarios.png", format="png", scale=2, width=1080)
+    fig.show()
