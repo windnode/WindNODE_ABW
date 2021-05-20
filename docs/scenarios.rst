@@ -50,6 +50,8 @@ The study of :cite:`ISE2020` frames the assumptions made for climate neutral sce
 Scenarios data in detail
 ------------------------
 
+Most important parameters that distinguish the individual scenarios are shown below.
+
 .. include:: scenario_overview.rst
 
 .. note::
@@ -58,6 +60,8 @@ Scenarios data in detail
    This scenario replicates assumptions made in *ISE_RE-_AUT80_DSM_BAT_PTH* except for the limit on electricity supply
    from the national grid which is further reduced to 10 %.
 
+How these scenarios are constructed and how parameters are determined is described for each scenario dimension in the
+subsections below.
 
 Renewable energy installations (RE)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
