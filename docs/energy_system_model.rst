@@ -1,19 +1,92 @@
 Energy system model
 ===================
 
-The region Anhalt-Bitterfeld-Wittenberg
----------------------------------------
+The region Anhalt-Bitterfeld-Wittenberg (ABW)
+---------------------------------------------
+
+The Anhalt-Bitterfeld-Wittenberg (ABW) region modelled in this tool is located in the east of Saxony-Anhalt comprising
+the three districts Anhalt-Bitterfeld, Wittenberg, and the city of Dessau-Roßlau (:numref:`map_de_abw`). It has a total
+area of 3.629 km² and a poulation of 366.931 in 2018.
+
+.. _map_de_abw:
+.. figure:: images/map_de_abw.png
+   :width: 40 %
+   :align: center
+
+   Region ABW in Germany
+
+
+Substantial amounts of \ac{RES} are installed in the region. In 2017, 717 MW of wind power and 445 MW of ground-mounted
+PV covered 63 % of the comparatively low regional electricty demand of 20 municipalities (:numref:`map_abw_esys1`).
+
+.. _map_abw_esys1:
+.. figure:: images/map_abw_esys1.png
+   :width: 75 %
+   :align: center
+
+
+
+..
+  COMMENTED OUT
+ .. image:: images/map_de_abw.png
+    :width: 50 %
+ .. image:: images/map_abw_esys1.png
+    :width: 40 %
 
 
 Rationale and model focus
 -------------------------
 
+The employed energy system model (ESM) is based on the energy system modeling framework *oemof-solph* :cite:`Wiese2018`.
+The model comprises the electricity and heat sector of \ac{ABW} at municipal-level at a temporal resolution of 1 hour.
+It is formulated as a linear optimization problem with the objective of minimizing the cost for operation, CO2 emission
+allowances and grid extension.
 
 Objective and constraints
 -------------------------
 
 Energy sectors and technologies
 -------------------------------
+
+On the electrical generation side, wind turbines, ground-mounted, and roof-mounted PV, biogas plants, Combined-cycle
+gas turbines (CCGT), and simple-cycle gas turbines (SCGT) have been integrated as the most important technologies in the
+region. The heat generation includes decentralized conventional heating systems primarily based on natural gas, wood,
+and fuel oil. Four large district heating networks are located in the region which are fed by CCGT, CHP units, and gas
+boilers. The electrical and heat demand incorporates the residential, commercial, trade, services and agricultural
+sector; for the industrial sector, only the electricity side is included. On the flexiblity side, the model integrates
+households with demand-side management, battery storages, and power-to-heat (heat pumps and electrical boilers).
+:numref:`map_abw_esys6` shows the model's components.
+
+.. _map_abw_esys6:
+.. figure:: images/map_abw_esys6.png
+   :width: 75 %
+   :align: center
+
+   Components of regional energy system model
+
+
+.. _abw_esys_graph_mun1:
+.. figure:: images/abw_esys_graph_mun1.png
+   :width: 75 %
+   :align: center
+
+The grid
+---------
+
+The transmission capacities between the municipalities are given by the extra high voltage and high voltage grid as
+shown in :numref:`map_abw_grid`; its topology and parameters were taken from :cite:`Mueller2018`. This allows for a
+realistic assessment of the intra-regional exchange and grid load as well as the identification of potential congestions
+on those voltage levels. Subsequently, the electrical generation and demand of the municipalities are allocated to high
+voltage/medium voltage transformer stations. Although the national grid is not explicitly modeled, it is used for power
+exchange by municipalities without direct connection to the regional grid. Imports and exports are facilitated by using
+virtual sources and sinks located at the cross-regional links to the national grid as shown in :numref:`map_abw_grid`.
+
+.. _map_abw_grid:
+.. figure:: images/map_abw_grid.png
+   :width: 75 %
+   :align: center
+
+   Extra high voltage and high voltage grid of ABW
 
 Model details
 -------------
