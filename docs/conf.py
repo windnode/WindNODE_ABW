@@ -231,6 +231,9 @@ html_context = sphinx_material.get_html_context()
 html_theme = "sphinx_material"
 html_logo = "images/Windnode.png"
 
+# enable numeric references for figures
+numfig = True
+
 # material theme options (see theme.conf for more information)
 html_theme_options = {
     "repo_url": "https://github.com/windnode/windnode_abw/",
