@@ -1,3 +1,5 @@
+.. _esm:
+
 Energy system model
 ===================
 
@@ -70,17 +72,20 @@ cross-regional links to the national grid.
 Medium and low voltage distribution grids are not part of the grid model. District heating networks are not explicitly
 modelled but the heat demand of connected consumers is taken into account.
 
+.. _esm_sectors_label:
+
 Energy sectors and technologies
 -------------------------------
 
 On the electrical generation side, wind turbines, ground-mounted PV, roof-mounted PV, biogas plants, run-of-river
-plants, Combined-cycle gas turbines (CCGT), and simple-cycle gas turbines (SCGT) have been integrated as the most
+plants, combined-cycle gas turbines (CCGT), and simple-cycle gas turbines (SCGT) have been integrated as the most
 important technologies in the region. The heat generation includes decentralized conventional heating systems primarily
 based on natural gas, wood, and fuel oil. Four large district heating networks are located in the region which are fed
-by CCGT, CHP units, and gas boilers. The electrical and heat demand incorporates the residential, commercial, trade,
-services (CTS) and agricultural sector; for the industrial sector, only the electricity side is included. On the
-flexiblity side, the model integrates households with demand-side management, battery storages, and power-to-heat (heat
-pumps and electrical boilers). :numref:`map_abw_esys6` shows the model's components.
+by CCGT, large CHP units, and gas-fired boilers. Small networks are not part of the model. The electrical and heat
+demand incorporates the residential, commercial, trade, services (CTS) and agricultural sector; for the industrial
+sector, only the electricity side is included. On the flexiblity side, the model integrates households with demand-side
+management, battery storages, and power-to-heat (heat pumps and electrical boilers). :numref:`map_abw_esys6` shows the
+model's components.
 
 .. _map_abw_esys6:
 .. figure:: images/map_abw_esys6.png
@@ -149,7 +154,7 @@ in different ways:
   :cite:`demandlib2019`
 * Industrial sector: band-like profile using the *demandlib* :cite:`demandlib2019`
 
-The annual heat demand for each sector and municipality is determined as follows:
+The annual heat demand for space heating and hot water for each sector and municipality is determined as follows:
 
 * Households: based on the number of buildings and living spaces from :cite:`StatistischesBundesamt2018` and
   :cite:`Zensus2017`, heat demands are calculated per municipality using building-specific consumptions from
@@ -157,38 +162,106 @@ The annual heat demand for each sector and municipality is determined as follows
   multi-family house) are taken into account. Time series are created with the *demandlib* :cite:`demandlib2019` using
   standard gas load profiles *HEF* and *HMF*. Furthermore, historical ambient temperature profiles from the closest DWD
   survey station :cite:`DWD2020` are incorporated.
-* Commercial, trade, services (CTS) and agricultural: for these sectors, only the energy required for space heating is
-  taken into account. The definition of economic brnaches conform to the classification WZ2008 by the German Federal
-  Statistical Office :cite:`StatistischesBundesamt2007` is used. For each branch, specific consumption values (mostly
-  per employee, data from :cite:`StatistischeAemter2018`) are used from :cite:`BMWi2015` to calculate annual demands per
-  municipality. As for households, time series are created with the *demandlib* :cite:`demandlib2019` but based upon the
-  standard gas load profile *GHD* for CTS.
+* Commercial, trade, services (CTS) and agricultural: for these sectors, only the energy required for space heating and
+  drinking water (no process heat) is taken into account. The definition of economic brnaches conform to the
+  classification WZ2008 by the German Federal Statistical Office :cite:`StatistischesBundesamt2007` is used. For each
+  branch, specific consumption values (mostly per employee, data from :cite:`StatistischeAemter2018`) are used from
+  :cite:`BMWi2015` to calculate annual demands per municipality. As for households, time series are created with the
+  *demandlib* :cite:`demandlib2019` but based upon the standard gas load profile *GHD* for CTS.
 
-The final results for electricity and heat demand are shown below.
+The final results for electricity and heat demand are shown below:
 
 .. include:: electricty_heat_demand.rst
 
 Centralized and decentralized heat systems
 """"""""""""""""""""""""""""""""""""""""""
 
-The total heat demand described above is split into centralized (district heating systems) and decentralized systems.
+The total heat demand described above is split into centralized (district heating) and decentralized systems.
 The four largest district heating networks are located in Dessau-Roßlau, Bitterfeld-Wolfen, Köthen and Wittenberg. The
 municipal energy suppliers provided load profiles for different years :cite:`StadtwerkeABW2013` which were
 temperature-corrected to profiles valid for 2017. This results in the following district heating shares: Dessau-Roßlau
 42 %, Bitterfeld-Wolfen 15 %, Köthen 9 % and Wittenberg 20 %. Subsequently, the remaining heat demand is allocated to
 decentralized consumers.
 
-Electricity and heat generation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+District heating
+^^^^^^^^^^^^^^^^
 
-The The allocation of heat demand to the technologies for decentralized systems are  :cite:`ISE2020`
+System configuration in the four district heating networks:
 
-Note: energy generation by solar thermal systems is calculated using the normalized PV feedin timeseries.
+Dessau-Roßlau
+  * Combined-cycle gas turbines (CCGT) with 60 MW(th) und 59 MW(el) :cite:`Dunker2014`, :cite:`Brachert2019`
+  * Gas-fired boilers
+  * Heat storage 600 MWh
+
+Bitterfeld-Wolfen, Köthen, Wittenberg
+  * Combined heat and power (CHP) plants
+  * Gas-fired boilers
+
+As there's no further information on the feeding plants available, the following method is used to estimate the plant
+configuration:
+
+Dessau-Roßlau
+  * CCGT (dispatchable) to cover the base load with a min. share of 80 % in heat demand :cite:`Konstantin2018`,
+    :cite:`AGFW2004`. This constraint is needed as subsidies for power and heat cogeneration are not included in the
+    revenues generated by this plant. Therefore the dispatch would be disencouraged resulting in a smaller annual energy
+    output.
+    (oemof component: `ExtractionTurbineCHP <https://oemof-solph.readthedocs.io/en/latest/usage.html#extractionturbinechp-component>`_)
+  * Gas-fired boilers (dispatchable) cover the peak loads.
+    (oemof component: `Transformer <https://oemof-solph.readthedocs.io/en/latest/usage.html#transformer-basic>`_)
+
+Bitterfeld-Wolfen, Köthen, Wittenberg
+  * CHP plants cover (dispatchable) the base load. Analyzing the annual load duration curves of the grids
+    :cite:`StadtwerkeABW2013` shows that an installed power of 17 % of the peak load is reasonable tradeoff between
+    installed power and utilization of a unit. With this assumption, more than 40 % of the annual demand can be met.
+    (oemof component: `Transformer <https://oemof-solph.readthedocs.io/en/latest/usage.html#transformer-basic>`_)
+  * Gas-fired boilers (dispatchable) cover the peak loads
+    (oemof component: `Transformer <https://oemof-solph.readthedocs.io/en/latest/usage.html#transformer-basic>`_)
+
+*Notes*
+  * The electric energy produced by all feeding power units is fed into the closest MV/MV station.
+
+.. note::
+
+    Details on the components' parameters can be found in the
+    `source code <https://github.com/windnode/WindNODE_ABW/blob/master/windnode_abw/model/region/model.py>`_.
+
+Heating systems
+^^^^^^^^^^^^^^^
+
+The technology shares in the decentralized heating systems for the status quo scenario are obtained from *demandRegio*
+cite:`FFE2019` on a district resulution. It is assumed that these shares also apply for the underlying municipalities
+For each technology (natural gas, fuel oil, wood, coal, solar thermal, night storage heating, ambient_heat) one
+generator (oemof components: `Source <https://oemof-solph.readthedocs.io/en/latest/usage.html#source-basic>`_ and
+`Transformer <https://oemof-solph.readthedocs.io/en/latest/usage.html#transformer-basic>`_) is created per municipality,
+feeding into an electrical or heat bus (see :ref:`esm_model_details_label`).
+
+For the future scenarios (cf. :ref:`scenarios`) different shares are used from :cite:`Prognos2014`  scenario  The heat demand is allocated
+
+Conventional electricity and heat generation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Notes
+  * Energy generation of solar thermal systems is calculated using the normalized PV feedin timeseries.
+  * Energy generation of small (in-house) CHP units is neglected.
+
+Other plants
+  * CCGT Bitterfeld: 110 MW(th), 110 MW(el) :cite:`Urbansky2019`. Electricity is fed into the HV grid. Heat is consumed
+    by industrial sites only and therefore neglected (out of the model's boundary, cf. section
+    :ref:`esm_sectors_label`).
+
+Hydrogen
+^^^^^^^^
+
+
+.. _esm_model_details_label:
 
 Model details
 -------------
 
-
+Each municipality has
+  * 1 bus for decentralized heating
+  * 1 bus for centralized heating (only municipalities with district heating)
+  * n electrical buses, 1 per HV/MV substation (demand and feedin is split equally)
 
 .. _abw_esys_graph_mun1:
 .. figure:: images/abw_esys_graph_mun1.png
