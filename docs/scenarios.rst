@@ -138,7 +138,7 @@ By 2035, for the NEP scenario, it is assumed that 15 % of the total heat demand 
 For the climate neutral scenario in 2050 it is estimated that 70 % of the total heat demand is covered by heat supply
 from heat pumps.
 The inherent thermal storage capacity induced by pipes in decentral heating systems is assumed with 20 l/kW of
-installed heat pump power according to suggestions by the manufacturer Viessmann :cite:`viessmann2011`.
+installed heat pump power according to suggestions by the manufacturer Viessmann :cite:`Viessmann2011`.
 The additional heat storage capacity for buffering (which provides flexibility) is estimated with 60 l/kW of installed
 heat pump power.
 For the scenarios *PTH+* and *PTH++* an increased heating storage capacity for heating systems equipped with heat
