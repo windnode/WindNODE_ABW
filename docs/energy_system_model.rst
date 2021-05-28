@@ -230,12 +230,15 @@ Heating systems
 
 The technology shares in the decentralized heating systems for the status quo scenario are obtained from *demandRegio*
 cite:`FFE2019` on a district resulution. It is assumed that these shares also apply for the underlying municipalities
-For each technology (natural gas, fuel oil, wood, coal, solar thermal, night storage heating, ambient_heat) one
-generator (oemof components: `Source <https://oemof-solph.readthedocs.io/en/latest/usage.html#source-basic>`_ and
-`Transformer <https://oemof-solph.readthedocs.io/en/latest/usage.html#transformer-basic>`_) is created per municipality,
-feeding into an electrical or heat bus (see :ref:`esm_model_details_label`).
+Per municipality, for each technology (natural gas, fuel oil, wood, coal, solar thermal, night storage heating,
+ambient_heat) one generator (oemof components: `Source <https://oemof-solph.readthedocs.io/en/latest/usage.html#source-basic>`_
+and `Transformer <https://oemof-solph.readthedocs.io/en/latest/usage.html#transformer-basic>`_) is created, feeding into
+the decentral heat bus (see :ref:`esm_model_details_label`).
 
-For the future scenarios (cf. :ref:`scenarios`) different shares are used from :cite:`Prognos2014`  scenario  The heat demand is allocated
+For the future scenarios based upon NEP (2035) :cite:`NEP2021` and ISE (2050) :cite:`ISE2020` (cf. :ref:`scenarios`)
+different shares apply as shown in the following table:
+
+
 
 Conventional electricity and heat generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
