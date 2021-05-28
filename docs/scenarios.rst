@@ -156,3 +156,7 @@ Autarky on annual balance of 80 % and 90 % is analyzed based in the in-depth inv
 based electricity supply by :cite:`moeller2020`.
 
 .. include:: autarky_scenarios.rst
+
+.. note::
+
+   Further modelling details and assumptions are described in :ref:`esm:`.
