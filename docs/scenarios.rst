@@ -1,3 +1,5 @@
+.. _scenarios:
+
 Scenarios
 =========
 
@@ -101,8 +103,8 @@ Demand-side management (DSM)
 
 The number of households equipped with DSM infrastructure (devices and ICT) is varied.
 The numbers used in each scenario variation are derived from :cite:`styczynski2015`. They estimate the numbers of
-households that are being equipped with DSM by technical feasibility (german: *Realisierbarkeitsfaktor*) and
-user-side acceptance (german: Akzeptanzfaktor).
+households that are being equipped with DSM by technical feasibility (German: *Realisierbarkeitsfaktor*) and
+user-side acceptance (German: Akzeptanzfaktor).
 Values for the year 2035 (NEP) are estimated applying a linear interpolation.
 
 NEP
@@ -138,7 +140,7 @@ By 2035, for the NEP scenario, it is assumed that 15 % of the total heat demand 
 For the climate neutral scenario in 2050 it is estimated that 70 % of the total heat demand is covered by heat supply
 from heat pumps.
 The inherent thermal storage capacity induced by pipes in decentral heating systems is assumed with 20 l/kW of
-installed heat pump power according to suggestions by the manufacturer Viessmann :cite:`viessmann2011`.
+installed heat pump power according to suggestions by the manufacturer Viessmann :cite:`Viessmann2011`.
 The additional heat storage capacity for buffering (which provides flexibility) is estimated with 60 l/kW of installed
 heat pump power.
 For the scenarios *PTH+* and *PTH++* an increased heating storage capacity for heating systems equipped with heat
@@ -156,3 +158,7 @@ Autarky on annual balance of 80 % and 90 % is analyzed based in the in-depth inv
 based electricity supply by :cite:`moeller2020`.
 
 .. include:: autarky_scenarios.rst
+
+.. note::
+
+   Further modelling details and assumptions are described in :ref:`esm:`.
