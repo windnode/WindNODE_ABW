@@ -236,9 +236,9 @@ and `Transformer <https://oemof-solph.readthedocs.io/en/latest/usage.html#transf
 the decentral heat bus (see :ref:`esm_model_details_label`).
 
 For the future scenarios based upon NEP (2035) :cite:`NEP2021` and ISE (2050) :cite:`ISE2020` (cf. :ref:`scenarios`)
-different shares apply as shown in the following table:
+different shares apply. The following table shows the configuration for all 3 scenarios/years per district:
 
-
+.. include:: heating_structure.rst
 
 Conventional electricity and heat generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
