@@ -28,7 +28,7 @@ Goals
    data
    results
    zbibliography
-   development
+   usage_notes
 
 .. |construct| image:: images/construct-outline.png
                :width: 20 px
