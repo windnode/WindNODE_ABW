@@ -60,6 +60,7 @@ def create_tech_scn_table_docs():
                                       "_data",
                                       "{}.csv".format(tab)),
                          index_col=0)
+        df.index = df.index.fillna("")
 
         _df2rst(df, os.path.join(PARENTDIR, "{}.rst".format(tab)))
 
