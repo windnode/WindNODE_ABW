@@ -228,12 +228,16 @@ Bitterfeld-Wolfen, Köthen, Wittenberg
 Heating systems
 ^^^^^^^^^^^^^^^
 
-The technology shares in the decentralized heating systems for the status quo scenario are obtained from *demandRegio*
-cite:`FFE2019` on a district resulution. It is assumed that these shares also apply for the underlying municipalities
-Per municipality, for each technology (natural gas, fuel oil, wood, coal, solar thermal, night storage heating,
-ambient_heat) one generator (oemof components: `Source <https://oemof-solph.readthedocs.io/en/latest/usage.html#source-basic>`_
-and `Transformer <https://oemof-solph.readthedocs.io/en/latest/usage.html#transformer-basic>`_) is created, feeding into
-the decentral heat bus (see :ref:`esm_model_details_label`).
+The technology shares in the decentralized heating systems for households in the status quo scenario are obtained from
+*demandRegio* cite:`FFE2019` on a district resolution. For the CTS and agricultural sector, data from :cite:`STALA2018`
+is used. It is assumed that these shares also apply for the underlying municipalities. Per municipality, for each
+technology (natural gas, fuel oil, wood, coal, solar thermal, night storage heating, ambient_heat) one generator (oemof
+components: `Source <https://oemof-solph.readthedocs.io/en/latest/usage.html#source-basic>`_ and
+`Transformer <https://oemof-solph.readthedocs.io/en/latest/usage.html#transformer-basic>`_) is created, feeding into
+the decentral heat bus (see :ref:`esm_model_details_label`). Except for ambient_heat, which is provided by heat pumps in
+the model and a flexible generation, all of the above sources are fixed generators whose feedin follow the heat demand
+with its respective share. Energy generation of solar thermal systems is calculated using the normalized PV feedin
+timeseries.
 
 For the future scenarios based upon NEP (2035) :cite:`NEP2021` and ISE (2050) :cite:`ISE2020` (cf. :ref:`scenarios`)
 different shares apply. The following table shows the configuration for all 3 scenarios/years per district:
@@ -244,7 +248,6 @@ Conventional electricity and heat generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Notes
-  * Energy generation of solar thermal systems is calculated using the normalized PV feedin timeseries.
   * Energy generation of small (in-house) CHP units is neglected.
 
 Other plants
