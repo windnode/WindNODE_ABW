@@ -72,10 +72,10 @@ cross-regional links to the national grid.
 Medium and low voltage distribution grids are not part of the grid model. District heating networks are not explicitly
 modelled but the heat demand of connected consumers is taken into account.
 
-.. _esm_sectors_label:
+.. _esm_generation_demand_label:
 
-Energy sectors and technologies
--------------------------------
+Generation and demand
+---------------------
 
 On the electrical generation side, wind turbines, ground-mounted PV, roof-mounted PV, biogas plants, run-of-river
 plants, combined-cycle gas turbines (CCGT), and simple-cycle gas turbines (SCGT) have been integrated as the most
@@ -244,20 +244,37 @@ different shares apply. The following table shows the configuration for all 3 sc
 
 .. include:: heating_structure.rst
 
-Conventional electricity and heat generation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Notes
-  * Energy generation of small (in-house) CHP units is neglected.
-
-Other plants
-  * CCGT Bitterfeld: 110 MW(th), 110 MW(el) :cite:`Urbansky2019`. Electricity is fed into the HV grid. Heat is consumed
-    by industrial sites only and therefore neglected (out of the model's boundary, cf. section
-    :ref:`esm_sectors_label`).
-
 Hydrogen
 ^^^^^^^^
 
+Further notes
+^^^^^^^^^^^^^
+
+* Energy generation of small (in-house) CHP units is neglected.
+* CCGT Bitterfeld: 110 MW(th), 110 MW(el) :cite:`Urbansky2019`. Electricity is fed into the HV grid. Heat is consumed by
+  industrial sites only and therefore neglected (out of the model's boundary, cf. section
+  :ref:`esm_generation_demand_label`).
+
+Flexibility options
+-------------------
+
+As described earlier, the model integrates households with demand-side management, battery storages, and power-to-heat
+(heat pumps and electrical boilers):
+
+Demand-side management (DSM)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Batteries
+^^^^^^^^^
+
+Large-scale batteries
+
+Thermal storages
+^^^^^^^^^^^^^^^^
+
+Power-to-heat
+^^^^^^^^^^^^^
 
 .. _esm_model_details_label:
 
