@@ -229,11 +229,11 @@ Heating systems
 ^^^^^^^^^^^^^^^
 
 The technology shares in the decentralized heating systems for households in the status quo scenario are obtained from
-*demandRegio* cite:`FFE2019` on a district resolution. For the CTS and agricultural sector, data from :cite:`STALA2018`
-is used. It is assumed that these shares also apply for the underlying municipalities. Per municipality, for each
-technology (natural gas, fuel oil, wood, coal, solar thermal, night storage heating, ambient_heat) one generator (oemof
-components: `Source <https://oemof-solph.readthedocs.io/en/latest/usage.html#source-basic>`_ and
-`Transformer <https://oemof-solph.readthedocs.io/en/latest/usage.html#transformer-basic>`_) is created, feeding into
+*demandRegio* cite:`FFE2019` on a district resolution. For the CTS and agricultural sector, data on federal state
+resolution from :cite:`STALA2018` is used. It is assumed that these shares also apply for the underlying municipalities.
+Per municipality, for each technology (natural gas, fuel oil, wood, coal, solar thermal, night storage heating,
+ambient_heat) one generator (oemof components: `Source <https://oemof-solph.readthedocs.io/en/latest/usage.html#source-basic>`_
+and `Transformer <https://oemof-solph.readthedocs.io/en/latest/usage.html#transformer-basic>`_) is created, feeding into
 the decentral heat bus (see :ref:`esm_model_details_label`). Except for ambient_heat, which is provided by heat pumps in
 the model and a flexible generation, all of the above sources are fixed generators whose feedin follow the heat demand
 with its respective share. Energy generation of solar thermal systems is calculated using the normalized PV feedin
