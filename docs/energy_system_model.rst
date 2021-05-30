@@ -282,7 +282,12 @@ flexibility bands as input which were calculated in a bottom-up model by the
 Batteries
 ^^^^^^^^^
 
-Large-scale batteries
+Batteries include large-scale units and home systems in terms of storage capacity. However, there is not distinction
+between these types in the model. The capacity of large-scale battery storage is determined by scaling with installed
+RES capacity as described in :ref:`scenarios`. Home systems' total capacity is distributed based on small PV systems'
+nominal capacity. Per municipality, an *oemof*
+`GenericStorage <https://oemof-solph.readthedocs.io/en/latest/usage.html#genericstorage-component>`_ component is
+created with the sum of both capacities.
 
 Thermal storages
 ^^^^^^^^^^^^^^^^
