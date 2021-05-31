@@ -99,6 +99,8 @@ def create_scn_table_docs():
         "Autarky level [minimum % of demand]"]) * 100
     extracted_df["Demand-Side Management [% of households]"] = extracted_df[
         "Demand-Side Management [% of households]"] * 100
+    extracted_df["Dec. heating systems with storage [%]"] = extracted_df[
+        "Dec. heating systems with storage [%]"] * 100
 
     # Add correct RES installation numbers
     scenario_args = extracted_df.index.str.extract(
