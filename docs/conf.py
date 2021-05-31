@@ -45,7 +45,8 @@ def create_tech_scn_table_docs():
     ]
     tab_names_esm = [
         "electricty_heat_demand",
-        "heating_structure"
+        "heating_structure",
+        "model_components"
     ]
 
     for tab in tab_names_scenario:

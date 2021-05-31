@@ -412,4 +412,6 @@ which as 3 electrical buses.
    :width: 100 %
    :align: center
 
-The
+The components' names and *oemof* classes used in the model are given in the following table:
+
+.. include:: model_components.rst
