@@ -102,7 +102,7 @@ Demand-side management (DSM)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The number of households equipped with DSM infrastructure (devices and ICT) is varied.
-The numbers used in each scenario variation are derived from :cite:`styczynski2015`. They estimate the numbers of
+The numbers used in each scenario variation are derived from :cite:`Styczynski2015`. They estimate the numbers of
 households that are being equipped with DSM by technical feasibility (German: *Realisierbarkeitsfaktor*) and
 user-side acceptance (German: Akzeptanzfaktor).
 Values for the year 2035 (NEP) are estimated applying a linear interpolation.
@@ -161,4 +161,4 @@ based electricity supply by :cite:`moeller2020`.
 
 .. note::
 
-   Further modelling details and assumptions are described in :ref:`esm:`.
+   Further modelling details and assumptions are described in :ref:`esm`.
