@@ -8,7 +8,7 @@ The region Anhalt-Bitterfeld-Wittenberg (ABW)
 
 The Anhalt-Bitterfeld-Wittenberg (ABW) region modelled in this tool is located in the east of Saxony-Anhalt comprising
 the three districts Anhalt-Bitterfeld, Wittenberg, and the city of Dessau-Roßlau (:numref:`map_de_abw`). It has a total
-area of 3,629 km² and a population of 366,931 in 2018.
+area of 3,629 km² and a population of 370,190 in 2017.
 
 .. _map_de_abw:
 .. figure:: images/map_de_abw.png
@@ -142,8 +142,8 @@ Run-of-river plants
 Electricity and heat demand
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Calculation of total demand
-"""""""""""""""""""""""""""
+Energy demand today
+"""""""""""""""""""
 
 The annual electricity demand for each sector (residential, commercial, trade, services, agricultural and industrial)
 and municipality is taken from :cite:`OEP2018` and allocated to the HV/MV stations. The hourly profiles are calculated
@@ -169,9 +169,52 @@ The annual heat demand for space heating and hot water for each sector and munic
   :cite:`BMWi2015` to calculate annual demands per municipality. As for households, time series are created with the
   *demandlib* :cite:`demandlib2019` but based upon the standard gas load profile *GHD* for CTS.
 
-The final results for electricity and heat demand are shown below:
+The results for electricity and heat demand for the status quo are shown below:
 
 .. include:: electricty_heat_demand.rst
+
+Energy demand in future scenarios
+"""""""""""""""""""""""""""""""""
+
+In 2035 and 2050, a reduction of electricity and heat demand is assumed:
+
+1. For the **heat demand**, an annual renovation rate is used to determine the total renovation quantity for the target
+   years:
+
+   * residential buildings: 1.0 % for 2017-2024, 1.6 % for 2025-2034, 2.0 % for 2035-2044, and
+     2.5 % for 2045-2050 :cite:``. This results in a total renovation rate of 24 % in 2035 and 56.2 % in 2050.
+   * non-residential buildings: 1.3 % for 2017-2024, 2.15 % for 2025-2034, 2.7 % for 2035-2044, and 3.4 % for
+     2045-2050. This results in a total renovation rate of 31.9 % in 2035 and 75.9 % in 2050.
+
+2. The reduction of **heat demand** in renovated buildings is based upon the following renovation scenarios. The average
+   of all three scenarios per sector is used as reduction rate in the model:
+
+   * conventional (IWU "konventionell" :cite:`IWU2015`): single- and multi-family households -33 %, CTS -33 %
+   * fully renovated (ISE "vollsaniert" :cite:`ISE2020`): single-family households -52 %, multi-family households
+     -56 %, CTS -44 %
+   * fully renovated+ (ISE "vollsaniert+" :cite:`ISE2020`): single-family households -69 %, multi-family households
+     -68 %, CTS -60 %
+
+3. Moreover, a decrease in **electricity and heat demand** due to depopulation and decline in employment is taken into
+   account:
+
+   * 2035: population 307,877 (-16.8 %), employees 73,535 (-10.6 %)
+   * 2050: population 275,411 (-25.6 %), employees 65,588 (-20.2 %)
+
+4. The reduction rate for industrial **electricity demand** is derived from the reference studies of the
+   :ref:`scenarios` (:cite:`NEP2021`, :cite:`ISE2020`) and amount to -23 % in 2035 and -20 % in 2050 :cite:`ISE2020`.
+
+Using these considerations the final energy reductions are as follows:
+
+Electricity
+
+* 2035: households -17 %, CTS -23 %, industry -23 %
+* 2050: households -26 %, CTS -20 %, industry -20 %
+
+Heat
+
+* 2035: households -13 %, CTS -14 %
+* 2050: households -31 %, CTS -33 %
 
 Centralized and decentralized heat systems
 """"""""""""""""""""""""""""""""""""""""""
