@@ -176,7 +176,8 @@ The results for electricity and heat demand for the status quo are shown below:
 Energy demand in future scenarios
 """""""""""""""""""""""""""""""""
 
-In 2035 and 2050, a reduction of electricity and heat demand is assumed:
+In 2035 and 2050, a reduction of electricity and heat demand is assumed due to building renovation and demographic
+change. Other aspects such as changes in devices' efficiencies or consumers' behavior is not taken into account.
 
 1. For the **heat demand**, an annual renovation rate is used to determine the total renovation quantity for the target
    years:
