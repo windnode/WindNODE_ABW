@@ -189,11 +189,11 @@ In 2035 and 2050, a reduction of electricity and heat demand is assumed:
 2. The reduction of **heat demand** in renovated buildings is based upon the following renovation scenarios. The average
    of all three scenarios per sector is used as reduction rate in the model:
 
-   * conventional (IWU "konventionell" :cite:`IWU2015`): single- and multi-family households -33 %, CTS -33 %
-   * fully renovated (ISE "vollsaniert" :cite:`ISE2020`): single-family households -52 %, multi-family households
-     -56 %, CTS -44 %
-   * fully renovated+ (ISE "vollsaniert+" :cite:`ISE2020`): single-family households -69 %, multi-family households
-     -68 %, CTS -60 %
+   * conventional ("konventionell" :cite:`IWU2015`): single- and multi-family households -33 %, CTS -33 %
+   * fully renovated ("vollsaniert" :cite:`UBA2017`): single-family households -52 %, multi-family households -56 %,
+     CTS -44 %
+   * fully renovated+ ("vollsaniert+" :cite:`UBA2017`): single-family households -69 %, multi-family households -68 %,
+     CTS -60 %
 
 3. Moreover, a decrease in **electricity and heat demand** due to depopulation and decline in employment is taken into
    account:
@@ -213,8 +213,8 @@ Electricity
 
 Heat
 
-* 2035: households -13 %, CTS -14 %
-* 2050: households -31 %, CTS -33 %
+* 2035: households -13 %, CTS -14 %, (industrial heat is not part of the model)
+* 2050: households -31 %, CTS -33 %, (industrial heat is not part of the model)
 
 Centralized and decentralized heat systems
 """"""""""""""""""""""""""""""""""""""""""
