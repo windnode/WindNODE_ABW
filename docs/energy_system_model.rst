@@ -296,8 +296,12 @@ district:
 
 .. include:: heating_structure.rst
 
-Hydrogen
-^^^^^^^^
+Methane
+^^^^^^^
+
+In the future scenarios, some components still rely on natural gas such as CCGT and boilers. Aligned to the two
+underlying studies NEP (2035) :cite:`NEP2021` and ISE (2050) :cite:`ISE2020`, a fixed proportion of methane in the gas
+network is assumed (2035: 0 %, 2050: 100 %) affecting the emissions and operational cost of those components.
 
 Further notes
 ^^^^^^^^^^^^^
