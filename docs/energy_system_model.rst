@@ -197,12 +197,15 @@ change. Other aspects such as changes in devices' efficiencies or consumers' beh
      CTS -60 %
 
 3. Moreover, a decrease in **electricity and heat demand** due to depopulation and decline in employment is taken into
-   account:
+   account.
 
    * 2035: population 307,877 (-16.8 %), employees 73,535 (-10.6 %)
    * 2050: population 275,411 (-25.6 %), employees 65,588 (-20.2 %)
 
-4. The reduction rate for industrial **electricity demand** is derived from the reference studies of the
+4. The **electricity demand** of the CTS sector results from the specific consumption per employee from
+   :cite:`BMWi2017`.
+
+5. The reduction rate for industrial **electricity demand** is derived from the reference studies of the
    :ref:`scenarios` (:cite:`NEP2021`, :cite:`ISE2020`) and amount to -23 % in 2035 and -20 % in 2050 :cite:`ISE2020`.
 
 Using these considerations the final energy reductions are as follows:
