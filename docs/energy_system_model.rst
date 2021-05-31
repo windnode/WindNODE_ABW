@@ -346,6 +346,54 @@ created per municipality. The C-rate is estimated with 0.25 for large-scale and 
 Power-to-heat
 ^^^^^^^^^^^^^
 
+Power-to-heat includes air source heat pumps (ASHP) and ground source heat pumps (GSHP) in decentralized heating systems
+and electrical boilers in district heating.
+
+Heat pumps with thermal storages
+""""""""""""""""""""""""""""""""
+
+By 2035, for the NEP scenario, it is assumed that 15 % of the total heat demand is supplied by heat pumps. For the
+climate neutral scenario in 2050 it is estimated that 70 % of the total heat demand is covered by heat supply from heat
+pumps (cf. :ref:`esm_dec_heating_systems_label`).
+
+In 2016, the share of small ASHP and GSHP was 50 % each according to :cite:`GZB2017` which is used to constrain the
+upper limit of thermal energy supplied in the model. In the component
+`Transformer <https://oemof-solph.readthedocs.io/en/latest/usage.html#transformer-basic>`_ a quality grade of 0.4
+:cite:`VDE2015` and a supply temperature of 40 °C is assumed. Using time series of ambient temperature (ASHP) and soil
+temperature (GSHP) from :cite:`DWD2020` the coefficient of performance (COP) for every time step is calculated.
+Additionally, icing losses of 20 % below 2 °C are taken into account for ASHP. This results in a mean seasonal
+performance (MSP) factor of 3.4 for ASHP and 4.3 for GSHP which are in accordance with typical values for 2016
+:cite:`GZB2017`. For the future scenarios, the COP is linearly scaled up to match a MSP of 3.78 in 2035 and 4.3 in 2050
+:cite:`Prognos2014`.
+
+A minimum storage capacity is required in heat pump systems to ensure fault-free operation (required due to minimum
+running times of compressor) as heat dissipation must be ensured at all times :cite:`Viessmann2011`. The default storage
+capacity without any measures to gain additional flexibility follows the installed heating elements of the system:
+buildings with underfloor heating are assumed to have a sufficient storage capacity, buildings with convection radiators
+(mainly affects retrofitted systems in the future scenarios) are assumed to have a capacity of 20 l/kW of installed heat
+pump power :cite:`Viessmann2011`.
+
+As the different types of heating element are not modelled separately, a mean storage capacity is calculated based upon
+its share in renovated buildings; convection radiators account for 71 % and underfloor heating for 29 % :cite:`GZB2017`.
+
+To facilitate flexible demands in household and CTS applications with heat pumps, additional thermal storages are
+required. The capacity for buffering is estimated with 60 l/kW of installed nominal heat pump power in the *PTH*
+scenarios, 100 l/kW in *PTH+* scenarios, and 200 l/kW in *PTH+* scenarios. Under consideration of the heating elements'
+share from above, this results in 71.2 l/kW (*PTH*), 114.2 l/kW (*PTH+*), and 228.4 l/kW (*PTH++*) storage capacity. The
+C-rate is estimated with 6.7 :cite:`DEA_storage`.
+
+Electrical boilers with thermal storages
+""""""""""""""""""""""""""""""""""""""""
+
+Each of the four district heating networks (cf. :ref:`esm_heating_systems_label`) is equipped with large-scale
+electrical boilers to provide additional flexibility for the power system. The nominal power is defined as a fixed ratio
+of the annual peak load: 50 % in scenario *PTH* and 100 % in scenarios *PTH+* and *PTH++*.
+
+The ratio of storage capacity (600 MWh) and annual peak load of Dessau's heating system are used to estimate storage
+capacities for the other cities in the *PTH* scenarios (5 MWh/MW_peak). In the *PTH+* and *PTH++* scenarios, a value of
+10 MWh/MW_peak is used. The existing storage in Dessau is retained in all scenarios. The C-rates are estimated with 0.1
+:cite:`DEA_storage`.
+
 .. _esm_model_details_label:
 
 Model details
@@ -356,7 +404,12 @@ Each municipality has
   * 1 bus for centralized heating (only municipalities with district heating)
   * n electrical buses, 1 per HV/MV substation (demand and feedin is split equally)
 
+:numref:`abw_esys_graph_mun1` shows the components of one municipality (the full graph is shown in the left top corner)
+which as 3 electrical buses.
+
 .. _abw_esys_graph_mun1:
 .. figure:: images/abw_esys_graph_mun1.png
    :width: 100 %
    :align: center
+
+The
