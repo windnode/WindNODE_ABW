@@ -269,11 +269,6 @@ Bitterfeld-Wolfen, Köthen, Wittenberg
 *Notes*
   * The electric energy produced by all feeding power units is fed into the closest MV/MV station.
 
-.. note::
-
-    Details on the components' parameters can be found in the
-    `source code <https://github.com/windnode/WindNODE_ABW/blob/master/windnode_abw/model/region/model.py>`_.
-
 .. _esm_dec_heating_systems_label:
 
 Decentralized Heating systems
@@ -419,3 +414,8 @@ which as 3 electrical buses.
 The components' names and *oemof* classes used in the model are given in the following table:
 
 .. include:: model_components.rst
+
+.. note::
+
+    Details on the model's topology and components' parameters can be found in the
+    `source code <https://github.com/windnode/WindNODE_ABW/blob/master/windnode_abw/model/region/model.py>`_.
