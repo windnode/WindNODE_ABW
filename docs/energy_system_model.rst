@@ -220,6 +220,8 @@ Heat
 * 2035: households -13 %, CTS -14 %, (industrial heat is not part of the model)
 * 2050: households -31 %, CTS -33 %, (industrial heat is not part of the model)
 
+.. _esm_heating_systems_label:
+
 Centralized and decentralized heat systems
 """"""""""""""""""""""""""""""""""""""""""
 
@@ -272,8 +274,10 @@ Bitterfeld-Wolfen, Köthen, Wittenberg
     Details on the components' parameters can be found in the
     `source code <https://github.com/windnode/WindNODE_ABW/blob/master/windnode_abw/model/region/model.py>`_.
 
-Heating systems
-^^^^^^^^^^^^^^^
+.. _esm_dec_heating_systems_label:
+
+Decentralized Heating systems
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The technology shares in the decentralized heating systems for households in the status quo scenario are obtained from
 *demandRegio* cite:`FFE2019` on a district resolution. For the CTS and agricultural sector, data on federal state
@@ -286,8 +290,9 @@ the model and a flexible generation, all of the above sources are fixed generato
 with its respective share. Energy generation of solar thermal systems is calculated using the normalized PV feedin
 timeseries.
 
-For the future scenarios based upon NEP (2035) :cite:`NEP2021` and ISE (2050) :cite:`ISE2020` (cf. :ref:`scenarios`)
-different shares apply. The following table shows the configuration for all 3 scenarios/years per district:
+For the future scenarios based upon NEP (2035) :cite:`NEP2021` and ISE (2050) :cite:`ISE2020`, :cite:`ISE2021` (cf.
+:ref:`scenarios`) different shares apply. The following table shows the configuration for all 3 scenarios/years per
+district:
 
 .. include:: heating_structure.rst
 
@@ -306,7 +311,9 @@ Flexibility options
 -------------------
 
 As described earlier, the model integrates households with demand-side management, large-scale battery storages, and
-power-to-heat (heat pumps and electrical boilers) in decentralized heating systems and district heating networks.
+power-to-heat (heat pumps and electrical boilers) in decentralized heating systems and district heating networks. This
+section describes the underlying methods in detail, the resulting scenario parameters are listed in (cf.
+:ref:`scenarios`).
 
 Demand-side management (DSM)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -329,15 +336,12 @@ flexibility bands as input which were calculated in a bottom-up model by the
 Batteries
 ^^^^^^^^^
 
-Batteries include large-scale units and home systems in terms of storage capacity. However, there is not distinction
-between these types in the model. The capacity of large-scale battery storage is determined by scaling with installed
-RES capacity as described in :ref:`scenarios`. Home systems' total capacity is distributed based on small PV systems'
-nominal capacity. Per municipality, an *oemof*
+Batteries include large-scale units and home systems in terms of storage capacity. The capacity of large-scale battery
+storage is determined by scaling with installed RES capacity as described in :ref:`scenarios`. Home systems' total
+capacity is distributed based on small PV systems' nominal capacity. For each type, an *oemof*
 `GenericStorage <https://oemof-solph.readthedocs.io/en/latest/usage.html#genericstorage-component>`_ component is
-created with the sum of both capacities.
-
-Thermal storages
-^^^^^^^^^^^^^^^^
+created per municipality. The C-rate is estimated with 0.25 for large-scale and 0.68 for home systems
+:cite:`DEA_storage`.
 
 Power-to-heat
 ^^^^^^^^^^^^^
