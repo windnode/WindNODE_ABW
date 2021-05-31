@@ -84,8 +84,7 @@ def create_scn_table_docs():
         "Battery storage (large) [MWh]": ("flexopt", "flex_bat_large", "params"),
         "Battery storage (PV storage) [MWh]": ("flexopt", "flex_bat_small", "params"),
         "Dec. heating systems with storage [%]": ("storage", "th_dec_pth_storage", "general"),
-        "Thermal storage (district heating) [MWh]": ("storage", "th_cen_storage", "general"),
-
+        "Thermal storage (district heating) [MWh/MW]": ("storage", "th_cen_storage", "general"),
     }
 
     scn_dict = {
