@@ -403,10 +403,9 @@ Each municipality has
   * 1 bus for centralized heating (only municipalities with district heating)
   * n electrical buses, 1 per HV/MV substation (demand and feedin is split equally)
 
-:numref:`abw_esys_graph_mun1` shows the components of one municipality (the full graph is shown in the left top corner)
-which as 3 electrical buses.
+The following figure shows the components of one municipality (the full graph is shown in the left top corner) which has
+3 electrical buses:
 
-.. _abw_esys_graph_mun1:
 .. figure:: images/abw_esys_graph_mun1.png
    :width: 100 %
    :align: center
