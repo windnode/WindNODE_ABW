@@ -139,6 +139,13 @@ Run-of-river plants
 
 * A constant feedin is assumed with 3833 annual full load hours (2012-2017 mean from :cite:`STALA2018`)
 
+Conventional power plants
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are a couple of fossil-fueled CHP power plants which are included in the model; data from *OPSD* project
+:cite:`OPSDconv2018` is used. Those plants feed into district heating systems as described in
+:ref:`esm_district_heating_label`.
+
 Electricity and heat demand
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -231,6 +238,8 @@ municipal energy suppliers provided load profiles for different years :cite:`Sta
 temperature-corrected to profiles valid for 2017. This results in the following district heating shares: Dessau-Roßlau
 42 %, Bitterfeld-Wolfen 15 %, Köthen 9 % and Wittenberg 20 %. Subsequently, the remaining heat demand is allocated to
 decentralized consumers.
+
+.. _esm_district_heating_label:
 
 District heating
 ^^^^^^^^^^^^^^^^
