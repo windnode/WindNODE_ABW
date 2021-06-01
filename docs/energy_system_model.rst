@@ -8,7 +8,7 @@ The region Anhalt-Bitterfeld-Wittenberg (ABW)
 
 The Anhalt-Bitterfeld-Wittenberg (ABW) region modelled in this tool is located in the east of Saxony-Anhalt comprising
 the three districts Anhalt-Bitterfeld, Wittenberg, and the city of Dessau-Roßlau (:numref:`map_de_abw`). It has a total
-area of 3,629 km² and a population of 370,190 in 2017.
+area of 3,629 km² and a population of 370,190 inhabitants in 2017.
 
 .. _map_de_abw:
 .. figure:: images/map_de_abw.png
@@ -24,7 +24,7 @@ area of 3,629 km² and a population of 370,190 in 2017.
 
    Region ABW with municipalities
 
-Substantial amounts of \ac{RES} are installed in the region. In 2017, 717 MW of wind power and 445 MW of ground-mounted
+Substantial amounts of RES are installed in the region. In 2017, 717 MW of wind power and 445 MW of ground-mounted
 PV covered 63 % of the regional electricty demand of 20 municipalities.
 
 ..
@@ -318,7 +318,7 @@ Demand-side management (DSM)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A DSM model was developed and integrated as new component
-`SinkDSM <https://oemof-solph.readthedocs.io/en/latest/usage.html#sinkdsm-custom>`_ into *oemof*. The component takes
+`SinkDSM <https://oemof-solph.readthedocs.io/en/latest/usage.html#sinkdsm-custom>`_ into *oemof-solph*. The component takes
 flexibility bands as input which were calculated in a bottom-up model by the
 *Institut für ökologische Wirtschaftsforschung* (IÖW). The methods are described in a supplementary report
 :cite:`gaehrs2020`. Abstract:
