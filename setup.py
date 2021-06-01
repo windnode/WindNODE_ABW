@@ -46,7 +46,8 @@ setup(
             os.path.join('config',
                          'config_system'),
             os.path.join('config',
-                         '*.cfg')
+                         '*.cfg'),
+            os.path.join("scenarios", "*.csv")
         ]
         },
     cmdclass={
