@@ -40,8 +40,8 @@ the search area. As a result, approx. 1 % of the planning area is still availabl
 Restriction areas
 ^^^^^^^^^^^^^^^^^
 
-The regulations in effect with regard to restrictive areas are taken from :cite:`ABW2018a`, :cite:`UBA2013`.
-The restriction areas include:
+Regulations and assumptions on the restriction areas are taken from :cite:`ABW2018a`, :cite:`UBA2013`, :cite:`BMVI2015`
+as well as the current legislation in force. The restriction areas include:
 
 :"Strict" restrictions:
 
