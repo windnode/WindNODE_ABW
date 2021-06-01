@@ -33,33 +33,75 @@ includes the districts of Wittenberg, Anhalt-Bitterfeld and the independent city
 In a nutshell, so-called "strict" and "weak" restriction areas are excluded from the planning area, which are not
 available for wind energy use for various reasons (e.g. nature conservation, existing infrastructure, other interests,
 etc.). This results in potentially eligible areas - the so-called "search area" - which account for around 10% of the
-entire planning area. These areas are subject to a case-by-case examination (see below), which leads to an exclusion of
-about 90% of the search area. As a result, approx. 1 % of the planning area is still available for the designation of
-VR/EG; 3590 ha (0.98 %) were actually designated as VR/EG :cite:`ABW2018a`.
+entire planning area. These areas are subject to a case-by-case examination, which leads to an exclusion of about 90% of
+the search area. As a result, approx. 1 % of the planning area is still available for the designation of VR/EG; 3590 ha
+(0.98 %) were actually designated as VR/EG :cite:`ABW2018a`.
 
 Restriction areas
 ^^^^^^^^^^^^^^^^^
 
-The regulations in effect with regard to restrictive areas are taken from :cite:`ABW2018a`, :cite:`ABW2018a`.
+The regulations in effect with regard to restrictive areas are taken from :cite:`ABW2018a`, :cite:`UBA2013`.
 The restriction areas include:
 
 :"Strict" restrictions:
 
-    * Settlements +500 m buffer
+    * Settlements (+500 m buffer)
     * Existing infrastructure such as roads, railway tracks, airfields
-    * Nature conservation areas (German: Naturschutzgebiete)
+    * Nature conservation areas
     * Protected landscape elements (German: Geschützte Landschaftsbestandteile)
-    * Special protection areas (German: Vogelschutzgebiete)
-    * Drinking water protection areas, zones I+II (German: Trinkwasserschutzgebiete der Zone I+II)
+    * Special protection areas
+    * Drinking water protection areas: zones I+II
 
-.. _map_abw_esys1:
-.. figure:: images/map_abw_esys1.png
+.. figure:: images/areas_and_potentials_wind_strict_restr.jpg
    :width: 75 %
+   :alt: Areas with strict restrictions
    :align: center
 
 :"Weak" restrictions:
 
-    *
+    * 1000 m buffer zone around settlements
+    * Fauna flora habitats
+    * Forest defined in § 2 WaldG LSA
+    * UNESCO heritage sites (in ABW: *Gartenreich Dessau-Wörlitz*)
+    * Floodplains
+    * Standing water bodies >1 ha (+65 m buffer)
+    * Rivers of 1st order (+65 m buffer)
+
+.. figure:: images/areas_and_potentials_wind_weak_restr.jpg
+   :width: 75 %
+   :alt: Areas with weak restrictions
+   :align: center
+
+:Case-by-case examination:
+
+    * Buffer zones of 200...1000 m around fauna flora habitats depending on the presence of protected bats
+      (Bechstein's bat and greater mouse-eared bat)
+    * Landscape protection areas
+    * Nature parks
+    * Biosphere reserves
+    * Reserved areas for the development of an ecological network system (German: Vorbehaltsgebiete für den Aufbau eines
+      ökölogischen Verbundsystems)
+    * Priority areas for nature and landscape (German: Vorranggebiete für Natur und Landschaft)
+    * Natural monuments (German: Naturdenkmale inkl. Flächennaturdenkmale)
+    * Drinking water protection areas: zone III and priority areas for water extraction
+    * Priority and reserved areas for agriculture (German: Vorrang- und Vorbehaltsgebiete für die Landwirtschaft)
+    * Priority and reserved areas for raw materials production (German: Vorrang- und Vorbehaltsgebiete für die
+      Rohstoffgewinnung)
+    * Municipal planning and planning intentions, natural scenery, private concerns
+    * Existing infrastructure
+        * Highways (+100 m buffer)
+        * Federal roads (+80 m buffer)
+        * State and municipal roads (+20 m buffer)
+        * Railway tracks (+250 m buffer)
+        * Railway properties
+        * Airports and airfields (+1760 m buffer for civil use, +6 km buffer for military use)
+        * High voltage overhead lines (+120 m buffer)
+        * Ground-mounted PV plants
+
+.. figure:: images/areas_and_potentials_wind_case.jpg
+   :width: 75 %
+   :alt: Areas that require a case-by-case examination
+   :align: center
 
 Repowering
 ^^^^^^^^^^
