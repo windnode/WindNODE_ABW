@@ -1,0 +1,22 @@
+Scenario,Technology,Share CTS,Share households (Dessau-Roßlau),Share households (Anhalt-Bitterfeld),Share households (Wittenberg)
+Status quo (2017),natural gas,79.8%,69.2%,67.2%,69.2%
+,fuel oil,17.8%,19.5%,20.5%,19.0%
+,wood,2.1%,2.6%,2.8%,2.6%
+,coal,0.2%,1.9%,2.0%,1.9%
+,solar thermal,0.2%,0.1%,0.1%,0.1%
+,night storage heating,0.0%,4.3%,4.5%,4.2%
+,ambient_heat,0.0%,2.3%,2.9%,3.1%
+NEP 2035,natural gas,59.0%,59.0%,59.0%,59.0%
+,fuel oil,12.0%,12.0%,12.0%,12.0%
+,wood,6.0%,6.0%,6.0%,6.0%
+,coal,0.0%,0.0%,0.0%,0.0%
+,solar thermal,4.0%,4.0%,4.0%,4.0%
+,night storage heating,4.0%,4.0%,4.0%,4.0%
+,ambient_heat,15.0%,15.0%,15.0%,15.0%
+ISE 2050,natural gas,5.0%,5.0%,5.0%,5.0%
+,fuel oil,0.0%,0.0%,0.0%,0.0%
+,wood,0.0%,0.0%,0.0%,0.0%
+,coal,0.0%,0.0%,0.0%,0.0%
+,solar thermal,8.0%,8.0%,8.0%,8.0%
+,night storage heating,17.0%,17.0%,17.0%,17.0%
+,ambient_heat,70.0%,70.0%,70.0%,70.0%

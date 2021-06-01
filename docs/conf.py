@@ -34,7 +34,7 @@ def _df2rst(df, filepath):
 
 
 def create_tech_scn_table_docs():
-    tab_names = [
+    tab_names_scenario = [
         "re_scenarios_nep",
         "re_scenarios_ise",
         "dsm_scenarios_nep",
@@ -43,15 +43,27 @@ def create_tech_scn_table_docs():
         "pth_scenarios",
         "autarky_scenarios"
     ]
+    tab_names_esm = [
+        "electricty_heat_demand",
+        "heating_structure",
+        "model_components"
+    ]
 
-    for tab in tab_names:
+    for tab in tab_names_scenario:
         df = pd.read_csv(os.path.join(PARENTDIR,
                                       "_data",
                                       "{}.csv".format(tab)),
                          index_col="Unnamed: 0")
 
         _df2rst(df, os.path.join(PARENTDIR, "{}.rst".format(tab)))
+    for tab in tab_names_esm:
+        df = pd.read_csv(os.path.join(PARENTDIR,
+                                      "_data",
+                                      "{}.csv".format(tab)),
+                         index_col=0)
+        df.index = df.index.fillna("")
 
+        _df2rst(df, os.path.join(PARENTDIR, "{}.rst".format(tab)))
 
 def create_scn_table_docs():
     """Prepare scenario data for docs table"""
@@ -231,6 +243,9 @@ html_theme_path = sphinx_material.html_theme_path()
 html_context = sphinx_material.get_html_context()
 html_theme = "sphinx_material"
 html_logo = "images/Windnode.png"
+
+# enable numeric references for figures
+numfig = True
 
 # material theme options (see theme.conf for more information)
 html_theme_options = {

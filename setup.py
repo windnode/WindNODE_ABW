@@ -39,7 +39,8 @@ setup(
         'Pyomo==5.6.7',
         'PyUtilib==5.7.2',
         'kaleido',
-        'notebook'
+        'notebook',
+        'orca'
     ],
     package_data={
         'windnode_abw': [
