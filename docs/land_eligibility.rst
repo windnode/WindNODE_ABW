@@ -113,7 +113,12 @@ land use of 20 hectares per turbine (:cite:`MLV2018`, :cite:`UBA2013`, :cite:`BM
 An Enercon E-141 (4.2 MW) with a hub height of 159 m is used as model turbine in all future scenarios.
 
 Results
-^^^^^^
+^^^^^^^
+
+.. figure:: images/RES_power_potential_vs_REx_scenarios.png
+   :width: 100 %
+   :alt: RE power potential in different RE scenarios
+   :align: center
 
 Ground-mounted photovoltaics
 ----------------------------
