@@ -20,7 +20,7 @@ Wind energy
 Wind energy makes the largest contribution to renewable power generation in the ABW region. In the end of 2017, 438
 turbines with an installed capacity of 717 megawatts already covered around 45% of the regional electricity demand.
 The further expansion and repowering of existing plants plays an important role in the transformation of the energy
-system.
+system in the region :cite:`MULE2019`.
 
 Wind turbines are privileged according to §35 BauGB :cite:`BWE2019`. However, it is necessary to consider important
 concerns such as nature and resident protection as well as the control of wind energy planning by designating
@@ -103,11 +103,14 @@ as well as the current legislation in force. The restriction areas include:
    :alt: Areas that require a case-by-case examination
    :align: center
 
-Repowering
-^^^^^^^^^^
-
 Assumptions and constraints
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For the allocation of wind turbines we make use of a greenfield approach based upon the calculated potential areas,
+hence the age structure of existing turbines as well as repowering at existing sites are neglected. Instead, an average
+land use of 20 hectares per turbine (:cite:`MLV2018`, :cite:`UBA2013`, :cite:`BMWi2017a`) is assumed.
+
+An Enercon E-141 (4.2 MW) with a hub height of 159 m is used as model turbine in all future scenarios.
 
 Results
 ^^^^^^
