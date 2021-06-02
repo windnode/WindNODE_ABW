@@ -115,10 +115,7 @@ An Enercon E-141 (4.2 MW) with a hub height of 159 m is used as model turbine in
 Results
 ^^^^^^^
 
-.. figure:: images/RES_power_potential_vs_REx_scenarios.png
-   :width: 100 %
-   :alt: RE power potential in different RE scenarios
-   :align: center
+table
 
 Ground-mounted photovoltaics
 ----------------------------
@@ -140,16 +137,32 @@ Rooftop photovoltaics
 
 * The potential for rooftop PV is taken from the herkules :cite:`BKG2021`, :cite:`BKG2021a`
 
-Results
--------
+Results for land use scenarios
+------------------------------
 
-:numref:`re_power_potential` shows...
+The analysis of the available area for wind and PV installations already reveals important insights regarding stated
+research questions. :numref:`re_power_potential` presents installable capacity of wind and PV for the four land use
+restriction scenarios (**Wind+** and **PV+** are integrated into **RE+**) and for each target year.
 
 .. _re_power_potential:
 .. figure:: images/RES_power_potential_vs_REx_scenarios.png
    :width: 100 %
    :align: center
 
-   Installable capacity for wind and PV considering four land-use scenarios. Capacity is given in GW (wide bars,
+   Installable capacity for wind and PV considering four land use scenarios. Capacity is given in GW (wide bars,
    left axis) and relative to the installable capacity under consideration of the current legal status quo (narrow bars,
    right axis), which is applied to determine the capacity for *RE-* scenarios.
+
+On the left hand side, the scenario assuming the lowest capacity installations (**RE-** reflects the current regulatory
+status quo. In this comparatively restrictive scenario, the available area for wind turbines and ground-mounted PV is
+entirely used and serves as a reference for the relative land use in the other scenarios. For realizing wind turbine
+capacity as assumed in **RE** (reflects capacity of *NEP 2035*), 165 % of the available area under current legislation
+would be required. This could already be achieved by wind installations in 10 % of not restricted forestal areas.
+In order to achieve installations according to *ISE 2050*, it would be necessary to reduce the minimum required distance
+of wind turbines from settlements to 500 m. It further becomes clear, that in **RE**, there is sufficient space to
+realize the required ground-mounted PV power of *NEP 2035* but not for the targets of *ISE 2050* where the available
+area is exceeded by 130 %. For the more ambitious land use restriction scenarios **RE+** and **RE++**, the areas
+necessary for wind and ground-mounted PV strongly exceed the designated areas in 2035 as well as in 2050. In all land
+use scenarios, the capacity of roof-mounted PV is lower than or equal to the available potential. To sum up, it can be
+said that even in the regulatory status quo, the region has space to increase the amount of renewables to a certain
+extent, but to reach a deep decarbonization, the designation of further areas is essential.
