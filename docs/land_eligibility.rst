@@ -178,7 +178,7 @@ Assumptions and constraints
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Results
-^^^^^^
+^^^^^^^
 
 An analysis of the results is given in the end of this section: :ref:`re_results_land_use`.
 
@@ -194,7 +194,7 @@ Definition of land use scenarios
 
 Based upon the above potentials four different RE scenarios are defined: **RE-**, **RE**, **RE+** and **RE++** which
 reflect different land use configurations and accordingly, different degrees of RE penetration. Each of the global
-:ref:`_scenarios` is assigned one of these RE scenarios, a full list is given in :ref:`_scenario-details-re`.
+:ref:`scenarios` is assigned one of these RE scenarios, a full list is given in :ref:`scenario-details-re`.
 
 The analysis of the available area for wind and PV installations already reveals important insights regarding stated
 research questions. :numref:`re_power_potential` presents installable capacity of wind and PV for the four land use
@@ -207,7 +207,7 @@ scenarios (**Wind+** and **PV+** are integrated into **RE+**) and for each targe
 
    Installable capacity for wind and PV considering four land use scenarios. Capacity is given in GW (wide bars,
    left axis) and relative to the installable capacity under consideration of the current legal status quo (narrow bars,
-   right axis), which is applied to determine the capacity for *RE-* scenarios.
+   right axis), which is applied to determine the capacity for **RE-** scenarios.
 
 On the left hand side, the scenario assuming the lowest capacity installations (**RE-** reflects the current regulatory
 status quo. In this comparatively restrictive scenario, the available area for wind turbines and ground-mounted PV is
