@@ -404,6 +404,14 @@ capacities for the other cities in the *PTH* scenarios (5 MWh/MW_peak). In the *
 10 MWh/MW_peak is used. The existing storage in Dessau is retained in all scenarios. The C-rates are estimated with 0.1
 :cite:`DEA_storage`.
 
+Autarky
+-------
+
+With the scenario dimension autarkic supply, it is investigated how region's energy demand can be supplied under
+constrained imports of electricity. Autarky on annual balance of 80 % and 90 % is analyzed based in the in-depth
+investigation of regional autarky in RE based electricity supply by :cite:`moeller2020`. In the energy system model,
+this is achieved by limiting the annual energy import to 20 % resp. 10 % .
+
 .. _esm_model_details_label:
 
 Model details
@@ -427,5 +435,10 @@ The components' names and *oemof* classes used in the model are given in the fol
 
 .. note::
 
-    Details on the model's topology and components' parameters can be found in the
+    Details on the topology and components' parameters can be found in the model's
     `source code <https://github.com/windnode/WindNODE_ABW/blob/master/windnode_abw/model/region/model.py>`_.
+
+.. note::
+
+    The scenario configuration is defined
+    `here <https://github.com/windnode/WindNODE_ABW/tree/master/windnode_abw/scenarios>`_.
