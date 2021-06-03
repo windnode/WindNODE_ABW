@@ -192,7 +192,7 @@ change. Other aspects such as changes in devices' efficiencies or consumers' beh
    years:
 
    * residential buildings: 1.0 % for 2017-2024, 1.6 % for 2025-2034, 2.0 % for 2035-2044, and
-     2.5 % for 2045-2050 :cite:``. This results in a total renovation rate of 24 % in 2035 and 56.2 % in 2050.
+     2.5 % for 2045-2050 :cite:`BMWi2017`. This results in a total renovation rate of 24 % in 2035 and 56.2 % in 2050.
    * non-residential buildings: 1.3 % for 2017-2024, 2.15 % for 2025-2034, 2.7 % for 2035-2044, and 3.4 % for
      2045-2050. This results in a total renovation rate of 31.9 % in 2035 and 75.9 % in 2050.
 
