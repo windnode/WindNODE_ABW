@@ -202,6 +202,11 @@ The following potential areas are considered:
 Other sites included in the EEG's subsidy scheme - conversion areas (German: Konversionsflächen) and federally owned
 properties - are neglected due to their comparatively low potential and insufficient data availability.
 
+.. figure:: images/areas_and_potentials_pv_ground_potential_areas.jpg
+   :width: 75 %
+   :alt: Ground-mounted PV: potential areas
+   :align: center
+
 Restriction areas
 ^^^^^^^^^^^^^^^^^
 
@@ -257,6 +262,8 @@ into account following the methodology of :cite:`BMVI2015`.
    :alt: Ground-mounted PV: areas with weak restrictions
    :align: center
 
+.. _re_pv_assumptions:
+
 Further assumptions
 ^^^^^^^^^^^^^^^^^^^
 
@@ -274,6 +281,39 @@ Further assumptions
 
 Results
 ^^^^^^^
+
+After clipping the potential with the restrictive areas, eligible areas are determined. They are evaluated on two levels
+of restrictions: strict restrictions only and strict+weak restrictions:
+
++---------------------+-------------+------------------+-------------+------------------+
+|                     | Strict restrictions            | Strict + weak restrictions     |
+|                     +-------------+------------------+-------------+------------------+
+|                     | Area [ha]   | Installable      | Area [ha]   | Installable      |
+|                     |             | nom. power [MWp] |             | nom. power [MWp] |
++=====================+=============+==================+=============+==================+
+| Federal highways    | 226,0       | 150,7            | 138,0       | 92,0             |
++---------------------+-------------+------------------+-------------+------------------+
+| Railroad tracks     | 1959,0      | 1306,0           | 963,0       | 642,0            |
++---------------------+-------------+------------------+-------------+------------------+
+| Arable land, meadows| 45352,0     | 30234,7          | 13997,0     | 9331,3           |
++---------------------+-------------+------------------+-------------+------------------+
+| **Sum**             | **47537,0** |                  | **15098,0** |                  |
++---------------------+-------------+------------------+-------------+------------------+
+| Federal highways    | 226,0       | 150,7            | 138,0       | 92,0             |
++---------------------+-------------+------------------+-------------+------------------+
+| Railroad tracks     | 1959,0      | 1306,0           | 963,0       | 642,0            |
++---------------------+-------------+------------------+-------------+------------------+
+| Arable land, meadows| *2086,0*    | 1390,7           | *2086,0*    | 1390,7           |
++---------------------+-------------+------------------+-------------+------------------+
+| **Sum incl. (A)\*** | **4271,0**  | **2847,4**       | **3187,0**  | **2124,7**       |
++---------------------+-------------+------------------+-------------+------------------+
+
+\* The maximum available potential area is limited to 2086 ha, cf. :ref:`re_pv_assumptions`.
+
+.. figure:: images/areas_and_potentials_pv_ground_strict_restr_results.jpg
+   :width: 75 %
+   :alt: Ground-mounted PV: eligible areas
+   :align: center
 
 An analysis of the results is given in the end of this chapter: :ref:`re_results_land_use`.
 
