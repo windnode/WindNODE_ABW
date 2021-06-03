@@ -28,14 +28,14 @@ Most importantly, we find
 * Climate neutral scenarios can technically work, even with a high degree of autarky by using flexibility options
 * Rather small amount of regional demand is served from national grid
 
-Detailed results
-----------------
+Detailed results (all scenarios)
+--------------------------------
 
 An overview about most important results for all scenario is presented
 `here <notebooks/scenario_analysis_comparative.html>`_.
 
-Scenarios more in detail
-------------------------
+Single scenarios in detail
+--------------------------
 
 .. include:: _include/single_scenario_results.rst
 
