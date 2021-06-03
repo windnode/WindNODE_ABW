@@ -25,7 +25,7 @@ import re
 
 
 PARENTDIR = pathlib.Path(__file__).parent.absolute()
-ZENODO_DEPOSIT_ID = 4292516
+ZENODO_DEPOSIT_ID = 4896569
 
 def _df2rst(df, filepath):
     headers = df.columns
