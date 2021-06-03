@@ -47,9 +47,9 @@ Grid model
 ----------
 
 The transmission capacities between the municipalities are given by the extra high voltage (380 kV) and high voltage
-grid (110 kV) as shown in :numref:`map_abw_grid`; its topology and parameters were taken from :cite:`Mueller2018`. This
-allows for a realistic assessment of the intra-regional exchange and grid load as well as the identification of
-potential congestions on those voltage levels.
+grid (110 kV) as shown in :numref:`map_abw_grid`; its topology and parameters were taken from :cite:`Mueller2018`,
+:cite:`openego2019`. This allows for a realistic assessment of the intra-regional exchange and grid load as well as the
+identification of potential congestions on those voltage levels.
 
 Subsequently, the electrical generation and demand of the municipalities are allocated to high voltage (HV) / medium
 voltage (MV) transformer stations. The allocation is done as follows:
