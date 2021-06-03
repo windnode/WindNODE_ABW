@@ -3,9 +3,9 @@
 Land eligibility for RE
 =======================
 
-The subject of this section is the analysis of land eligibility for wind energy and photovoltaics.
+The subject of this chapter is the analysis of land eligibility for wind energy and photovoltaics.
 
-We identified several issues in workshops with local stakeholders, which we will address in this section. First, the
+We identified several issues in workshops with local stakeholders, which we will address in this chapter. First, the
 land use - especially for wind energy - became a key matter of debate in Germany and, to the same extend, in the ABW
 region as the number of wind turbines have been growing dramatically during the last decades. On the one hand,
 renewables are perceived as a key element of the energy transition. Superordinate targets set by the federal government
@@ -20,7 +20,7 @@ Wind energy
 Wind energy makes the largest contribution to renewable power generation in the ABW region. In the end of 2017, 438
 turbines with an installed capacity of 717 megawatts already covered around 45% of the regional electricity demand.
 The further expansion and repowering of existing plants plays an important role in the transformation of the energy
-system in the region :cite:`MULE2019`.
+system in the region according to the climate and energy concept of the state of Saxony-Anhalt :cite:`MULE2019`.
 
 Wind turbines are privileged according to §35 BauGB. However, it is necessary to consider important concerns such as
 nature and resident protection as well as the control of wind energy planning by designating so-called concentration
@@ -59,12 +59,12 @@ as well as the current legislation in force. The restriction areas include:
     * Existing infrastructure such as roads, railway tracks, airfields
     * Nature conservation areas
     * Protected landscape elements (German: Geschützte Landschaftsbestandteile)
-    * Special protection areas
+    * Special protection areas (SPA)
     * Drinking water protection areas: zones I+II
 
 .. figure:: images/areas_and_potentials_wind_strict_restr.jpg
    :width: 75 %
-   :alt: Areas with strict restrictions
+   :alt: Wind energy: areas with strict restrictions
    :align: center
 
 :"Weak" restrictions:
@@ -79,7 +79,7 @@ as well as the current legislation in force. The restriction areas include:
 
 .. figure:: images/areas_and_potentials_wind_weak_restr.jpg
    :width: 75 %
-   :alt: Areas with weak restrictions
+   :alt: Wind energy: areas with weak restrictions
    :align: center
 
 :Case-by-case examination:
@@ -93,7 +93,8 @@ as well as the current legislation in force. The restriction areas include:
       ökölogischen Verbundsystems)
     * Priority areas for nature and landscape (German: Vorranggebiete für Natur und Landschaft)
     * Natural monuments (German: Naturdenkmale inkl. Flächennaturdenkmale)
-    * Drinking water protection areas: zone III and priority areas for water extraction
+    * Drinking water protection areas: zone III and priority areas for water extraction (German: Vorranggebiete für die
+      Wassergewinnung)
     * Priority and reserved areas for agriculture (German: Vorrang- und Vorbehaltsgebiete für die Landwirtschaft)
     * Priority and reserved areas for raw materials production (German: Vorrang- und Vorbehaltsgebiete für die
       Rohstoffgewinnung)
@@ -153,12 +154,19 @@ regulatory status quo (designated wind priority areas - *VR/EG*, cf. above) is g
 | **Reference:** Designated priority areas of status quo (*VR/EG*: 3590 ha)                 | **750**        |
 +-------------------------------+---------------------+-------------+-----------------------+----------------+
 
-An analysis of the results is given in the end of this section: :ref:`re_results_land_use`.
+An analysis of the results is given in the end of this chapter: :ref:`re_results_land_use`.
 
 Ground-mounted photovoltaics
 ----------------------------
 
-As shown in :numref:`re_pv_diagram`, ...
+Ground-mounted photovoltaic systems, with an installed capacity of 445 MW and a share of around 18 % of the region's
+electricity demand, were already making a substantial contribution by the end of 2017. Further expansion is an important
+component on the way to a completely renewable energy supply, which must be carried out in consideration of their
+spatial and environmental impact.
+
+The underlying methodology is presented in :numref:`re_pv_diagram`: following the support scheme for ground-mounted PV
+according to §37 EEG (2017) potential areas are determined. Along the lines to determine eligible areas for wind energy
+as presented above, restrictive areas of different relevance are subtracted to gain the final eligible areas.
 
 .. _re_pv_diagram:
 .. figure:: images/areas_and_potentials_pv_ground_diagram.png
@@ -171,16 +179,103 @@ As shown in :numref:`re_pv_diagram`, ...
 Potential areas
 ^^^^^^^^^^^^^^^
 
+The following potential areas are considered:
+
+:110 m strips along federal highways and railway tracks:
+
+    A 110 m buffer zone along federal highways and railway tracks, less a 40 m zone around federal highways (§9 FStrG)
+    and 10 m zone for railway tracks :cite:`FraunhoferIEE2019` is used. A width of 24 m (federal highways) and 12 m
+    (railroads) is assumed.
+
+:Soils with low arable yield potential (soil quality):
+
+    Large land potentials can be found in the agricultural areas. Following :cite:`ZSW2019`, areas with low arable yield
+    potential (soil quality) are used. For this purpose, the arable land and meadows from *Corine Land Cover*
+    :cite:`CLC2018` are intersected with the areas of very and extremely low soil quality (<50) according to the
+    *Soil Quality Rating* of the *Federal Institute for Geosciences and Natural Resources* :cite:`Stange2011`.
+
+    In the current planning, according to the climate and energy concept of the state of Saxony-Anhalt :cite:`MULE2019`,
+    "the construction of ground-mounted photovoltaic systems on agricultural land should be avoided as far as possible".
+    In order to take this limitation into account, according to :cite:`ZSW2019` only 0.5..1.0 % are assumed to be
+    available as "spatially compatible" (German: raumverträglich verfügbar).
+
+Other sites included in the EEG's subsidy scheme - conversion areas (German: Konversionsflächen) and federally owned
+properties - are neglected due to their comparatively low potential and insufficient data availability.
+
 Restriction areas
 ^^^^^^^^^^^^^^^^^
 
-Assumptions and constraints
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The potential areas are opposed by restriction areas in which the construction of photovoltaic plants is excluded
+(strict restrictions) or unlikely (weak restrictions). Both the current legal situation and planning criteria are taken
+into account following the methodology of :cite:`BMVI2015`.
+
+:"Strict" restrictions:
+
+    * Settlements (+100 m buffer)
+    * Existing infrastructure
+        * Federal highways (24 m width, +40 m buffer)
+        * Federal, state and municipal roads (+20 m buffer)
+        * Railway tracks (12 m width, +10 m buffer)
+    * Railway properties
+    * Airports and airfields
+    * Standing water bodies and rivers (+20 m buffer)
+    * Forest (+100 m buffer)
+    * Nature conservation areas
+    * Biosphere reserves
+    * Floodplains
+    * Natural monuments (German: Flächennaturdenkmale)
+    * Drinking water protection areas: zones I+II
+    * Further restrictions imposed by the *Regional development plan* :cite:`ABW2018b`:
+        * Priority and reserved areas for agriculture (German: Vorrang- und Vorbehaltsgebiete für die Landwirtschaft)
+        * Priority and reserved areas for raw materials production (German: Vorrang- und Vorbehaltsgebiete für die
+          Rohstoffgewinnung)
+        * Industrial and commercial areas of special significance to the state  (existing + planned)
+        * Industrial and commercial areas of special significance to the region  (existing + planned)
+
+.. figure:: images/areas_and_potentials_pv_ground_strict_restr.jpg
+   :width: 75 %
+   :alt: Ground-mounted PV: areas with strict restrictions
+   :align: center
+
+:"Weak" restrictions:
+
+    * Fauna flora habitats
+    * Special protection areas (SPA)
+    * Landscape protection areas
+    * Reserved areas for the development of an ecological network system (German: Vorbehaltsgebiete für den Aufbau eines
+      ökölogischen Verbundsystems)
+    * Priority areas for forestry
+    * Nature parks
+    * Priority areas for nature and natural scenery (German: Vorranggebiete für Natur und Landschaft)
+    * Priority areas for water extraction (German: Vorranggebiete für die Wassergewinnung)
+    * Priority areas for tourism and recreation
+    * UNESCO heritage sites (in ABW: *Gartenreich Dessau-Wörlitz*)
+    * Priority areas for agriculture (German: Vorranggebiete für die Landwirtschaft)
+
+.. figure:: images/areas_and_potentials_pv_ground_weak_restr.jpg
+   :width: 75 %
+   :alt: Ground-mounted PV: areas with weak restrictions
+   :align: center
+
+Further assumptions
+^^^^^^^^^^^^^^^^^^^
+
+* For economic reasons only areas >1 hectare are considered,
+* Existing plants and thus used areas are neglected.
+* For the specific space requirement, 1.5 hectares per installed megawatt peak (MWp) are assumed. Common values range
+  from 1.5 ha/MWp :cite:`ZSW2019` to 2.5 ha/MWp :cite:`BMWi2017a`. Due to efficiency improvements, among other factors,
+  a lower space requirement can be assumed in the future (0.8 ha/MWp in 2030 according to :cite:`ZSW2019`). For the
+  2035 scenarios a value of 1.0 ha/MWp and for 2050 0.8 ha/MWp is estimated.
+* As described above, only a portion of fields and meadows are assumed to be "spatially compatible" :cite:`ZSW2019`.
+  Therefore, an upper threshold of 1.0% is assumed here. Date from *CLC* :cite:`CLC2018` shows that the total area of
+  arable land and meadows in ABW is 208,578 ha, the maximum available potential area is therefore limited to 2086 ha
+  (marked with **(A)** in the result table below).
+* Mutual overlaps of potential areas are minimal and therefore neglected.
 
 Results
 ^^^^^^^
 
-An analysis of the results is given in the end of this section: :ref:`re_results_land_use`.
+An analysis of the results is given in the end of this chapter: :ref:`re_results_land_use`.
 
 Rooftop photovoltaics
 ---------------------
