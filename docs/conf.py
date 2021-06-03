@@ -21,10 +21,11 @@ import windnode_abw
 import pathlib
 import pynodo
 import logging
+import re
 
 
 PARENTDIR = pathlib.Path(__file__).parent.absolute()
-ZENODO_DEPOSIT_ID = 4292516
+ZENODO_DEPOSIT_ID = 4896569
 
 def _df2rst(df, filepath):
     headers = df.columns
@@ -161,13 +162,16 @@ def download_from_zenodo(deposit_id):
                         f"Docs are built with present *.ipynb files.")
 
 
-def single_scenario_nb_toctree(target_file="_include/single_scenario_results.rst"):
+def single_scenario_nb_toctree(target_file="_include/single_scenario_results.rst", scenario_names=None):
 
     os.makedirs("_include", exist_ok=True)
 
     prolog = "Results for each scenario are presented on a separate page. Please click on one of the links below.\n\n"
 
-    files = os.listdir("notebooks")
+    if scenario_names:
+        files = ["scenario_analysis_" + s + ".ipynb" for s in scenario_names]
+    else:
+        files = [f for f in os.listdir("notebooks") if re.match("scenario_analysis_(NEP|ISE|StatusQuo)", f)]
     basenames = [os.path.splitext(file)[0] for file in files]
     names = [file.replace("scenario_analysis_", "") for file in basenames]
 
@@ -181,14 +185,14 @@ def single_scenario_nb_toctree(target_file="_include/single_scenario_results.rst
     with open(target_file, "w") as text_file:
         text_file.write("{0}".format(prolog + header + toctree_links))
 
+# Create required data and tables
+scenario_names = create_scn_table_docs()
+create_tech_scn_table_docs()
 
 # Download results .ipynb and hook into documentation
 download_from_zenodo(ZENODO_DEPOSIT_ID)
-single_scenario_nb_toctree()
+single_scenario_nb_toctree(scenario_names=scenario_names.index.to_list())
 
-# Create required data and tables
-create_scn_table_docs()
-create_tech_scn_table_docs()
 
 
 # -- Project information -----------------------------------------------------
