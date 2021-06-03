@@ -98,6 +98,18 @@ Merging all strict and weak restrictions gives the total restrictive area shown 
 
    Merged restriction areas (black) and designated wind priority areas *VR/EG* (green)
 
+
+:numref:`re_wind_pot_areas_example_results` shows an example of the resulting potential areas with a distance to
+settlements of 500 m and use of forests:
+
+.. _re_wind_pot_areas_example_results:
+.. figure:: images/areas_and_potentials_wind_strict_weak_restr_results_s500f1.jpg
+   :width: 75 %
+   :alt: Potential areas with distance to settlements of 500 m and use of forests
+   :align: center
+
+   Potential areas with distance to settlements of 500 m and use of forests
+
 .. _re_wind_cbc:
 
 Other restrictions not covered by geodata: case-by-case examination
@@ -387,6 +399,10 @@ necessary for wind and ground-mounted PV strongly exceed the designated areas in
 use scenarios, the capacity of roof-mounted PV is lower than or equal to the available potential. To sum up, it can be
 said that even in the regulatory status quo, the region has space to increase the amount of renewables to a certain
 extent, but to reach a deep decarbonization, the designation of further areas is essential.
+
+.. note::
+
+    Further (geo)plots on potential areas on a municipal level can be found in the :ref:`results` chapter.
 
 .. note::
 
