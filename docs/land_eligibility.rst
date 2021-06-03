@@ -367,8 +367,11 @@ For roof-mounted PV, a dataset on the roof areas of residential and industrial b
 from cite:`BKG2021` and :cite:`BKG2021a`. The available space on residential buildings is estimated with 25 % and 50 %
 industrial buildings. Moreover, a specific space requirement of 7 m²/kWp is assumed for status quo, 5.5 m²/kWp for 2035
 and 4.5 m²/kWp for 2050 using the reduction factor calculated from values of ground-mounted PV (cf.
-:ref:`re_pv_assumptions`). For 7 m²/kWp, this results in a total PV rooftop potential of 89 MWp on residential and
-795 MWp on industrial buildings.
+:ref:`re_pv_assumptions`). This results in a total PV rooftop potential for
+
+* Status quo (2017) (7 m²/kWp):, residential: 89 MWp, industrial: 795 MWp
+* NEP 2035 (5.5 m²/kWp):, residential: 113 MWp, industrial: 1012 MWp
+* ISE 2035 (4.5 m²/kWp):, residential: 138 MWp, industrial: 1236 MWp
 
 .. _re_results_land_use:
 
