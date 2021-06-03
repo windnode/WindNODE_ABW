@@ -31,6 +31,9 @@ Most importantly, we find
 Detailed results
 ----------------
 
+An overview about most important results for all scenario is presented
+`here <notebooks/scenario_analysis_comparative.html>`_.
+
 Scenarios more in detail
 ------------------------
 
