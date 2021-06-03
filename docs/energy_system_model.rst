@@ -18,7 +18,7 @@ area of 3,629 km² and a population of 370,190 inhabitants in 2017.
    Region ABW in Germany
 
 .. _map_abw_esys1:
-.. figure:: images/map_abw_esys1.png
+.. figure:: images/map_abw_muns.png
    :width: 75 %
    :align: center
 
