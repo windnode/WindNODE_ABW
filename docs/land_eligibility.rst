@@ -27,7 +27,7 @@ nature and resident protection as well as the control of wind energy planning by
 areas in regional and land use plans with preclusive effects in the remaining planning area :cite:`BWE2019`.
 In the ABW region, it is the responsibility of the regional planning authority
 (*Regionale Planungsgemeinschaft Anhalt-Bitterfed-Wittenberg*) to designate such priority areas (VR/EG, German:
-Vorrang-/Eignungsgebiete), the *Teilplan Wind ABW 2018* can be found in :cite:`ABW2018a`. The planning area
+Vorrang-/Eignungsgebiete), the *Teilplan Wind ABW (2018)* can be found in :cite:`ABW2018a`. The planning area
 includes the districts of Wittenberg, Anhalt-Bitterfeld and the independent city of Dessau-Roßlau :cite:`ABW2018b`.
 
 In a nutshell, so-called "strict" and "weak" restriction areas are excluded from the planning area, which are not
@@ -82,32 +82,59 @@ as well as the current legislation in force. The restriction areas include:
    :alt: Wind energy: areas with weak restrictions
    :align: center
 
-:Case-by-case examination:
+Results
+"""""""
 
-    * Buffer zones of 200...1000 m around fauna flora habitats depending on the presence of protected bats
-      (Bechstein's bat and greater mouse-eared bat)
-    * Landscape protection areas
-    * Nature parks
-    * Biosphere reserves
-    * Reserved areas for the development of an ecological network system (German: Vorbehaltsgebiete für den Aufbau eines
-      ökölogischen Verbundsystems)
-    * Priority areas for nature and landscape (German: Vorranggebiete für Natur und Landschaft)
-    * Natural monuments (German: Naturdenkmale inkl. Flächennaturdenkmale)
-    * Drinking water protection areas: zone III and priority areas for water extraction (German: Vorranggebiete für die
-      Wassergewinnung)
-    * Priority and reserved areas for agriculture (German: Vorrang- und Vorbehaltsgebiete für die Landwirtschaft)
-    * Priority and reserved areas for raw materials production (German: Vorrang- und Vorbehaltsgebiete für die
-      Rohstoffgewinnung)
-    * Municipal planning and planning intentions, natural scenery, private concerns
-    * Existing infrastructure
-        * Highways (+100 m buffer)
-        * Federal roads (+80 m buffer)
-        * State and municipal roads (+20 m buffer)
-        * Railway tracks (+250 m buffer)
-        * Railway properties
-        * Airports and airfields (+1760 m buffer for civil use, +6 km buffer for military use)
-        * High voltage overhead lines (+120 m buffer)
-        * Ground-mounted PV plants
+Merging all strict and weak restrictions gives the total restrictive area shown in black in
+:numref:`re_wind_strict_weak_restr_results_vreg`. All other areas represent the eligible space for wind turbines
+(~10 %). For comparison, the designated wind priority areas *VR/EG* (data from *Teilplan Wind ABW (2018)*
+:cite:`ABW2018a`) are plotted in green (3590 ha in total which equals 0.98 % of the region's area).
+
+.. _re_wind_strict_weak_restr_results_vreg:
+.. figure:: images/areas_and_potentials_wind_strict_weak_restr_results_vreg.jpg
+   :width: 75 %
+   :alt: Wind energy: merged restriction areas and designated wind priority areas
+   :align: center
+
+   Merged restriction areas (black) and designated wind priority areas *VR/EG* (green)
+
+.. _re_wind_cbc:
+
+Other restrictions not covered by geodata: case-by-case examination
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While the previous restrictions can be modelled using geodata, the final step of case-by-case examination cannot.
+Therefore, a reduction of the total potential area is estimated for the case-by-case examination using the numbers on
+designated wind priority areas of today from *Teilplan Wind ABW (2018)* :cite:`ABW2018a`:
+reduction factor = Area(wind priority areas) / Area(potential areas) = 10 %. This across-the-board reduction factor is
+applied to the potential areas for all scenarios to calculate the eligible space.
+
+The areas subject to individual examination include
+
+* Buffer zones of 200...1000 m around fauna flora habitats depending on the presence of protected bats
+  (Bechstein's bat and greater mouse-eared bat)
+* Landscape protection areas
+* Nature parks
+* Biosphere reserves
+* Reserved areas for the development of an ecological network system (German: Vorbehaltsgebiete für den Aufbau eines
+  ökölogischen Verbundsystems)
+* Priority areas for nature and landscape (German: Vorranggebiete für Natur und Landschaft)
+* Natural monuments (German: Naturdenkmale inkl. Flächennaturdenkmale)
+* Drinking water protection areas: zone III and priority areas for water extraction (German: Vorranggebiete für die
+  Wassergewinnung)
+* Priority and reserved areas for agriculture (German: Vorrang- und Vorbehaltsgebiete für die Landwirtschaft)
+* Priority and reserved areas for raw materials production (German: Vorrang- und Vorbehaltsgebiete für die
+  Rohstoffgewinnung)
+* Municipal planning and planning intentions, natural scenery, private concerns
+* Existing infrastructure
+    * Highways (+100 m buffer)
+    * Federal roads (+80 m buffer)
+    * State and municipal roads (+20 m buffer)
+    * Railway tracks (+250 m buffer)
+    * Railway properties
+    * Airports and airfields (+1760 m buffer for civil use, +6 km buffer for military use)
+    * High voltage overhead lines (+120 m buffer)
+    * Ground-mounted PV plants
 
 .. figure:: images/areas_and_potentials_wind_case.jpg
    :width: 75 %
@@ -136,7 +163,7 @@ regulatory status quo (designated wind priority areas - *VR/EG*, cf. above) is g
 | **Distance to**               | **Use**             | **Results**                                          |
 | **settlements [m]**           | **forest areas?**   +-------------+-----------------------+----------------+
 |                               |                     | Area [ha]   | Installable turbines  | Installable    |
-|                               |                     |             | WEA (10% of area,     | nom. power [MW]|
+|                               |                     |             | WEA (10% of area\*,   | nom. power [MW]|
 |                               |                     |             | 20 ha/MW)             |                |
 +-------------------------------+---------------------+-------------+-----------------------+----------------+
 | 500                           | no                  | 87847       | 439                   | 1844           |
@@ -153,6 +180,9 @@ regulatory status quo (designated wind priority areas - *VR/EG*, cf. above) is g
 +-------------------------------+---------------------+-------------+-----------------------+----------------+
 | **Reference:** Designated priority areas of status quo (*VR/EG*: 3590 ha)                 | **750**        |
 +-------------------------------+---------------------+-------------+-----------------------+----------------+
+
+\* A reduction to 10 % of the total potential area is estimated for the case-by-case examination, cf.
+:ref:`re_wind_cbc`.
 
 An analysis of the results is given in the end of this chapter: :ref:`re_results_land_use`.
 
@@ -331,9 +361,9 @@ Based upon the above potentials four different RE scenarios are defined: **RE-**
 reflect different land use configurations and accordingly, different degrees of RE penetration. Each of the global
 :ref:`scenarios` is assigned one of these RE scenarios, a full list is given in :ref:`scenario-details-re`.
 
-The analysis of the available area for wind and PV installations already reveals important insights regarding stated
-research questions. :numref:`re_power_potential` presents installable capacity of wind and PV for the four land use
-scenarios (**Wind+** and **PV+** are integrated into **RE+**) and for each target year.
+The analysis of the available area for wind and PV installations already reveals important insights regarding the
+initial research question. :numref:`re_power_potential` presents installable capacity of wind and PV for the four land
+use scenarios (**Wind+** and **PV+** are integrated into **RE+**) and for each target year.
 
 .. _re_power_potential:
 .. figure:: images/RES_power_potential_vs_REx_scenarios.png
