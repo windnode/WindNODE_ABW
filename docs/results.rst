@@ -28,6 +28,11 @@ Most importantly, we find
 * Climate neutral scenarios can technically work, even with a high degree of autarky by using flexibility options
 * Rather small amount of regional demand is served from national grid
 
+.. note::
+
+    The results below show only static graphics, you may download the interactive Jupyter notebooks from
+    `Zenodo <https://zenodo.org/record/4896569/>`_.
+
 Detailed results (all scenarios)
 --------------------------------
 
