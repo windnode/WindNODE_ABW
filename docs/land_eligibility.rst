@@ -184,3 +184,8 @@ necessary for wind and ground-mounted PV strongly exceed the designated areas in
 use scenarios, the capacity of roof-mounted PV is lower than or equal to the available potential. To sum up, it can be
 said that even in the regulatory status quo, the region has space to increase the amount of renewables to a certain
 extent, but to reach a deep decarbonization, the designation of further areas is essential.
+
+.. note::
+
+    A detailed description on how the feedin timeseries of fluctuating renewables are calculated and integrated into the
+    energy system model can be found in :ref:`esm_fluctuating_renewables_label`.

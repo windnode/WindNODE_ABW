@@ -94,6 +94,8 @@ model's components.
 
    Components of regional energy system model
 
+.. _esm_fluctuating_renewables_label:
+
 Fluctuating renewables
 ^^^^^^^^^^^^^^^^^^^^^^
 
