@@ -34,8 +34,16 @@ In a nutshell, so-called "strict" and "weak" restriction areas are excluded from
 available for wind energy use for various reasons (e.g. nature conservation, existing infrastructure, other interests,
 etc.). This results in potentially eligible areas - the so-called "search area" - which account for around 10% of the
 entire planning area. These areas are subject to a case-by-case examination, which leads to an exclusion of about 90% of
-the search area. As a result, approx. 1 % of the planning area is still available for the designation of VR/EG; 3590 ha
-(0.98 %) were actually designated as VR/EG :cite:`ABW2018a`.
+the search area. As a result, approx. 1 % of the planning area is still available for the designation of VR/EG as shown
+in :numref:`re_wind_diagram`; 3590 ha (0.98 %) were actually designated as VR/EG :cite:`ABW2018a`.
+
+.. _re_wind_diagram:
+.. figure:: images/areas_and_potentials_wind_diagram.png
+   :width: 75 %
+   :alt: Calculation of eligible areas for wind turbines
+   :align: center
+
+   Calculation of eligible areas for wind turbines
 
 Restriction areas
 ^^^^^^^^^^^^^^^^^
@@ -119,6 +127,16 @@ table
 
 Ground-mounted photovoltaics
 ----------------------------
+
+As shown in :numref:`re_pv_diagram`, ...
+
+.. _re_pv_diagram:
+.. figure:: images/areas_and_potentials_pv_ground_diagram.png
+   :width: 75 %
+   :alt: Calculation of eligible areas for ground-mounted PV
+   :align: center
+
+   Calculation of eligible areas for ground-mounted PV
 
 Potential areas
 ^^^^^^^^^^^^^^^
