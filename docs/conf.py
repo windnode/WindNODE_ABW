@@ -21,6 +21,7 @@ import windnode_abw
 import pathlib
 import pynodo
 import logging
+import re
 
 
 PARENTDIR = pathlib.Path(__file__).parent.absolute()
@@ -167,7 +168,7 @@ def single_scenario_nb_toctree(target_file="_include/single_scenario_results.rst
 
     prolog = "Results for each scenario are presented on a separate page. Please click on one of the links below.\n\n"
 
-    files = os.listdir("notebooks")
+    files = [f for f in os.listdir("notebooks") if re.match("scenario_analysis_(NEP|ISE|StatusQuo)", f)]
     basenames = [os.path.splitext(file)[0] for file in files]
     names = [file.replace("scenario_analysis_", "") for file in basenames]
 
