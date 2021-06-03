@@ -22,9 +22,9 @@ turbines with an installed capacity of 717 megawatts already covered around 45% 
 The further expansion and repowering of existing plants plays an important role in the transformation of the energy
 system in the region :cite:`MULE2019`.
 
-Wind turbines are privileged according to §35 BauGB :cite:`BWE2019`. However, it is necessary to consider important
-concerns such as nature and resident protection as well as the control of wind energy planning by designating
-so-called concentration areas in regional and land use plans with preclusive effects in the remaining planning area.
+Wind turbines are privileged according to §35 BauGB. However, it is necessary to consider important concerns such as
+nature and resident protection as well as the control of wind energy planning by designating so-called concentration
+areas in regional and land use plans with preclusive effects in the remaining planning area :cite:`BWE2019`.
 In the ABW region, it is the responsibility of the regional planning authority
 (*Regionale Planungsgemeinschaft Anhalt-Bitterfed-Wittenberg*) to designate such priority areas (VR/EG, German:
 Vorrang-/Eignungsgebiete), the *Teilplan Wind ABW 2018* can be found in :cite:`ABW2018a`. The planning area
@@ -44,6 +44,8 @@ in :numref:`re_wind_diagram`; 3590 ha (0.98 %) were actually designated as VR/EG
    :align: center
 
    Calculation of eligible areas for wind turbines
+
+The individual steps are described in the following subsections.
 
 Restriction areas
 ^^^^^^^^^^^^^^^^^
@@ -111,8 +113,8 @@ as well as the current legislation in force. The restriction areas include:
    :alt: Areas that require a case-by-case examination
    :align: center
 
-Assumptions and constraints
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Further assumptions
+^^^^^^^^^^^^^^^^^^^
 
 For the allocation of wind turbines we make use of a greenfield approach based upon the calculated potential areas,
 hence the age structure of existing turbines as well as repowering at existing sites are neglected. Instead, an average
@@ -123,7 +125,35 @@ An Enercon E-141 (4.2 MW) with a hub height of 159 m is used as model turbine in
 Results
 ^^^^^^^
 
-table
+Results are evaluated with regard to two central parameters, distance to settlements and the use of forest areas, which
+are subject of the current political and public debate. The current legislation prescribes a distance to settlements of
+1000 m in Saxony-Anhalt :cite:`LSA2015`, :cite:`FAwind2021`. Additionally, 500 m and 1500 m are used to evaluate how a
+decreased or increased distance would affect the total available area. Results are shown in the following table, the
+regulatory status quo (designated wind priority areas - *VR/EG*, cf. above) is given as reference.
+
++-------------------------------+---------------------+-------------+-----------------------+----------------+
+| **Distance to**               | **Use**             | **Results**                                          |
+| **settlements [m]**           | **forest areas?**   +-------------+-----------------------+----------------+
+|                               |                     | Area [ha]   | Installable turbines  | Installable    |
+|                               |                     |             | WEA (10% of area,     | nom. power [MW]|
+|                               |                     |             | 20 ha/MW)             |                |
++-------------------------------+---------------------+-------------+-----------------------+----------------+
+| 500                           | no                  | 87847       | 439                   | 1844           |
++-------------------------------+---------------------+-------------+-----------------------+----------------+
+| 1000                          | no                  | 30713       | 154                   | 752            |
++-------------------------------+---------------------+-------------+-----------------------+----------------+
+| 1500                          | no                  | 7461        | 37                    | 155            |
++-------------------------------+---------------------+-------------+-----------------------+----------------+
+| 500                           | yes                 | 147652      | 738                   | 3100           |
++-------------------------------+---------------------+-------------+-----------------------+----------------+
+| 1000                          | yes                 | 69057       | 345                   | 1449           |
++-------------------------------+---------------------+-------------+-----------------------+----------------+
+| 1500                          | yes                 | 25629       | 128                   | 538            |
++-------------------------------+---------------------+-------------+-----------------------+----------------+
+| **Reference:** Designated priority areas of status quo (*VR/EG*: 3590 ha)                 | **750**        |
++-------------------------------+---------------------+-------------+-----------------------+----------------+
+
+An analysis of the results is given in the end of this section: :ref:`re_results_land_use`.
 
 Ground-mounted photovoltaics
 ----------------------------
@@ -150,17 +180,25 @@ Assumptions and constraints
 Results
 ^^^^^^
 
+An analysis of the results is given in the end of this section: :ref:`re_results_land_use`.
+
 Rooftop photovoltaics
 ---------------------
 
 * The potential for rooftop PV is taken from the herkules :cite:`BKG2021`, :cite:`BKG2021a`
 
-Results for land use scenarios
-------------------------------
+.. _re_results_land_use:
+
+Definition of land use scenarios
+--------------------------------
+
+Based upon the above potentials four different RE scenarios are defined: **RE-**, **RE**, **RE+** and **RE++** which
+reflect different land use configurations and accordingly, different degrees of RE penetration. Each of the global
+:ref:`_scenarios` is assigned one of these RE scenarios, a full list is given in :ref:`_scenario-details-re`.
 
 The analysis of the available area for wind and PV installations already reveals important insights regarding stated
 research questions. :numref:`re_power_potential` presents installable capacity of wind and PV for the four land use
-restriction scenarios (**Wind+** and **PV+** are integrated into **RE+**) and for each target year.
+scenarios (**Wind+** and **PV+** are integrated into **RE+**) and for each target year.
 
 .. _re_power_potential:
 .. figure:: images/RES_power_potential_vs_REx_scenarios.png
