@@ -196,7 +196,7 @@ regulatory status quo (designated wind priority areas - *VR/EG*, cf. above) is g
 \* A reduction to 10 % of the total potential area is estimated for the case-by-case examination, cf.
 :ref:`re_wind_cbc`.
 
-An analysis of the results is given in the end of this chapter: :ref:`re_results_land_use`.
+An analysis of the results is given at the end of this chapter: :ref:`re_results_land_use`.
 
 Ground-mounted photovoltaics
 ----------------------------
@@ -357,12 +357,18 @@ of restrictions: strict restrictions only and strict+weak restrictions:
    :alt: Ground-mounted PV: eligible areas
    :align: center
 
-An analysis of the results is given in the end of this chapter: :ref:`re_results_land_use`.
+An analysis of the results is given at the end of this chapter: :ref:`re_results_land_use`.
 
 Rooftop photovoltaics
 ---------------------
 
-* The potential for rooftop PV is taken from the herkules :cite:`BKG2021`, :cite:`BKG2021a`
+For roof-mounted PV, a dataset on the roof areas of residential and industrial buildings was provided by the
+*Fraunhofer IEE* :cite:`FraunhoferIEE2018`. The data was created in the *herkules* project using building footprints
+from cite:`BKG2021` and :cite:`BKG2021a`. The available space on residential buildings is estimated with 25 % and 50 %
+industrial buildings. Moreover, a specific space requirement of 7 m²/kWp is assumed for status quo, 5.5 m²/kWp for 2035
+and 4.5 m²/kWp for 2050 using the reduction factor calculated from values of ground-mounted PV (cf.
+:ref:`re_pv_assumptions`). For 7 m²/kWp, this results in a total PV rooftop potential of 89 MWp on residential and
+795 MWp on industrial buildings.
 
 .. _re_results_land_use:
 
