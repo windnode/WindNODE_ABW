@@ -68,7 +68,7 @@ Fluctuating renewables
 ^^^^^^^^^^^^^^^^^^^^^^
 
 The model includes georeferenced data on wind turbines, ground-mounted PV, roof-mounted PV, biogas plants, and
-run-of-river plant data of 2017 from the *OPSD* project :cite:`OPSDre2018`.
+run-of-river plant data of 2017 from the *OPSD* project :cite:`OPSDre2018`, :cite:`Wiese2019`.
 
 Wind turbines
 """""""""""""
@@ -174,7 +174,7 @@ change. Other aspects such as changes in devices' efficiencies or consumers' beh
      CTS -60 %
 
 3. Moreover, a decrease in **electricity and heat demand** due to depopulation and decline in employment is taken into
-   account.
+   account (data from :cite:`STALA2015`, :cite:`StatistischesBundesamt2019`).
 
    * 2035: population 307,877 (-16.8 %), employees 73,535 (-10.6 %)
    * 2050: population 275,411 (-25.6 %), employees 65,588 (-20.2 %)
@@ -247,22 +247,23 @@ Bitterfeld-Wolfen, Köthen, Wittenberg
 
 *Notes*
   * The electric energy produced by all feeding power units is fed into the closest MV/MV station.
+  * Further parameters are taken from :cite:`DEA_electricity_heat`.
 
 .. _esm_dec_heating_systems_label:
 
 Decentralized Heating systems
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The technology shares in the decentralized heating systems for households in the status quo scenario are obtained from
-*demandRegio* :cite:`FFE2019` on a district resolution. For the CTS and agricultural sector, data on federal state
+Date on technology shares in the decentralized heating systems for households in the status quo scenario are obtained
+from *demandRegio* :cite:`FFE2019` on a district resolution. For the CTS and agricultural sector, data on federal state
 resolution from :cite:`STALA2018` is used. It is assumed that these shares also apply for the underlying municipalities.
 Per municipality, for each technology (natural gas, fuel oil, wood, coal, solar thermal, night storage heating,
 ambient_heat) one generator (*oemof* components: `Source <https://oemof-solph.readthedocs.io/en/latest/usage.html#source-basic>`_
 and `Transformer <https://oemof-solph.readthedocs.io/en/latest/usage.html#transformer-basic>`_) is created, feeding into
-the decentral heat bus (see :ref:`esm_model_details_label`). Except for ambient_heat, which is provided by heat pumps in
-the model and a flexible generation, all of the above sources are fixed generators whose feedin follow the heat demand
-with its respective share. Energy generation of solar thermal systems is calculated using the normalized PV feedin
-timeseries.
+the decentral heat bus (see :ref:`esm_model_details_label`). Model parameters are obtained from :cite:`DEA_heating`.
+Except for ambient_heat, which is provided by heat pumps in the model and a flexible generation, all of the above
+sources are fixed generators whose feedin follow the heat demand with its respective share. Energy generation of solar
+thermal systems is calculated using the normalized PV feedin timeseries.
 
 For the future scenarios based upon NEP (2035) :cite:`NEP2021` and ISE (2050) :cite:`ISE2020`, :cite:`ISE2021` (cf.
 :ref:`scenarios`) different shares apply. The following table shows the configuration for all 3 scenarios/years per
@@ -275,7 +276,8 @@ Methane
 
 In the future scenarios, some components still rely on natural gas such as CCGT and boilers. Aligned to the two
 underlying studies NEP (2035) :cite:`NEP2021` and ISE (2050) :cite:`ISE2020`, a fixed proportion of methane in the gas
-network is assumed (2035: 0 %, 2050: 100 %) affecting the emissions and operational cost of those components.
+network is assumed (2035: 0 %, 2050: 100 %) affecting the emissions and operational cost of those components. Parameters
+are taken from :cite:`DEA_efuels`.
 
 Further notes
 ^^^^^^^^^^^^^
