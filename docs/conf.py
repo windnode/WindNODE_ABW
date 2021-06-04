@@ -306,7 +306,8 @@ html_theme_options = {
         "land_eligibility": "Analysis of regional land eligibility for wind energy and photovoltaics",
         "data": "How to obtain model input and results data",
         "results": "Explore results in detail",
-        "usage_notes": "How to install and use the model"
+        "usage_notes": "How to install and use the model",
+        "zbibliography": "References"
     },
     "version_dropdown": True,
     "version_json": "_static/versions.json",
