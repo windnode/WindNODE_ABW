@@ -246,7 +246,7 @@ extensions.append("sphinx_material")
 html_theme_path = sphinx_material.html_theme_path()
 html_context = sphinx_material.get_html_context()
 html_theme = "sphinx_material"
-html_logo = "images/Windnode.png"
+html_logo = "images/rli_windnode_logo.png"
 
 # enable numeric references for figures
 numfig = True
