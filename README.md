@@ -3,7 +3,7 @@ Simulation der Region Anhalt-Bitterfeld-Wittenberg im Projekt WindNODE
 
 ## Documentation
 Further details are provided in the
-[documentation](https://windnode-abw.readthedocs.io/en/dev/).
+[documentation](https://windnode-abw.readthedocs.io/).
 
 ## Installation
 

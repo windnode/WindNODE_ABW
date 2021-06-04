@@ -246,7 +246,7 @@ extensions.append("sphinx_material")
 html_theme_path = sphinx_material.html_theme_path()
 html_context = sphinx_material.get_html_context()
 html_theme = "sphinx_material"
-html_logo = "images/Windnode.png"
+html_logo = "images/rli_windnode_logo.png"
 
 # enable numeric references for figures
 numfig = True
@@ -260,8 +260,8 @@ html_theme_options = {
     "css_minify": True,
     # "logo_icon": "&#xe869",
     "repo_type": "github",
-    "color_primary": "blue",
-    "color_accent": "cyan",
+    "color_primary": "indigo",
+    "color_accent": "orange",
     "globaltoc_depth": 3,
     # "touch_icon": "images/apple-icon-152x152.png",
     "theme_color": "#2196f3",
@@ -279,6 +279,11 @@ html_theme_options = {
             "title": "Energy system model",
         },
         {
+            "href": "land_eligibility",
+            "internal": True,
+            "title": "Land eligibility for RE",
+        },
+        {
             "href": "data",
             "internal": True,
             "title": "Data",
@@ -289,23 +294,25 @@ html_theme_options = {
             "title": "Results",
         },
         {
-            "href": "zbibliography",
+            "href": "usage_notes",
             "internal": True,
-            "title": "Bibliography",
+            "title": "Usage notes",
         },
         {
-            "href": "development",
+            "href": "zbibliography",
             "internal": True,
-            "title": "Development",
-        },
+            "title": "References",
+        }
     ],
     "heroes": {
         "index": "A regional energy system model for Anhalt-Bitterfeld-Wittenberg",
         "scenarios": "Scenario-based exploration of energy supply and flexibility options",
         "energy_system_model": "Modelling regional aspects of future electricity and heat supply",
-        "data": "Where the data comes from",
+        "land_eligibility": "Analysis of regional land eligibility for wind energy and photovoltaics",
+        "data": "How to obtain model input and results data",
         "results": "Explore results in detail",
-        "development": "Some notes for developers"
+        "usage_notes": "How to install and use the model",
+        "zbibliography": "References"
     },
     "version_dropdown": True,
     "version_json": "_static/versions.json",
