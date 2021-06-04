@@ -7,11 +7,6 @@
 WindNODE ABW is one part of the Reiner Lemoine Institute's engagement in the research project
 `WindNODE <https://windnode.de>`_.
 
-.. warning::
-
-   |construct| This documentation is currently under construction and will be available soon.
-   Stay tuned! |construct|
-
 Project context
 ---------------
 
@@ -27,8 +22,5 @@ Goals
    land_eligibility
    data
    results
-   zbibliography
    usage_notes
-
-.. |construct| image:: images/construct-outline.png
-               :width: 20 px
+   zbibliography
