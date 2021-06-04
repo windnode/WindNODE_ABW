@@ -27,6 +27,29 @@ Install requirements manually in your venv, **egoio** should be the last. Instal
 To run the model, you also need a solver to be installed such as CBC or Gurobi. On Linux, you can install CBC with
 `apt install coinor-cbc`. Make sure the solver is set in the run configuration dict in `run_scenario.py`.
 
+Trouble shooting
+^^^^^^^^^^^^^^^^
+
+Installation of ``psutils``
+"""""""""""""""""""""""""""
+
+During the installtion of ``windnode_abw``, the package ``psutils``
+might fail. Install the system package ``python3-dev`` with
+
+.. code:: bash
+
+   sudo apt install python3-dev
+
+Installation of ``pygraphviz``
+""""""""""""""""""""""""""""""
+
+During the installtion of ``windnode_abw``, the package ``pygraphviz``
+might fail. Install additional system packages with
+
+.. code:: bash
+
+   sudo apt install python3-dev graphviz libgraphviz-dev pkg-config
+
 Setup postgres database with docker (optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
