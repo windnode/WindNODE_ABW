@@ -303,9 +303,10 @@ html_theme_options = {
         "index": "A regional energy system model for Anhalt-Bitterfeld-Wittenberg",
         "scenarios": "Scenario-based exploration of energy supply and flexibility options",
         "energy_system_model": "Modelling regional aspects of future electricity and heat supply",
-        "data": "Where the data comes from",
+        "land_eligibility": "Analysis of regional land eligibility for wind energy and photovoltaics",
+        "data": "How to obtain model input and results data",
         "results": "Explore results in detail",
-        "development": "Some notes for developers"
+        "usage_notes": "How to install and use the model"
     },
     "version_dropdown": True,
     "version_json": "_static/versions.json",
