@@ -3,38 +3,6 @@
 Energy system model
 ===================
 
-The region Anhalt-Bitterfeld-Wittenberg (ABW)
----------------------------------------------
-
-The Anhalt-Bitterfeld-Wittenberg (ABW) region modelled in this tool is located in the east of Saxony-Anhalt comprising
-the three districts Anhalt-Bitterfeld, Wittenberg, and the city of Dessau-Roßlau (:numref:`map_de_abw`). It has a total
-area of 3,629 km² and a population of 370,190 inhabitants in 2017.
-
-.. _map_de_abw:
-.. figure:: images/map_de_abw.png
-   :width: 40 %
-   :align: center
-
-   Region ABW in Germany
-
-.. _map_abw_esys1:
-.. figure:: images/map_abw_muns.png
-   :width: 75 %
-   :align: center
-
-   Region ABW with municipalities
-
-Substantial amounts of RES are installed in the region. In 2017, 717 MW of wind power and 445 MW of ground-mounted
-PV covered 63 % of the regional electricty demand of 20 municipalities.
-
-..
-  COMMENTED OUT
- .. image:: images/map_de_abw.png
-    :width: 50 %
- .. image:: images/map_abw_esys1.png
-    :width: 40 %
-
-
 Rationale and model focus
 -------------------------
 
