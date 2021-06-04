@@ -1,0 +1,21 @@
+Table,Description
+wn_abw_demandts,Demand timeseries electricity and heat (absolute)
+wn_abw_demography,Population and employment
+wn_abw_dsmts,DSM timeseries (absolute)
+wn_abw_dsmts_norm,DSM timeseries (normalized to 1 MWh)
+wn_abw_feedints,Feedin timeseries electricity Strom (absolute and normalized)
+wn_abw_grid_hv_bus,El. grid: buses
+wn_abw_grid_hv_line,El. grid: lines
+wn_abw_grid_hv_transformer,El. grid: EHV/HV stations
+wn_abw_grid_hvmv_substation,El. grid: HV/MV stations
+wn_abw_grid_mv_griddistrict,El. grid: MV grid districts
+wn_abw_heating_structure,Heating structure HH+GHD (relative shares)
+wn_abw_mun,Municipalities
+wn_abw_mundata,Statistical data on municipalities
+wn_abw_potential_areas_pv,Potential areas: ground-mounted PV
+wn_abw_potential_areas_pv_roof,Potential areas: roof-mounted PV
+wn_abw_potential_areas_wec,Potential areas: wind energy
+wn_abw_powerplant,Plants
+wn_abw_rel_subst_id_ags_id,Relation table: HV/MV stations – municipalities
+wn_abw_tech_assumptions,Scenario data / assumptions on costs emissions efficiencies lifetimes
+wn_abw_tempts,Temperature timeseries (air and soil)
