@@ -11,11 +11,11 @@ Result data
 -----------
 
 The raw results can be either produced by running the optimization or obtained from Zenodo
-`here <https://zenodo.org/record/4288943/>`_.
+`here <https://zenodo.org/record/4288943/>`__.
 
 The detailed results as shown in chapter :ref:`results` show only static graphics, for full functionality the
-interactive Jupyter notebooks for all scenarios can be downloaded from Zenodo
-`here <https://zenodo.org/record/4896569/>`_ or generated as described in :ref:`usage_notes`.
+interactive Jupyter notebooks for all scenarios can be generated as described in :ref:`usage_notes` or downloaded as
+executed version from Zenodo `here <https://zenodo.org/record/4896569/>`__.
 
 License
 -------
