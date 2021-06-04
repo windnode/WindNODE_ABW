@@ -24,7 +24,7 @@ Goals
 
    scenarios
    energy_system_model
-   land_availability
+   land_eligibility
    data
    results
    zbibliography

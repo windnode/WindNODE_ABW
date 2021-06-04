@@ -18,7 +18,7 @@ area of 3,629 km² and a population of 370,190 inhabitants in 2017.
    Region ABW in Germany
 
 .. _map_abw_esys1:
-.. figure:: images/map_abw_esys1.png
+.. figure:: images/map_abw_muns.png
    :width: 75 %
    :align: center
 
@@ -47,9 +47,9 @@ Grid model
 ----------
 
 The transmission capacities between the municipalities are given by the extra high voltage (380 kV) and high voltage
-grid (110 kV) as shown in :numref:`map_abw_grid`; its topology and parameters were taken from :cite:`Mueller2018`. This
-allows for a realistic assessment of the intra-regional exchange and grid load as well as the identification of
-potential congestions on those voltage levels.
+grid (110 kV) as shown in :numref:`map_abw_grid`; its topology and parameters were taken from :cite:`Mueller2018`,
+:cite:`openego2019`. This allows for a realistic assessment of the intra-regional exchange and grid load as well as the
+identification of potential congestions on those voltage levels.
 
 Subsequently, the electrical generation and demand of the municipalities are allocated to high voltage (HV) / medium
 voltage (MV) transformer stations. The allocation is done as follows:
@@ -93,6 +93,8 @@ model's components.
    :align: center
 
    Components of regional energy system model
+
+.. _esm_fluctuating_renewables_label:
 
 Fluctuating renewables
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -190,7 +192,7 @@ change. Other aspects such as changes in devices' efficiencies or consumers' beh
    years:
 
    * residential buildings: 1.0 % for 2017-2024, 1.6 % for 2025-2034, 2.0 % for 2035-2044, and
-     2.5 % for 2045-2050 :cite:``. This results in a total renovation rate of 24 % in 2035 and 56.2 % in 2050.
+     2.5 % for 2045-2050 :cite:`BMWi2017`. This results in a total renovation rate of 24 % in 2035 and 56.2 % in 2050.
    * non-residential buildings: 1.3 % for 2017-2024, 2.15 % for 2025-2034, 2.7 % for 2035-2044, and 3.4 % for
      2045-2050. This results in a total renovation rate of 31.9 % in 2035 and 75.9 % in 2050.
 
@@ -284,7 +286,7 @@ Decentralized Heating systems
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The technology shares in the decentralized heating systems for households in the status quo scenario are obtained from
-*demandRegio* cite:`FFE2019` on a district resolution. For the CTS and agricultural sector, data on federal state
+*demandRegio* :cite:`FFE2019` on a district resolution. For the CTS and agricultural sector, data on federal state
 resolution from :cite:`STALA2018` is used. It is assumed that these shares also apply for the underlying municipalities.
 Per municipality, for each technology (natural gas, fuel oil, wood, coal, solar thermal, night storage heating,
 ambient_heat) one generator (*oemof* components: `Source <https://oemof-solph.readthedocs.io/en/latest/usage.html#source-basic>`_
@@ -402,6 +404,14 @@ capacities for the other cities in the *PTH* scenarios (5 MWh/MW_peak). In the *
 10 MWh/MW_peak is used. The existing storage in Dessau is retained in all scenarios. The C-rates are estimated with 0.1
 :cite:`DEA_storage`.
 
+Autarky
+-------
+
+With the scenario dimension autarkic supply, it is investigated how region's energy demand can be supplied under
+constrained imports of electricity. Autarky on annual balance of 80 % and 90 % is analyzed based in the in-depth
+investigation of regional autarky in RE based electricity supply by :cite:`moeller2020`. In the energy system model,
+this is achieved by limiting the annual energy import to 20 % resp. 10 % .
+
 .. _esm_model_details_label:
 
 Model details
@@ -425,5 +435,10 @@ The components' names and *oemof* classes used in the model are given in the fol
 
 .. note::
 
-    Details on the model's topology and components' parameters can be found in the
+    Details on the topology and components' parameters can be found in the model's
     `source code <https://github.com/windnode/WindNODE_ABW/blob/master/windnode_abw/model/region/model.py>`_.
+
+.. note::
+
+    The scenario configuration is defined
+    `here <https://github.com/windnode/WindNODE_ABW/tree/master/windnode_abw/scenarios>`_.

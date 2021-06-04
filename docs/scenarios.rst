@@ -65,6 +65,8 @@ Most important parameters that distinguish the individual scenarios are shown be
 How these scenarios are constructed and how parameters are determined is described for each scenario dimension in the
 subsections below.
 
+.. _scenario-details-re:
+
 Renewable energy installations (RE)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
