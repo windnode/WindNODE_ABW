@@ -279,6 +279,11 @@ html_theme_options = {
             "title": "Energy system model",
         },
         {
+            "href": "land_eligibility",
+            "internal": True,
+            "title": "Land eligibility for RE",
+        },
+        {
             "href": "data",
             "internal": True,
             "title": "Data",
@@ -289,15 +294,15 @@ html_theme_options = {
             "title": "Results",
         },
         {
-            "href": "zbibliography",
+            "href": "usage_notes",
             "internal": True,
-            "title": "Bibliography",
+            "title": "Usage notes",
         },
         {
-            "href": "development",
+            "href": "zbibliography",
             "internal": True,
-            "title": "Development",
-        },
+            "title": "References",
+        }
     ],
     "heroes": {
         "index": "A regional energy system model for Anhalt-Bitterfeld-Wittenberg",
