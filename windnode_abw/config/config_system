@@ -1,0 +1,15 @@
+# This file is part of WindNODE_ABW, a regional simulation model.
+#
+# WindNODE_ABW lives at github: https://github.com/windnode/WindNODE_ABW/
+#
+# CAUTION: This is an internal config file, do not modify unless you know what
+# you are doing!
+
+[user_dirs]
+
+# root_dir: defines the parent directory for user files which is created in /home/<user>/
+root_dir = .windnode_abw
+config_dir = config
+data_dir = data
+log_dir = log
+results_dir = results

@@ -96,9 +96,13 @@ ENV/
 
 # mkdocs documentation
 /site
+doc/_build
 
 # mypy
 .mypy_cache/
 
 # exclude project files
 .idea/
+
+# database
+*.backup

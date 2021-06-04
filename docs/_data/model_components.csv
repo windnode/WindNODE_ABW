@@ -1,0 +1,42 @@
+Group,Component,oemof type,Label
+electricity,bus electricity,Bus,b_el_{bus_id}
+,bus electricity import/export,Bus,b_el_imex
+,EHV/HV station,Transformer,trafo_{id}_b{bus_id0}_b{bus_id1}
+
+,export,Sink,excess_el_{v_level}_b{bus_id}
+,import,Source,shortage_el_{v_level}_b{bus_id}
+,line import/export,Link,line_b{idx}_b_el_imex
+,line HS,Link,line_{line_id}_b{bus_id0}_b{bus_id1}
+
+,generator EE,Source,gen_el_{ags}_b{bus_id}_{tech}
+,generator SCGT Wolfen,Transformer,gen_el_{ags}_gas
+,demand,Sink,dem_el_{ags}_b{bus_id}_{sector}
+,large-scale batteries,GenericStorage,flex_bat_large_{ags}_b{bus_id}
+,home system batteries,GenericStorage,flex_bat_small_{ags}_b{bus_id}
+,DSM,SinkDSM,flex_dsm_{ags}_b{bus_id}
+commodities,bus,Bus,b_{energy_source}
+,energy carrier,Source,{energy_source}
+,bus gas,Bus,b_gas
+,natural gas-methane mixer,Transformer,natural_gas_methane_ratio
+decentralized heating,bus,Bus,b_th_dec_{ags}_{sector}
+,generator,Source,gen_th_dec_{ags}_{sector}_{energy_source}
+,demand,Sink,dem_th_dec_{ags}_{sector}
+,ASHP without storage,Transformer,flex_dec_pth_ASHP_nostor_{ags}_{sector}
+,GSHP without storage,Transformer,flex_dec_pth_GSHP_nostor_{ags}_{sector}
+,ASHP with storage,Transformer,flex_dec_pth_ASHP_stor_{ags}_{sector}
+,GSHP with storage,Transformer,flex_dec_pth_GSHP_stor_{ags}_{sector}
+,    HP: bus,Bus,b_th_dec_pth_{ags}_{sector}
+
+,    HP: storage,GenericStorage,stor_th_dec_pth_{ags}_{sector}
+
+,    HP: feedin into dec. heat bus,Transformer,trans_dummy_th_dec_pth_{ags}_{sector}
+district heating,bus district heating network (in),Bus,b_th_cen_in_{ags}
+,district heating network,Transformer,network_th_cen_{ags}
+,bus district heating network (out),Bus,b_th_cen_out_{ags}
+,generator CCGT Dessau,ExtractionTurbineCHP,gen_th_cen_{ags}_gud
+,generator CCGT B-W,Transformer,gen_th_cen_{ags}_gud
+,generator gas-fired boiler,Transformer,gen_th_cen_{ags}_gas_boiler
+,generator CHP,Transformer,gen_th_cen_{ags}_bhkw
+,demand,Sink,dem_th_cen_{ags}_{sector}
+,electrical boiler,Transformer,flex_cen_pth_{ags}
+,heat storage,GenericStorage,stor_th_cen_{ags}

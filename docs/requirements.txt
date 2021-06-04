@@ -1,0 +1,6 @@
+sphinx>=2
+nbsphinx
+sphinxcontrib-bibtex<2.0.0
+sphinx-material
+tabulate
+pynodo
