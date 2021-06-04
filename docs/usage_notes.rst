@@ -10,7 +10,8 @@ Clone and install via
 
 .. code-block:: bash
 
-    pip install -e
+    git clone https://github.com/windnode/WindNODE_ABW.git # or by SSH: git@github.com:windnode/WindNODE_ABW.git
+    pip install -e /path/to/cloned/repo/
 
 (a virtualenv is recommended).
 
